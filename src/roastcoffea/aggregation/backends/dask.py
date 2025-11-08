@@ -6,7 +6,10 @@ into standardized worker metrics dictionaries.
 
 from __future__ import annotations
 
+import datetime
 from typing import Any
+
+import numpy as np
 
 
 def parse_tracking_data(tracking_data: dict[str, Any]) -> dict[str, Any]:
@@ -22,18 +25,39 @@ def parse_tracking_data(tracking_data: dict[str, Any]) -> dict[str, Any]:
     dict
         Aggregated worker metrics
     """
-    # Stub implementation
+    worker_counts = tracking_data.get("worker_counts", {})
+    worker_memory = tracking_data.get("worker_memory", {})
+    cores_per_worker = tracking_data.get("cores_per_worker")
+
+    # Calculate worker metrics
+    avg_workers = calculate_time_averaged_workers(worker_counts)
+    peak_workers = max(worker_counts.values()) if worker_counts else 0
+
+    # Calculate total cores
+    total_cores = None
+    if cores_per_worker is not None and avg_workers is not None:
+        total_cores = avg_workers * cores_per_worker
+
+    # Calculate memory metrics
+    peak_memory_bytes = calculate_peak_memory(worker_memory)
+    avg_memory_per_worker_bytes = calculate_average_memory_per_worker(worker_memory)
+
     return {
-        "avg_workers": 0.0,
-        "peak_workers": 0,
-        "total_cores": None,
-        "peak_memory_bytes": 0.0,
-        "avg_memory_per_worker_bytes": 0.0,
+        "avg_workers": avg_workers,
+        "peak_workers": peak_workers,
+        "total_cores": total_cores,
+        "peak_memory_bytes": peak_memory_bytes,
+        "avg_memory_per_worker_bytes": avg_memory_per_worker_bytes,
     }
 
 
-def calculate_time_averaged_workers(worker_counts: dict) -> float:
+def calculate_time_averaged_workers(
+    worker_counts: dict[datetime.datetime, int],
+) -> float:
     """Calculate time-weighted average worker count.
+
+    Uses trapezoidal integration to compute the average number of workers
+    weighted by the time each count was active.
 
     Parameters
     ----------
@@ -45,11 +69,40 @@ def calculate_time_averaged_workers(worker_counts: dict) -> float:
     float
         Time-averaged worker count
     """
-    # Stub implementation
-    return 0.0
+    if not worker_counts:
+        return 0.0
+
+    if len(worker_counts) < 2:
+        return float(list(worker_counts.values())[0])
+
+    # Sort by timestamp
+    sorted_items = sorted(worker_counts.items())
+    timestamps = [t for t, _ in sorted_items]
+    counts = [c for _, c in sorted_items]
+
+    # Convert to seconds since first sample
+    t0 = timestamps[0]
+    times = np.array([(t - t0).total_seconds() for t in timestamps])
+    worker_array = np.array(counts, dtype=float)
+
+    # Calculate time intervals
+    delta_t = np.diff(times)
+
+    # Trapezoidal integration: area = (y1 + y2) / 2 * delta_t
+    workers_times_time = [
+        (worker_array[i] + worker_array[i + 1]) / 2 * delta_t[i]
+        for i in range(len(delta_t))
+    ]
+
+    # Time-weighted average
+    total_time = times[-1] - times[0]
+    if total_time == 0:
+        return worker_array[0]
+
+    return sum(workers_times_time) / total_time
 
 
-def calculate_peak_memory(worker_memory: dict) -> float:
+def calculate_peak_memory(worker_memory: dict[str, list[tuple]]) -> float:
     """Calculate peak memory usage across all workers.
 
     Parameters
@@ -62,12 +115,23 @@ def calculate_peak_memory(worker_memory: dict) -> float:
     float
         Maximum memory usage observed
     """
-    # Stub implementation
-    return 0.0
+    if not worker_memory:
+        return 0.0
+
+    all_memory_values = []
+    for worker_id, timeline in worker_memory.items():
+        for timestamp, memory_bytes in timeline:
+            all_memory_values.append(memory_bytes)
+
+    return max(all_memory_values) if all_memory_values else 0.0
 
 
-def calculate_average_memory_per_worker(worker_memory: dict) -> float:
+def calculate_average_memory_per_worker(
+    worker_memory: dict[str, list[tuple]],
+) -> float:
     """Calculate time-weighted average memory per worker.
+
+    Computes time-weighted average for each worker, then averages across workers.
 
     Parameters
     ----------
@@ -79,5 +143,44 @@ def calculate_average_memory_per_worker(worker_memory: dict) -> float:
     float
         Average memory per worker
     """
-    # Stub implementation
-    return 0.0
+    if not worker_memory:
+        return 0.0
+
+    worker_averages = []
+
+    for worker_id, timeline in worker_memory.items():
+        if len(timeline) < 2:
+            if timeline:
+                worker_averages.append(timeline[0][1])
+            continue
+
+        # Sort by timestamp
+        timeline = sorted(timeline, key=lambda x: x[0])
+
+        # Extract timestamps and memory values
+        timestamps = [t for t, m in timeline]
+        memory_values = [m for t, m in timeline]
+
+        # Convert to seconds since first sample
+        t0 = timestamps[0]
+        times = np.array([(t - t0).total_seconds() for t in timestamps])
+        memory = np.array(memory_values, dtype=float)
+
+        # Calculate time intervals
+        delta_t = np.diff(times)
+
+        # Trapezoidal integration
+        memory_times_time = [
+            (memory[i] + memory[i + 1]) / 2 * delta_t[i] for i in range(len(delta_t))
+        ]
+
+        # Time-weighted average for this worker
+        total_time = times[-1] - times[0]
+        if total_time > 0:
+            worker_avg = sum(memory_times_time) / total_time
+            worker_averages.append(worker_avg)
+        else:
+            worker_averages.append(memory[0])
+
+    # Average across all workers
+    return float(np.mean(worker_averages)) if worker_averages else 0.0
