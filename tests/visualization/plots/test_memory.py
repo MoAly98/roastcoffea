@@ -1,0 +1,124 @@
+"""Tests for memory utilization timeline plotting."""
+
+from __future__ import annotations
+
+import datetime
+
+import matplotlib.pyplot as plt
+import pytest
+
+from roastcoffea.visualization.plots.memory import plot_memory_utilization_timeline
+
+
+class TestPlotMemoryUtilizationTimeline:
+    """Test memory utilization timeline plotting."""
+
+    @pytest.fixture
+    def sample_tracking_data(self):
+        """Sample tracking data with memory information."""
+        t0 = datetime.datetime(2025, 1, 1, 12, 0, 0)
+        t1 = datetime.datetime(2025, 1, 1, 12, 0, 10)
+        t2 = datetime.datetime(2025, 1, 1, 12, 0, 20)
+
+        return {
+            "worker_memory": {
+                "worker1": [
+                    (t0, 1_000_000_000),  # 1 GB / 4 GB = 25%
+                    (t1, 2_000_000_000),  # 2 GB / 4 GB = 50%
+                    (t2, 3_000_000_000),  # 3 GB / 4 GB = 75%
+                ],
+                "worker2": [
+                    (t0, 800_000_000),  # 0.8 GB / 4 GB = 20%
+                    (t1, 1_600_000_000),  # 1.6 GB / 4 GB = 40%
+                    (t2, 2_400_000_000),  # 2.4 GB / 4 GB = 60%
+                ],
+            },
+            "worker_memory_limit": {
+                "worker1": [
+                    (t0, 4_000_000_000),
+                    (t1, 4_000_000_000),
+                    (t2, 4_000_000_000),
+                ],
+                "worker2": [
+                    (t0, 4_000_000_000),
+                    (t1, 4_000_000_000),
+                    (t2, 4_000_000_000),
+                ],
+            },
+        }
+
+    def test_returns_figure_and_axes(self, sample_tracking_data):
+        """plot_memory_utilization_timeline returns matplotlib Figure and Axes."""
+        fig, ax = plot_memory_utilization_timeline(sample_tracking_data)
+
+        assert isinstance(fig, plt.Figure)
+        assert isinstance(ax, plt.Axes)
+
+        plt.close(fig)
+
+    def test_plots_memory_utilization_percentage(self, sample_tracking_data):
+        """Memory utilization is plotted as percentage."""
+        fig, ax = plot_memory_utilization_timeline(sample_tracking_data)
+
+        # Y-axis should be limited to 0-100%
+        ymin, ymax = ax.get_ylim()
+        assert ymin == 0
+        assert ymax == 100
+
+        plt.close(fig)
+
+    def test_has_correct_labels(self, sample_tracking_data):
+        """Memory utilization plot has correct labels."""
+        fig, ax = plot_memory_utilization_timeline(sample_tracking_data)
+
+        assert ax.get_xlabel() == "Time"
+        assert ax.get_ylabel() == "Memory Utilization (%)"
+        assert ax.get_title() == "Memory Utilization Over Time"
+
+        plt.close(fig)
+
+    def test_custom_title(self, sample_tracking_data):
+        """Can set custom title."""
+        fig, ax = plot_memory_utilization_timeline(
+            sample_tracking_data, title="Custom Memory Title"
+        )
+
+        assert ax.get_title() == "Custom Memory Title"
+
+        plt.close(fig)
+
+    def test_saves_to_file(self, sample_tracking_data, tmp_path):
+        """Can save memory utilization plot to file."""
+        output_file = tmp_path / "memory_util.png"
+
+        fig, ax = plot_memory_utilization_timeline(
+            sample_tracking_data, output_path=output_file
+        )
+
+        assert output_file.exists()
+
+        plt.close(fig)
+
+    def test_raises_on_missing_memory_data(self):
+        """Raises ValueError if memory data missing."""
+        tracking_data = {
+            "worker_memory": {},
+            "worker_memory_limit": {},
+        }
+
+        with pytest.raises(ValueError, match="Memory.*not available"):
+            plot_memory_utilization_timeline(tracking_data)
+
+    def test_raises_on_missing_memory_limit(self):
+        """Raises ValueError if memory limit data missing."""
+        t0 = datetime.datetime(2025, 1, 1, 12, 0, 0)
+
+        tracking_data = {
+            "worker_memory": {
+                "worker1": [(t0, 1_000_000_000)],
+            },
+            "worker_memory_limit": {},  # Missing
+        }
+
+        with pytest.raises(ValueError, match="Memory.*not available"):
+            plot_memory_utilization_timeline(tracking_data)
