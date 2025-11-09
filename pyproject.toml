@@ -1,35 +1,34 @@
-        [build-system]
-        requires = ["hatchling"]
-        build-backend = "hatchling.build"
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-
-        [project]
-        name = "roastcoffea"
-        description = "Comprehensive performance monitoring and metrics collection for Coffea-based High Energy Physics analysis workflows"
-        license = "BSD-3-Clause"
-        license-files = ["LICENSE"]
-        readme = "README.md"
-        requires-python = ">=3.13"
-        classifiers = [
-            "Development Status :: 1 - Planning",
-            "Intended Audience :: Science/Research",
-            "Intended Audience :: Developers",
-            "Operating System :: OS Independent",
-            "Programming Language :: Python",
-            "Programming Language :: Python :: 3",
-            "Programming Language :: Python :: 3 :: Only",
-            "Programming Language :: Python :: 3.11",
-            "Programming Language :: Python :: 3.12",
-            "Programming Language :: Python :: 3.13",
-            "Topic :: Scientific/Engineering",
-            "Typing :: Typed",
-        ]
-        dynamic = ["version"]
-        authors = [
-            { name = "Mohamed Aly", email = "mohamed.aly@cern.ch" },
-        ]
-        dependencies = [
-            "coffea>=2024.0.0",
+[project]
+name = "roastcoffea"
+description = "Comprehensive performance monitoring and metrics collection for Coffea-based High Energy Physics analysis workflows"
+license = "BSD-3-Clause"
+license-files = ["LICENSE"]
+readme = "README.md"
+requires-python = ">=3.13"
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+    "Typing :: Typed",
+]
+dynamic = ["version"]
+authors = [
+{ name = "Mohamed Aly", email = "mohamed.aly@cern.ch" },
+]
+dependencies = [
+    "coffea>=2024.0.0",
     "dask[distributed]>=2024.0.0",
     "distributed>=2024.0.0",
     "rich>=13.0.0",
@@ -38,11 +37,11 @@
     "numpy>=1.20.0",
     "psutil>=5.9.0",
     "awkward>=2.0.0",
-        ]
+]
 
 
-        [dependency-groups]
-        test = [
+[dependency-groups]
+    test = [
     "pytest>=8.0",
     "pytest-cov>=4.0",
     "pytest-asyncio>=0.21.0",
@@ -68,89 +67,110 @@ dev = [
     "ruff",
     "pre_commit",
     "mypy",
-    "mypy>=1.0",
     "types-psutil",
 ]
 
 
-        [project.urls]
-        Homepage = "https://github.com/MoAly98/roastcoffea"
-        "Bug Tracker" = "https://github.com/MoAly98/roastcoffea/issues"
-        Discussions = "https://github.com/MoAly98/roastcoffea/discussions"
-        Changelog = "https://github.com/MoAly98/roastcoffea/releases"
+[project.urls]
+Homepage = "https://github.com/MoAly98/roastcoffea"
+"Bug Tracker" = "https://github.com/MoAly98/roastcoffea/issues"
+Discussions = "https://github.com/MoAly98/roastcoffea/discussions"
+Changelog = "https://github.com/MoAly98/roastcoffea/releases"
+
+[tool.hatch]
+version.path = "src/roastcoffea/__init__.py"
 
 
-        [tool.hatch]
-        version.path = "src/roastcoffea/__init__.py"
+[tool.pytest.ini_options]
+minversion = "7"
+xfail_strict = true
+addopts = ["-ra", "--strict-config", "--strict-markers", "-m", "not slow"]
+pythonpath = ["src"]
+filterwarnings = [
+    "error",
+]
+log_cli_level = "INFO"
+testpaths = ["tests"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+]
 
 
-        [tool.pytest.ini_options]
-        minversion = "7"
-        xfail_strict = true
-        addopts = ["-ra", "--strict-config", "--strict-markers"]
-        pythonpath = ["src"]
-        filterwarnings = [
-            "error",
-        ]
-        log_cli_level = "INFO"
-        testpaths = ["tests"]
+[tool.coverage]
+run.source = ["roastcoffea"]
+port.exclude_lines = ['pragma: no cover', '\.\.\.', 'if typing.TYPE_CHECKING:']
 
 
-        [tool.coverage]
-        run.source = ["roastcoffea"]
-        port.exclude_lines = ['pragma: no cover', '\.\.\.', 'if typing.TYPE_CHECKING:']
+[tool.mypy]
+files = ["src", "tests"]
+python_version = "3.13"
+warn_unreachable = true
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+check_untyped_defs = true
+enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
+strict = false
+ignore_missing_imports = true
 
 
-        [tool.mypy]
-        files = ["src", "tests"]
-        python_version = "3.13"
-        warn_unreachable = true
-        disallow_untyped_defs = false
-        disallow_incomplete_defs = false
-        check_untyped_defs = true
-        enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
-        strict = false
-        ignore_missing_imports = true
+[tool.ruff.lint]
+preview = true
+ignore = [
+    "PLR",
+    "E501",
+    "I002",
+    "ISC001",
+    "PLC0415",
+    "PLW3201",
+    "RUF052",
+    "F722",
+]
+select = [
+    "E",
+    "F",
+    "W",
+    "B",
+    "I",
+    "C4",
+    "EM",
+    "ICN",
+    "ISC",
+    "G",
+    "PGH",
+    "PIE",
+    "PL",
+    "PT",
+    "PTH",
+    "RET",
+    "RUF",
+    "SIM",
+    "UP",
+    "YTT",
+    "EXE",
+    "E303",
+]
+unfixable = [
+    "F841",
+]
+flake8-unused-arguments.ignore-variadic-names = true
+isort.required-imports = ["from __future__ import annotations"]
 
+[tool.pixi.workspace]
+channels = ["conda-forge"]
+platforms = ["osx-arm64"]
 
-        [tool.ruff.lint]
-        preview = true
-        ignore = [
-            "PLR",
-            "E501",
-            "I002",
-            "ISC001",
-            "PLC0415",
-            "PLW3201",
-            "RUF052",
-            "F722",
-        ]
-        select = [
-            "E",
-            "F",
-            "W",
-            "B",
-            "I",
-            "C4",
-            "EM",
-            "ICN",
-            "ISC",
-            "G",
-            "PGH",
-            "PIE",
-            "PL",
-            "PT",
-            "PTH",
-            "RET",
-            "RUF",
-            "SIM",
-            "UP",
-            "YTT",
-            "EXE",
-            "E303",
-        ]
-        unfixable = [
-            "F841",
-        ]
-        flake8-unused-arguments.ignore-variadic-names = true
-        isort.required-imports = ["from __future__ import annotations"]
+[tool.pixi.pypi-dependencies]
+roastcoffea = { path = ".", editable = true }
+
+[tool.pixi.environments]
+default = { solve-group = "default" }
+dev = { features = ["dev"], solve-group = "default" }
+docs = { features = ["docs"], solve-group = "default" }
+examples = { features = ["examples"], solve-group = "default" }
+test = { features = ["test"], solve-group = "default" }
+
+[tool.pixi.tasks]
+
+[tool.pixi.dependencies]
+xrootd = ">=5.8.4,<6"
+fsspec-xrootd = ">=0.5.1,<0.6"
