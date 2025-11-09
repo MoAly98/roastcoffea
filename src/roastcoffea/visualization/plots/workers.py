@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 
 
@@ -32,4 +33,32 @@ def plot_worker_count_timeline(
     fig, ax : Figure and Axes
         Matplotlib figure and axes
     """
-    pass
+    worker_counts = tracking_data.get("worker_counts", {})
+
+    if not worker_counts:
+        raise ValueError("No worker count data available")
+
+    # Sort by timestamp
+    sorted_items = sorted(worker_counts.items())
+    timestamps = [t for t, _ in sorted_items]
+    counts = [c for _, c in sorted_items]
+
+    # Create plot
+    fig, ax = plt.subplots(figsize=figsize)
+
+    ax.plot(timestamps, counts, marker="o", linestyle="-", linewidth=2, markersize=4)
+    ax.set_xlabel("Time")
+    ax.set_ylabel("Number of Workers")
+    ax.set_title(title)
+    ax.grid(True, alpha=0.3)
+
+    # Format x-axis
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M:%S"))
+    plt.xticks(rotation=45)
+
+    plt.tight_layout()
+
+    if output_path:
+        fig.savefig(output_path, dpi=150, bbox_inches="tight")
+
+    return fig, ax
