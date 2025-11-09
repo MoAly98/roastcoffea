@@ -13,7 +13,6 @@ from typing import Any
 
 from roastcoffea.backends.base import AbstractMetricsBackend
 
-
 # =============================================================================
 # Scheduler-Side Functions (Run via client.run_on_scheduler)
 # =============================================================================
@@ -40,7 +39,7 @@ def _start_tracking_on_scheduler(dask_scheduler, interval: float = 1.0):
 
     # Capture cores_per_worker from first worker
     if dask_scheduler.workers:
-        first_worker = list(dask_scheduler.workers.values())[0]
+        first_worker = next(iter(dask_scheduler.workers.values()))
         dask_scheduler.cores_per_worker = first_worker.nthreads
     else:
         dask_scheduler.cores_per_worker = None
@@ -75,7 +74,9 @@ def _start_tracking_on_scheduler(dask_scheduler, interval: float = 1.0):
                     dask_scheduler.worker_active_tasks[worker_id] = []
 
                 # Append timestamped data
-                dask_scheduler.worker_memory[worker_id].append((timestamp, memory_bytes))
+                dask_scheduler.worker_memory[worker_id].append(
+                    (timestamp, memory_bytes)
+                )
                 dask_scheduler.worker_memory_limit[worker_id].append(
                     (timestamp, memory_limit)
                 )
@@ -87,7 +88,7 @@ def _start_tracking_on_scheduler(dask_scheduler, interval: float = 1.0):
             await asyncio.sleep(interval)
 
     # Create and start the tracking task
-    asyncio.create_task(track_worker_metrics())
+    dask_scheduler.tracking_task = asyncio.create_task(track_worker_metrics())
 
 
 def _stop_tracking_on_scheduler(dask_scheduler) -> dict:
@@ -109,15 +110,13 @@ def _stop_tracking_on_scheduler(dask_scheduler) -> dict:
     dask_scheduler.track_count = False
 
     # Retrieve and return data
-    tracking_data = {
+    return {
         "worker_counts": dask_scheduler.worker_counts,
         "worker_memory": dask_scheduler.worker_memory,
         "worker_memory_limit": getattr(dask_scheduler, "worker_memory_limit", {}),
         "worker_active_tasks": getattr(dask_scheduler, "worker_active_tasks", {}),
         "cores_per_worker": getattr(dask_scheduler, "cores_per_worker", None),
     }
-
-    return tracking_data
 
 
 class DaskMetricsBackend(AbstractMetricsBackend):
@@ -137,7 +136,8 @@ class DaskMetricsBackend(AbstractMetricsBackend):
             If client is None
         """
         if client is None:
-            raise ValueError("client cannot be None")
+            msg = "client cannot be None"
+            raise ValueError(msg)
         self.client = client
 
     def start_tracking(self, interval: float = 1.0) -> None:
@@ -160,8 +160,7 @@ class DaskMetricsBackend(AbstractMetricsBackend):
             Tracking data with worker_counts, worker_memory, etc.
         """
         # Run stop_tracking function on scheduler and get data
-        tracking_data = self.client.run_on_scheduler(_stop_tracking_on_scheduler)
-        return tracking_data
+        return self.client.run_on_scheduler(_stop_tracking_on_scheduler)
 
     def create_span(self, name: str) -> Any:
         """Create a performance span for fine metrics collection.

@@ -70,9 +70,7 @@ class TestPlotWorkerCountTimeline:
 
     def test_custom_title(self, sample_tracking_data):
         """Can set custom title."""
-        fig, ax = plot_worker_count_timeline(
-            sample_tracking_data, title="Custom Title"
-        )
+        fig, ax = plot_worker_count_timeline(sample_tracking_data, title="Custom Title")
 
         assert ax.get_title() == "Custom Title"
 
@@ -80,7 +78,7 @@ class TestPlotWorkerCountTimeline:
 
     def test_custom_figsize(self, sample_tracking_data):
         """Can set custom figure size."""
-        fig, ax = plot_worker_count_timeline(sample_tracking_data, figsize=(12, 6))
+        fig, _ax = plot_worker_count_timeline(sample_tracking_data, figsize=(12, 6))
 
         # Check figure size (approximately, due to DPI)
         width, height = fig.get_size_inches()
@@ -93,7 +91,7 @@ class TestPlotWorkerCountTimeline:
         """Can save plot to file."""
         output_file = tmp_path / "worker_timeline.png"
 
-        fig, ax = plot_worker_count_timeline(
+        fig, _ax = plot_worker_count_timeline(
             sample_tracking_data, output_path=output_file
         )
 
@@ -105,5 +103,5 @@ class TestPlotWorkerCountTimeline:
         """Raises ValueError on empty worker count data."""
         tracking_data = {"worker_counts": {}}
 
-        with pytest.raises(ValueError, match="No worker count data"):
+        with pytest.raises(ValueError, match=r"No worker count data"):
             plot_worker_count_timeline(tracking_data)

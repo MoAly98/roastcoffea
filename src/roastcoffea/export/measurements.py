@@ -48,16 +48,16 @@ def save_measurement(
 
     # Save metrics with timestamp
     metrics_file = measurement_path / "metrics.json"
-    with open(metrics_file, "w") as f:
+    with Path(metrics_file).open("w", encoding="utf-8") as f:
         json.dump(metrics, f, indent=2, default=str)
 
     # Save timing information
-    with open(measurement_path / "start_end_time.txt", "w") as f:
+    with Path(measurement_path / "start_end_time.txt").open("w", encoding="utf-8") as f:
         f.write(f"{t0},{t1}\n")
 
     # Save config if provided
     if config is not None:
-        with open(measurement_path / "config.json", "w") as f:
+        with Path(measurement_path / "config.json").open("w", encoding="utf-8") as f:
             json.dump(config, f, indent=2, default=str)
 
     # Save measurement metadata
@@ -66,7 +66,7 @@ def save_measurement(
         "wall_time": t1 - t0,
         "format": "roastcoffea_measurement_v1",
     }
-    with open(measurement_path / "metadata.json", "w") as f:
+    with Path(measurement_path / "metadata.json").open("w", encoding="utf-8") as f:
         json.dump(metadata, f, indent=2)
 
     return measurement_path
@@ -92,28 +92,32 @@ def load_measurement(measurement_path: Path) -> tuple[dict[str, Any], float, flo
     measurement_path = Path(measurement_path)
 
     if not measurement_path.exists():
-        raise FileNotFoundError(f"Measurement directory not found: {measurement_path}")
+        msg = f"Measurement directory not found: {measurement_path}"
+        raise FileNotFoundError(msg)
 
     # Load metrics
     metrics_file = measurement_path / "metrics.json"
     if not metrics_file.exists():
-        raise FileNotFoundError(f"Metrics file not found: {metrics_file}")
+        msg = f"Metrics file not found: {metrics_file}"
+        raise FileNotFoundError(msg)
 
-    with open(metrics_file) as f:
+    with Path(metrics_file).open(encoding="utf-8") as f:
         metrics = json.load(f)
 
     # Load timing
     timing_file = measurement_path / "start_end_time.txt"
     if not timing_file.exists():
-        raise FileNotFoundError(f"Timing file not found: {timing_file}")
+        msg = f"Timing file not found: {timing_file}"
+        raise FileNotFoundError(msg)
 
-    with open(timing_file) as f:
+    with Path(timing_file).open(encoding="utf-8") as f:
         timing_line = f.readline().strip()
         try:
             t0_str, t1_str = timing_line.split(",")
             t0 = float(t0_str)
             t1 = float(t1_str)
         except (ValueError, AttributeError) as e:
-            raise ValueError(f"Invalid timing format in {timing_file}: {e}") from e
+            msg = f"Invalid timing format in {timing_file}: {e}"
+            raise ValueError(msg) from e
 
     return metrics, t0, t1

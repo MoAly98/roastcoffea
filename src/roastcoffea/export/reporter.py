@@ -46,7 +46,9 @@ def format_throughput_table(metrics: dict[str, Any]) -> Table:
     Table
         Rich table
     """
-    table = Table(title="Throughput Metrics", show_header=True, header_style="bold cyan")
+    table = Table(
+        title="Throughput Metrics", show_header=True, header_style="bold cyan"
+    )
     table.add_column("Metric", style="cyan", no_wrap=True)
     table.add_column("Value", style="magenta")
 
@@ -107,9 +109,7 @@ def format_event_processing_table(metrics: dict[str, Any]) -> Table:
     if core_hz is not None:
         table.add_row("Event Rate (Core-Averaged)", f"{core_hz:.1f} Hz/core")
     else:
-        table.add_row(
-            "Event Rate (Core-Averaged)", "[dim]N/A (no worker data)[/dim]"
-        )
+        table.add_row("Event Rate (Core-Averaged)", "[dim]N/A (no worker data)[/dim]")
 
     # Efficiency ratio
     if wall_khz and agg_khz:

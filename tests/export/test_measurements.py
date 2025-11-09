@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
+import pathlib
 
 import pytest
 
@@ -64,7 +64,7 @@ class TestSaveMeasurement:
         metrics_file = measurement_path / "metrics.json"
         assert metrics_file.exists()
 
-        with open(metrics_file) as f:
+        with pathlib.Path(metrics_file).open(encoding="utf-8") as f:
             saved_metrics = json.load(f)
 
         assert saved_metrics["wall_time"] == 100.0
@@ -86,7 +86,7 @@ class TestSaveMeasurement:
         timing_file = measurement_path / "start_end_time.txt"
         assert timing_file.exists()
 
-        with open(timing_file) as f:
+        with pathlib.Path(timing_file).open(encoding="utf-8") as f:
             content = f.read().strip()
 
         assert content == "10.5,60.5"
@@ -106,7 +106,7 @@ class TestSaveMeasurement:
         metadata_file = measurement_path / "metadata.json"
         assert metadata_file.exists()
 
-        with open(metadata_file) as f:
+        with pathlib.Path(metadata_file).open(encoding="utf-8") as f:
             metadata = json.load(f)
 
         assert "timestamp" in metadata
@@ -131,7 +131,7 @@ class TestSaveMeasurement:
         config_file = measurement_path / "config.json"
         assert config_file.exists()
 
-        with open(config_file) as f:
+        with pathlib.Path(config_file).open(encoding="utf-8") as f:
             saved_config = json.load(f)
 
         assert saved_config == config
@@ -214,7 +214,7 @@ class TestLoadMeasurement:
 
         # Create metrics file but no timing file
         metrics_file = measurement_path / "metrics.json"
-        with open(metrics_file, "w") as f:
+        with pathlib.Path(metrics_file).open("w", encoding="utf-8") as f:
             json.dump({"wall_time": 100.0}, f)
 
         with pytest.raises(FileNotFoundError):

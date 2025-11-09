@@ -73,7 +73,7 @@ def calculate_time_averaged_workers(
         return 0.0
 
     if len(worker_counts) < 2:
-        return float(list(worker_counts.values())[0])
+        return float(next(iter(worker_counts.values())))
 
     # Sort by timestamp
     sorted_items = sorted(worker_counts.items())
@@ -119,8 +119,8 @@ def calculate_peak_memory(worker_memory: dict[str, list[tuple]]) -> float:
         return 0.0
 
     all_memory_values = []
-    for worker_id, timeline in worker_memory.items():
-        for timestamp, memory_bytes in timeline:
+    for _worker_id, timeline in worker_memory.items():
+        for _timestamp, memory_bytes in timeline:
             all_memory_values.append(memory_bytes)
 
     return max(all_memory_values) if all_memory_values else 0.0
@@ -148,18 +148,18 @@ def calculate_average_memory_per_worker(
 
     worker_averages = []
 
-    for worker_id, timeline in worker_memory.items():
+    for _worker_id, timeline in worker_memory.items():
         if len(timeline) < 2:
             if timeline:
                 worker_averages.append(timeline[0][1])
             continue
 
         # Sort by timestamp
-        timeline = sorted(timeline, key=lambda x: x[0])
+        sorted_timeline = sorted(timeline, key=lambda x: x[0])
 
         # Extract timestamps and memory values
-        timestamps = [t for t, m in timeline]
-        memory_values = [m for t, m in timeline]
+        timestamps = [t for t, m in sorted_timeline]
+        memory_values = [m for t, m in sorted_timeline]
 
         # Convert to seconds since first sample
         t0 = timestamps[0]

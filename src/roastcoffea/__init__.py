@@ -27,9 +27,11 @@ Basic Usage:
 
 from __future__ import annotations
 
+from roastcoffea.collector import MetricsCollector
+
 __version__ = "0.1.0"
 
-# Public API will be exported here once modules are implemented
 __all__ = [
+    "MetricsCollector",
     "__version__",
 ]

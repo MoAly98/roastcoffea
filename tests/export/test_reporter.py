@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
 from rich.table import Table
 
 from roastcoffea.export.reporter import (

@@ -3,7 +3,6 @@
 import time
 
 import pytest
-from dask.distributed import LocalCluster, Client
 
 from roastcoffea.backends.base import AbstractMetricsBackend
 from roastcoffea.backends.dask import DaskMetricsBackend
@@ -22,8 +21,6 @@ class TestAbstractMetricsBackend:
 
         class IncompleteBackend(AbstractMetricsBackend):
             """Backend missing implementations."""
-
-            pass
 
         with pytest.raises(TypeError):
             IncompleteBackend()
@@ -113,15 +110,15 @@ class TestDaskMetricsBackend:
         assert len(worker_memory_limit) == num_workers
 
         # Each worker should have timeline data
-        for worker_id, timeline in worker_memory.items():
+        for _worker_id, timeline in worker_memory.items():
             assert len(timeline) >= 2  # At least 2 samples
             # Each sample is (timestamp, memory_bytes)
-            for timestamp, memory_bytes in timeline:
+            for _timestamp, memory_bytes in timeline:
                 assert memory_bytes >= 0
 
         # Memory limits should be positive
-        for worker_id, timeline in worker_memory_limit.items():
-            for timestamp, limit_bytes in timeline:
+        for _worker_id, timeline in worker_memory_limit.items():
+            for _timestamp, limit_bytes in timeline:
                 assert limit_bytes > 0
 
     def test_tracking_captures_active_tasks(self, local_cluster):
@@ -139,10 +136,10 @@ class TestDaskMetricsBackend:
         assert len(worker_active_tasks) == num_workers
 
         # Each worker should have timeline data
-        for worker_id, timeline in worker_active_tasks.items():
+        for _worker_id, timeline in worker_active_tasks.items():
             assert len(timeline) >= 2
             # Each sample is (timestamp, num_active_tasks)
-            for timestamp, num_tasks in timeline:
+            for _timestamp, num_tasks in timeline:
                 assert num_tasks >= 0
 
     def test_multiple_start_stop_cycles(self, local_cluster):

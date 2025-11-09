@@ -61,7 +61,7 @@ def aggregate_workflow_metrics(
     total_events = 0
     total_cpu_time = 0
 
-    for dataset_name, dataset_data in combined_report.items():
+    for _dataset_name, dataset_data in combined_report.items():
         # Skip non-dataset entries
         if not isinstance(dataset_data, dict):
             continue
@@ -97,7 +97,7 @@ def aggregate_workflow_metrics(
     avg_cpu_time_per_chunk = total_cpu_time / num_chunks if num_chunks > 0 else 0
 
     # Build metrics dictionary
-    metrics = {
+    return {
         # Throughput metrics
         "overall_rate_gbps": overall_rate_gbps,
         "overall_rate_mbps": overall_rate_mbps,
@@ -115,5 +115,3 @@ def aggregate_workflow_metrics(
         "total_bytes_compressed": total_bytes_compressed,
         "total_bytes_uncompressed": total_bytes_uncompressed,
     }
-
-    return metrics

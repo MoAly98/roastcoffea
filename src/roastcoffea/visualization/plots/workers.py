@@ -36,7 +36,8 @@ def plot_worker_count_timeline(
     worker_counts = tracking_data.get("worker_counts", {})
 
     if not worker_counts:
-        raise ValueError("No worker count data available")
+        msg = "No worker count data available"
+        raise ValueError(msg)
 
     # Sort by timestamp
     sorted_items = sorted(worker_counts.items())

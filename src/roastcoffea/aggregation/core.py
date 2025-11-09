@@ -26,7 +26,8 @@ class MetricsAggregator:
             If backend is not supported
         """
         if backend not in ["dask"]:
-            raise ValueError(f"Unsupported backend: {backend}")
+            msg = f"Unsupported backend: {backend}"
+            raise ValueError(msg)
         self.backend = backend
 
     def aggregate(
@@ -67,9 +68,8 @@ class MetricsAggregator:
 
         # Parse worker metrics if tracking data available
         worker_metrics = {}
-        if tracking_data is not None:
-            if self.backend == "dask":
-                worker_metrics = parse_tracking_data(tracking_data)
+        if tracking_data is not None and self.backend == "dask":
+            worker_metrics = parse_tracking_data(tracking_data)
 
         # Calculate efficiency metrics
         efficiency_metrics = calculate_efficiency_metrics(

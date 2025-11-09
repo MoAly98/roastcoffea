@@ -83,9 +83,7 @@ def instrumented_processor():
                     n = len(events)
 
                 with track_memory(self, "result_creation"):
-                    result = {"count": n}
-
-                return result
+                    return {"count": n}
 
             def postprocess(self, accumulator):
                 """Identity postprocessing."""

@@ -91,7 +91,7 @@ class TestPlotMemoryUtilizationTimeline:
         """Can save memory utilization plot to file."""
         output_file = tmp_path / "memory_util.png"
 
-        fig, ax = plot_memory_utilization_timeline(
+        fig, _ax = plot_memory_utilization_timeline(
             sample_tracking_data, output_path=output_file
         )
 
@@ -106,7 +106,7 @@ class TestPlotMemoryUtilizationTimeline:
             "worker_memory_limit": {},
         }
 
-        with pytest.raises(ValueError, match="Memory.*not available"):
+        with pytest.raises(ValueError, match=r"Memory.*not available"):
             plot_memory_utilization_timeline(tracking_data)
 
     def test_raises_on_missing_memory_limit(self):
@@ -120,5 +120,5 @@ class TestPlotMemoryUtilizationTimeline:
             "worker_memory_limit": {},  # Missing
         }
 
-        with pytest.raises(ValueError, match="Memory.*not available"):
+        with pytest.raises(ValueError, match=r"Memory.*not available"):
             plot_memory_utilization_timeline(tracking_data)

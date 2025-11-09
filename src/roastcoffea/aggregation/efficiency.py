@@ -38,7 +38,9 @@ def calculate_efficiency_metrics(
         if wall_time > 0:
             total_available_time = total_cores * wall_time
             core_efficiency = (
-                total_cpu_time / total_available_time if total_available_time > 0 else 0.0
+                total_cpu_time / total_available_time
+                if total_available_time > 0
+                else 0.0
             )
         else:
             core_efficiency = 0.0

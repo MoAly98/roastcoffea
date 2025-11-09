@@ -38,11 +38,12 @@ def plot_memory_utilization_timeline(
     worker_memory_limit = tracking_data.get("worker_memory_limit", {})
 
     if not worker_memory or not worker_memory_limit:
-        raise ValueError("Memory or memory limit data not available")
+        msg = "Memory or memory limit data not available"
+        raise ValueError(msg)
 
     # Collect all unique timestamps
     all_timestamps = set()
-    for worker_id in worker_memory.keys():
+    for worker_id in worker_memory:
         for timestamp, _ in worker_memory[worker_id]:
             all_timestamps.add(timestamp)
 
@@ -56,7 +57,7 @@ def plot_memory_utilization_timeline(
     for timestamp in sorted_timestamps:
         worker_utils = []
 
-        for worker_id in worker_memory.keys():
+        for worker_id in worker_memory:
             # Find memory usage at this timestamp
             mem_data = worker_memory[worker_id]
             limit_data = worker_memory_limit.get(worker_id, [])
@@ -69,16 +70,12 @@ def plot_memory_utilization_timeline(
                     break
 
             limit_value = None
-            for t, l in limit_data:
+            for t, limit in limit_data:
                 if t == timestamp:
-                    limit_value = l
+                    limit_value = limit
                     break
 
-            if (
-                mem_value is not None
-                and limit_value is not None
-                and limit_value > 0
-            ):
+            if mem_value is not None and limit_value is not None and limit_value > 0:
                 util_pct = (mem_value / limit_value) * 100
                 worker_utils.append(util_pct)
 
