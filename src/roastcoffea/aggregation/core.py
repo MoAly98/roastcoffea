@@ -4,6 +4,10 @@ from __future__ import annotations
 
 from typing import Any
 
+from roastcoffea.aggregation.backends.dask import parse_tracking_data
+from roastcoffea.aggregation.efficiency import calculate_efficiency_metrics
+from roastcoffea.aggregation.workflow import aggregate_workflow_metrics
+
 
 class MetricsAggregator:
     """Main aggregator combining workflow, worker, and efficiency metrics."""
@@ -53,4 +57,30 @@ class MetricsAggregator:
         dict
             Combined metrics
         """
-        pass
+        # Aggregate workflow metrics
+        workflow_metrics = aggregate_workflow_metrics(
+            coffea_report=coffea_report,
+            t_start=t_start,
+            t_end=t_end,
+            custom_metrics=custom_metrics,
+        )
+
+        # Parse worker metrics if tracking data available
+        worker_metrics = {}
+        if tracking_data is not None:
+            if self.backend == "dask":
+                worker_metrics = parse_tracking_data(tracking_data)
+
+        # Calculate efficiency metrics
+        efficiency_metrics = calculate_efficiency_metrics(
+            workflow_metrics=workflow_metrics,
+            worker_metrics=worker_metrics,
+        )
+
+        # Combine all metrics
+        combined_metrics = {}
+        combined_metrics.update(workflow_metrics)
+        combined_metrics.update(worker_metrics)
+        combined_metrics.update(efficiency_metrics)
+
+        return combined_metrics
