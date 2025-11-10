@@ -9,9 +9,12 @@ from __future__ import annotations
 
 import asyncio
 import datetime
+import logging
 from typing import Any
 
 from roastcoffea.backends.base import AbstractMetricsBackend
+
+logger = logging.getLogger(__name__)
 
 # =============================================================================
 # Scheduler-Side Functions (Run via client.run_on_scheduler)
@@ -211,37 +214,73 @@ class DaskMetricsBackend(AbstractMetricsBackend):
 
         Returns
         -------
-        span_context : Any
-            Dask Span context manager
+        span_info : dict or None
+            Dictionary with 'context' (context manager) and 'id' (span ID), or None if unavailable
         """
         try:
             from distributed import span
 
-            return span(name)
+            span_cm = span(name)
+            # The span context manager returns the span_id when entered
+            # We need to return both the context manager and capture the ID
+            return {"context": span_cm, "name": name}
         except ImportError:
-            # If distributed.span not available, return None
+            logger.warning(
+                "Dask Spans not available (distributed.span import failed). "
+                "Fine-grained metrics (CPU/I/O breakdown, compression ratio) will not be collected. "
+                "To enable, ensure you have a recent version of dask.distributed installed."
+            )
+            return None
+        except Exception as e:
+            logger.warning(
+                f"Failed to create Dask Span: {e}. "
+                "Fine-grained metrics will not be collected."
+            )
             return None
 
-    def get_span_metrics(self, span_context: Any) -> dict[str, Any]:
+    def get_span_metrics(self, span_info: Any) -> dict[str, Any]:
         """Extract metrics from a span.
 
         Parameters
         ----------
-        span_context : Any
-            Span context from create_span
+        span_info : dict or Any
+            Span info dict from create_span containing 'id' and 'name'
 
         Returns
         -------
         dict
             cumulative_worker_metrics from span, or empty dict if unavailable
         """
-        if span_context is None:
+        if span_info is None:
             return {}
 
-        # Extract cumulative_worker_metrics from span
         try:
-            return getattr(span_context, "cumulative_worker_metrics", {})
-        except AttributeError:
+            # Get the span_id from the span_info
+            span_id = span_info.get("id")
+            if span_id is None:
+                logger.debug("No span_id available, cannot extract metrics")
+                return {}
+
+            # Access the Span object through the scheduler's spans extension
+            # Use run_on_scheduler to get the actual Span object
+            def _get_span_metrics(dask_scheduler, span_id):
+                """Get cumulative_worker_metrics from a span on the scheduler."""
+                spans_ext = dask_scheduler.extensions.get("spans")
+                if spans_ext is None:
+                    return {}
+
+                span_obj = spans_ext.spans.get(span_id)
+                if span_obj is None:
+                    return {}
+
+                # Return the cumulative_worker_metrics property
+                return span_obj.cumulative_worker_metrics
+
+            metrics = self.client.run_on_scheduler(_get_span_metrics, span_id=span_id)
+            return metrics if metrics else {}
+
+        except Exception as e:
+            logger.debug(f"Failed to extract span metrics: {e}")
             return {}
 
     def supports_fine_metrics(self) -> bool:

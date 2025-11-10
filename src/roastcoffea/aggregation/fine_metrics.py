@@ -15,15 +15,10 @@ def parse_fine_metrics(cumulative_worker_metrics: dict[str, Any]) -> dict[str, A
     Parameters
     ----------
     cumulative_worker_metrics : dict
-        Raw metrics from span.cumulative_worker_metrics with keys like:
-        - thread-cpu: CPU time (seconds)
-        - thread-noncpu: I/O + waiting time (seconds)
-        - disk-read: Bytes read from disk
-        - disk-write: Bytes written to disk
-        - decompress: Decompression time (seconds)
-        - compress: Compression time (seconds)
-        - deserialize: Deserialization time (seconds)
-        - serialize: Serialization time (seconds)
+        Raw metrics from span.cumulative_worker_metrics with tuple keys like:
+        ('execute', task_prefix, activity, unit) -> value
+        Activities include: thread-cpu, thread-noncpu, disk-read, disk-write,
+        compress, decompress, serialize, deserialize
 
     Returns
     -------
@@ -42,15 +37,41 @@ def parse_fine_metrics(cumulative_worker_metrics: dict[str, Any]) -> dict[str, A
         - total_serialization_overhead_seconds: Sum of serialize + deserialize
         - total_compression_overhead_seconds: Sum of compress + decompress
     """
-    # Extract raw metrics
-    cpu_time = cumulative_worker_metrics.get("thread-cpu", 0.0)
-    io_time = cumulative_worker_metrics.get("thread-noncpu", 0.0)
-    disk_read = cumulative_worker_metrics.get("disk-read", 0)
-    disk_write = cumulative_worker_metrics.get("disk-write", 0)
-    decompress_time = cumulative_worker_metrics.get("decompress", 0.0)
-    compress_time = cumulative_worker_metrics.get("compress", 0.0)
-    deserialize_time = cumulative_worker_metrics.get("deserialize", 0.0)
-    serialize_time = cumulative_worker_metrics.get("serialize", 0.0)
+    # Aggregate metrics by activity type across all task prefixes
+    # Metrics have keys like: ('execute', task_prefix, activity, unit)
+    cpu_time = 0.0
+    io_time = 0.0
+    disk_read = 0
+    disk_write = 0
+    decompress_time = 0.0
+    compress_time = 0.0
+    deserialize_time = 0.0
+    serialize_time = 0.0
+
+    for key, value in cumulative_worker_metrics.items():
+        if not isinstance(key, tuple) or len(key) < 3:
+            continue
+
+        # Extract activity from tuple key
+        # Format: (context, task_prefix, activity, unit) or similar
+        activity = key[2] if len(key) > 2 else None
+
+        if activity == "thread-cpu":
+            cpu_time += value
+        elif activity == "thread-noncpu":
+            io_time += value
+        elif activity == "disk-read":
+            disk_read += value
+        elif activity == "disk-write":
+            disk_write += value
+        elif activity == "decompress":
+            decompress_time += value
+        elif activity == "compress":
+            compress_time += value
+        elif activity == "deserialize":
+            deserialize_time += value
+        elif activity == "serialize":
+            serialize_time += value
 
     # Calculate percentages
     total_time = cpu_time + io_time
@@ -95,7 +116,7 @@ def calculate_compression_from_spans(
     compressed_bytes : float
         Compressed bytes from Coffea report (bytesread)
     cumulative_worker_metrics : dict
-        Raw metrics from span.cumulative_worker_metrics
+        Raw metrics from span.cumulative_worker_metrics with tuple keys
 
     Returns
     -------
@@ -104,10 +125,14 @@ def calculate_compression_from_spans(
     total_bytes_uncompressed : float or None
         Actual uncompressed bytes read, or None if data unavailable
     """
-    # Get uncompressed bytes from Spans (disk-read)
-    uncompressed_bytes = cumulative_worker_metrics.get("disk-read")
+    # Aggregate disk-read across all tasks
+    uncompressed_bytes = 0
 
-    if uncompressed_bytes is None or uncompressed_bytes == 0:
+    for key, value in cumulative_worker_metrics.items():
+        if isinstance(key, tuple) and len(key) >= 3 and key[2] == "disk-read":
+            uncompressed_bytes += value
+
+    if uncompressed_bytes == 0:
         return None, None
 
     if compressed_bytes == 0:

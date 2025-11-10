@@ -15,16 +15,16 @@ class TestParseFineMetrics:
 
     @pytest.fixture
     def sample_spans_data(self):
-        """Sample cumulative_worker_metrics from Dask Span."""
+        """Sample cumulative_worker_metrics from Dask Span with tuple keys."""
         return {
-            "thread-cpu": 100.0,  # 100 seconds CPU
-            "thread-noncpu": 50.0,  # 50 seconds I/O
-            "disk-read": 10_000_000_000,  # 10 GB read
-            "disk-write": 500_000_000,  # 500 MB written
-            "decompress": 5.0,  # 5 seconds decompressing
-            "compress": 1.0,  # 1 second compressing
-            "deserialize": 3.0,  # 3 seconds deserializing
-            "serialize": 2.0,  # 2 seconds serializing
+            ("execute", "process-abc", "thread-cpu", "seconds"): 100.0,
+            ("execute", "process-abc", "thread-noncpu", "seconds"): 50.0,
+            ("execute", "process-abc", "disk-read", "bytes"): 10_000_000_000,
+            ("execute", "process-abc", "disk-write", "bytes"): 500_000_000,
+            ("execute", "process-abc", "decompress", "seconds"): 5.0,
+            ("execute", "process-abc", "compress", "seconds"): 1.0,
+            ("execute", "process-abc", "deserialize", "seconds"): 3.0,
+            ("execute", "process-abc", "serialize", "seconds"): 2.0,
         }
 
     def test_parse_returns_dict(self, sample_spans_data):
@@ -90,7 +90,10 @@ class TestParseFineMetrics:
 
     def test_parse_handles_zero_total_time(self):
         """Handles zero total time without division by zero."""
-        metrics = parse_fine_metrics({"thread-cpu": 0.0, "thread-noncpu": 0.0})
+        metrics = parse_fine_metrics({
+            ("execute", "task", "thread-cpu", "seconds"): 0.0,
+            ("execute", "task", "thread-noncpu", "seconds"): 0.0,
+        })
 
         assert metrics["cpu_percentage"] == 0.0
         assert metrics["io_percentage"] == 0.0
@@ -101,7 +104,7 @@ class TestCalculateCompressionFromSpans:
 
     def test_calculates_compression_ratio(self):
         """Calculates compression ratio from compressed and uncompressed bytes."""
-        spans_data = {"disk-read": 10_000_000_000}  # 10 GB uncompressed
+        spans_data = {("execute", "task", "disk-read", "bytes"): 10_000_000_000}
         compressed = 4_000_000_000  # 4 GB compressed
 
         ratio, uncompressed = calculate_compression_from_spans(compressed, spans_data)
@@ -120,7 +123,7 @@ class TestCalculateCompressionFromSpans:
 
     def test_returns_none_if_zero_disk_read(self):
         """Returns None if disk-read is zero."""
-        spans_data = {"disk-read": 0}
+        spans_data = {("execute", "task", "disk-read", "bytes"): 0}
 
         ratio, uncompressed = calculate_compression_from_spans(
             4_000_000_000, spans_data
@@ -131,7 +134,7 @@ class TestCalculateCompressionFromSpans:
 
     def test_returns_none_if_zero_compressed(self):
         """Returns None if compressed bytes is zero."""
-        spans_data = {"disk-read": 10_000_000_000}
+        spans_data = {("execute", "task", "disk-read", "bytes"): 10_000_000_000}
 
         ratio, uncompressed = calculate_compression_from_spans(0, spans_data)
 
@@ -140,7 +143,7 @@ class TestCalculateCompressionFromSpans:
 
     def test_handles_no_compression(self):
         """Handles case where files are not compressed (ratio = 1.0)."""
-        spans_data = {"disk-read": 5_000_000_000}
+        spans_data = {("execute", "task", "disk-read", "bytes"): 5_000_000_000}
         compressed = 5_000_000_000  # Same size
 
         ratio, uncompressed = calculate_compression_from_spans(compressed, spans_data)

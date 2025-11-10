@@ -5,6 +5,7 @@ Main entry point for comprehensive metrics collection.
 
 from __future__ import annotations
 
+import logging
 import time
 from pathlib import Path
 from typing import Any
@@ -21,6 +22,8 @@ from roastcoffea.export.reporter import (
     format_throughput_table,
     format_timing_table,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class MetricsCollector:
@@ -81,7 +84,7 @@ class MetricsCollector:
         self.t_end: float | None = None
         self.coffea_report: dict[str, Any] | None = None
         self.tracking_data: dict[str, Any] | None = None
-        self.span_context: Any = None
+        self.span_info: dict[str, Any] | None = None
         self.span_metrics: dict[str, Any] | None = None
         self.metrics: dict[str, Any] | None = None
 
@@ -93,10 +96,19 @@ class MetricsCollector:
             self.metrics_backend.start_tracking(interval=self.worker_tracking_interval)
 
         # Create Span for fine-grained metrics
-        self.span_context = self.metrics_backend.create_span("coffea-processing")
-        if self.span_context is not None:
-            # Enter the span context
-            self.span_context.__enter__()
+        self.span_info = self.metrics_backend.create_span("coffea-processing")
+        if self.span_info is not None:
+            try:
+                # Enter the span context and capture the span ID
+                span_id = self.span_info["context"].__enter__()
+                self.span_info["id"] = span_id
+                logger.debug(f"Dask Span created successfully (ID: {span_id}) for fine metrics collection")
+            except Exception as e:
+                logger.warning(
+                    f"Failed to enter Dask Span context: {e}. "
+                    "Fine-grained metrics will not be collected."
+                )
+                self.span_info = None
 
         return self
 
@@ -105,9 +117,23 @@ class MetricsCollector:
         self.t_end = time.perf_counter()
 
         # Exit span context and extract metrics
-        if self.span_context is not None:
-            self.span_context.__exit__(exc_type, exc_val, exc_tb)
-            self.span_metrics = self.metrics_backend.get_span_metrics(self.span_context)
+        if self.span_info is not None:
+            try:
+                self.span_info["context"].__exit__(exc_type, exc_val, exc_tb)
+                self.span_metrics = self.metrics_backend.get_span_metrics(self.span_info)
+                if self.span_metrics:
+                    logger.debug(f"Collected {len(self.span_metrics)} fine metrics from Dask Span")
+                else:
+                    logger.warning(
+                        "Dask Span completed but no metrics were collected. "
+                        "Fine-grained metrics may not be available."
+                    )
+            except Exception as e:
+                logger.warning(
+                    f"Failed to extract metrics from Dask Span: {e}. "
+                    "Fine-grained metrics will not be available."
+                )
+                self.span_metrics = None
 
         if self.track_workers:
             self.tracking_data = self.metrics_backend.stop_tracking()
