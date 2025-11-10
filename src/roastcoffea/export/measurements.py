@@ -42,6 +42,7 @@ def save_measurement(
     if measurement_name is None:
         measurement_name = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
+    output_dir = Path(output_dir)
     # Create measurement directory
     measurement_path = Path(output_dir) / measurement_name
     measurement_path.mkdir(parents=True, exist_ok=True)
