@@ -101,7 +101,12 @@ class TestPlotWorkerCountTimeline:
 
     def test_raises_on_empty_data(self):
         """Raises ValueError on empty worker count data."""
-        tracking_data = {"worker_counts": {}}
+        tracking_data: dict[str, dict] = {"worker_counts": {}}
 
         with pytest.raises(ValueError, match=r"No worker count data"):
             plot_worker_count_timeline(tracking_data)
+
+    def test_raises_on_none_tracking_data(self):
+        """Raises ValueError when tracking_data is None."""
+        with pytest.raises(ValueError, match=r"tracking_data cannot be None"):
+            plot_worker_count_timeline(None)

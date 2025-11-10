@@ -93,6 +93,10 @@ class TestMetricsAggregator:
         assert metrics["avg_workers"] == pytest.approx(2.0)
         assert metrics["total_cores"] == pytest.approx(8.0)
 
+        # Verify raw tracking_data is preserved for visualization
+        assert "tracking_data" in metrics
+        assert metrics["tracking_data"] == sample_tracking_data
+
     def test_aggregate_without_tracking_data(self, sample_coffea_report):
         """Aggregator works without tracking data (workflow metrics only)."""
         aggregator = MetricsAggregator(backend="dask")
@@ -107,6 +111,9 @@ class TestMetricsAggregator:
         # Should have workflow metrics
         assert "wall_time" in metrics
         assert "overall_rate_gbps" in metrics
+
+        # tracking_data should be None
+        assert metrics["tracking_data"] is None
 
         # Worker metrics should be None or absent
         assert metrics.get("avg_workers") is None

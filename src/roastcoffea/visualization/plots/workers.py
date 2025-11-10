@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 
 def plot_worker_count_timeline(
-    tracking_data: dict[str, Any],
+    tracking_data: dict[str, Any] | None,
     output_path: Path | None = None,
     figsize: tuple[int, int] = (10, 4),
     title: str = "Worker Count Over Time",
@@ -19,7 +19,7 @@ def plot_worker_count_timeline(
 
     Parameters
     ----------
-    tracking_data : dict
+    tracking_data : dict or None
         Tracking data with worker_counts
     output_path : Path, optional
         Save path
@@ -33,6 +33,10 @@ def plot_worker_count_timeline(
     fig, ax : Figure and Axes
         Matplotlib figure and axes
     """
+    if tracking_data is None:
+        msg = "tracking_data cannot be None"
+        raise ValueError(msg)
+
     worker_counts = tracking_data.get("worker_counts", {})
 
     if not worker_counts:

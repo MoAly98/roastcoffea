@@ -83,4 +83,7 @@ class MetricsAggregator:
         combined_metrics.update(worker_metrics)
         combined_metrics.update(efficiency_metrics)
 
+        # Preserve raw tracking data for visualization
+        combined_metrics["tracking_data"] = tracking_data
+
         return combined_metrics

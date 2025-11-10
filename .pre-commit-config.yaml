@@ -50,7 +50,7 @@ repos:
     rev: v2.4.1
     hooks:
       - id: codespell
-        exclude: ^(LICENSE$)
+        exclude: ^(LICENSE|pixi\.lock)$
 
   - repo: https://github.com/henryiii/validate-pyproject-schema-store
     rev: 2025.08.15

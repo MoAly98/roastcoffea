@@ -146,6 +146,7 @@ class MetricsCollector:
         if self.metrics is None:
             self._aggregate_metrics()
 
+        assert self.metrics is not None
         return self.metrics
 
     def save_measurement(
@@ -165,6 +166,10 @@ class MetricsCollector:
         Path
             Path to measurement directory
         """
+        if self.t_start is None or self.t_end is None:
+            msg = "Cannot save measurement before context manager completes"
+            raise RuntimeError(msg)
+
         metrics = self.get_metrics()
 
         return save_measurement(

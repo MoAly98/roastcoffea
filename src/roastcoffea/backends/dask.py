@@ -61,7 +61,7 @@ def _start_tracking_on_scheduler(dask_scheduler, interval: float = 1.0):
                 memory_limit = getattr(worker_state, "memory_limit", 0)
 
                 # Get active tasks
-                processing = getattr(worker_state, "processing", set())
+                processing: set = getattr(worker_state, "processing", set())
                 active_tasks = len(processing) if processing else 0
 
                 # Initialize worker-specific lists if not present

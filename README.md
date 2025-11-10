@@ -34,7 +34,9 @@ with LocalCluster(n_workers=4) as cluster, Client(cluster) as client:
         # Run your normal Coffea workflow
         executor = DaskExecutor(client=client)
         runner = Runner(executor=executor, savemetrics=True)
-        output, report = runner(fileset, processor_instance=my_processor, treename="Events")
+        output, report = runner(
+            fileset, processor_instance=my_processor, treename="Events"
+        )
 
         # Provide the report to collector
         collector.set_coffea_report(report)
@@ -112,17 +114,18 @@ from roastcoffea import (
     load_measurement,
 )
 
-# Get tracking data from a saved measurement
+# Load a saved measurement
 metrics, t0, t1 = load_measurement("benchmarks/my_run")
 
-# Create plots
-plot_worker_count_timeline(
-    tracking_data=metrics.get("tracking_data"), output_path="worker_timeline.png"
-)
+# Create plots (requires track_workers=True when collecting)
+if "tracking_data" in metrics and metrics["tracking_data"] is not None:
+    plot_worker_count_timeline(
+        tracking_data=metrics["tracking_data"], output_path="worker_timeline.png"
+    )
 
-plot_memory_utilization_timeline(
-    tracking_data=metrics.get("tracking_data"), output_path="memory_timeline.png"
-)
+    plot_memory_utilization_timeline(
+        tracking_data=metrics["tracking_data"], output_path="memory_timeline.png"
+    )
 ```
 
 ### Disable Worker Tracking

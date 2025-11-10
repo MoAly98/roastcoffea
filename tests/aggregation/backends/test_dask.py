@@ -125,7 +125,7 @@ class TestParseTrackingData:
 
     def test_parse_tracking_data_handles_empty_data(self):
         """parse_tracking_data handles completely empty tracking data."""
-        tracking_data = {
+        tracking_data: dict[str, dict | None] = {
             "worker_counts": {},
             "worker_memory": {},
             "worker_memory_limit": {},

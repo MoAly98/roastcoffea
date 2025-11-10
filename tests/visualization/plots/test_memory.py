@@ -101,7 +101,7 @@ class TestPlotMemoryUtilizationTimeline:
 
     def test_raises_on_missing_memory_data(self):
         """Raises ValueError if memory data missing."""
-        tracking_data = {
+        tracking_data: dict[str, dict] = {
             "worker_memory": {},
             "worker_memory_limit": {},
         }
@@ -122,3 +122,8 @@ class TestPlotMemoryUtilizationTimeline:
 
         with pytest.raises(ValueError, match=r"Memory.*not available"):
             plot_memory_utilization_timeline(tracking_data)
+
+    def test_raises_on_none_tracking_data(self):
+        """Raises ValueError when tracking_data is None."""
+        with pytest.raises(ValueError, match=r"tracking_data cannot be None"):
+            plot_memory_utilization_timeline(None)

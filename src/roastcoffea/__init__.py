@@ -38,8 +38,8 @@ __version__ = "0.1.0"
 
 __all__ = [
     "MetricsCollector",
+    "__version__",
     "load_measurement",
     "plot_memory_utilization_timeline",
     "plot_worker_count_timeline",
-    "__version__",
 ]

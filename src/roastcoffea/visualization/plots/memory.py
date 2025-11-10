@@ -11,7 +11,7 @@ import numpy as np
 
 
 def plot_memory_utilization_timeline(
-    tracking_data: dict[str, Any],
+    tracking_data: dict[str, Any] | None,
     output_path: Path | None = None,
     figsize: tuple[int, int] = (10, 4),
     title: str = "Memory Utilization Over Time",
@@ -20,7 +20,7 @@ def plot_memory_utilization_timeline(
 
     Parameters
     ----------
-    tracking_data : dict
+    tracking_data : dict or None
         Tracking data with worker_memory and worker_memory_limit
     output_path : Path, optional
         Save path
@@ -34,6 +34,10 @@ def plot_memory_utilization_timeline(
     fig, ax : Figure and Axes
         Matplotlib figure and axes
     """
+    if tracking_data is None:
+        msg = "tracking_data cannot be None"
+        raise ValueError(msg)
+
     worker_memory = tracking_data.get("worker_memory", {})
     worker_memory_limit = tracking_data.get("worker_memory_limit", {})
 
