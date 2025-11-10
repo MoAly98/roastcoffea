@@ -107,12 +107,8 @@ def _start_tracking_on_scheduler(dask_scheduler, interval: float = 1.0):
                 dask_scheduler.worker_active_tasks[worker_id].append(
                     (timestamp, active_tasks)
                 )
-                dask_scheduler.worker_cores[worker_id].append(
-                    (timestamp, cores)
-                )
-                dask_scheduler.worker_nbytes[worker_id].append(
-                    (timestamp, nbytes)
-                )
+                dask_scheduler.worker_cores[worker_id].append((timestamp, cores))
+                dask_scheduler.worker_nbytes[worker_id].append((timestamp, nbytes))
                 dask_scheduler.worker_occupancy[worker_id].append(
                     (timestamp, occupancy)
                 )

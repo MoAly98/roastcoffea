@@ -35,7 +35,9 @@ def _serialize_for_json(obj: Any) -> Any:
     return obj
 
 
-def _deserialize_tracking_data(tracking_data: dict[str, Any] | None) -> dict[str, Any] | None:
+def _deserialize_tracking_data(
+    tracking_data: dict[str, Any] | None,
+) -> dict[str, Any] | None:
     """Convert ISO timestamp strings back to datetime objects in tracking_data.
 
     Parameters
@@ -63,72 +65,56 @@ def _deserialize_tracking_data(tracking_data: dict[str, Any] | None) -> dict[str
     # Convert worker_memory timestamps from ISO strings to datetime
     if "worker_memory" in tracking_data:
         result["worker_memory"] = {
-            worker_id: [
-                (datetime.fromisoformat(ts), val) for ts, val in data
-            ]
+            worker_id: [(datetime.fromisoformat(ts), val) for ts, val in data]
             for worker_id, data in tracking_data["worker_memory"].items()
         }
 
     # Convert worker_memory_limit timestamps from ISO strings to datetime
     if "worker_memory_limit" in tracking_data:
         result["worker_memory_limit"] = {
-            worker_id: [
-                (datetime.fromisoformat(ts), val) for ts, val in data
-            ]
+            worker_id: [(datetime.fromisoformat(ts), val) for ts, val in data]
             for worker_id, data in tracking_data["worker_memory_limit"].items()
         }
 
     # Convert worker_active_tasks timestamps from ISO strings to datetime
     if "worker_active_tasks" in tracking_data:
         result["worker_active_tasks"] = {
-            worker_id: [
-                (datetime.fromisoformat(ts), val) for ts, val in data
-            ]
+            worker_id: [(datetime.fromisoformat(ts), val) for ts, val in data]
             for worker_id, data in tracking_data["worker_active_tasks"].items()
         }
 
     # Convert worker_cores timestamps from ISO strings to datetime
     if "worker_cores" in tracking_data:
         result["worker_cores"] = {
-            worker_id: [
-                (datetime.fromisoformat(ts), val) for ts, val in data
-            ]
+            worker_id: [(datetime.fromisoformat(ts), val) for ts, val in data]
             for worker_id, data in tracking_data["worker_cores"].items()
         }
 
     # Convert worker_nbytes timestamps from ISO strings to datetime
     if "worker_nbytes" in tracking_data:
         result["worker_nbytes"] = {
-            worker_id: [
-                (datetime.fromisoformat(ts), val) for ts, val in data
-            ]
+            worker_id: [(datetime.fromisoformat(ts), val) for ts, val in data]
             for worker_id, data in tracking_data["worker_nbytes"].items()
         }
 
     # Convert worker_occupancy timestamps from ISO strings to datetime
     if "worker_occupancy" in tracking_data:
         result["worker_occupancy"] = {
-            worker_id: [
-                (datetime.fromisoformat(ts), val) for ts, val in data
-            ]
+            worker_id: [(datetime.fromisoformat(ts), val) for ts, val in data]
             for worker_id, data in tracking_data["worker_occupancy"].items()
         }
 
     # Convert worker_executing timestamps from ISO strings to datetime
     if "worker_executing" in tracking_data:
         result["worker_executing"] = {
-            worker_id: [
-                (datetime.fromisoformat(ts), val) for ts, val in data
-            ]
+            worker_id: [(datetime.fromisoformat(ts), val) for ts, val in data]
             for worker_id, data in tracking_data["worker_executing"].items()
         }
 
     # Convert worker_last_seen timestamps from ISO strings to datetime
     if "worker_last_seen" in tracking_data:
         result["worker_last_seen"] = {
-            worker_id: [
-                (datetime.fromisoformat(ts), val) for ts, val in data
-            ]
+            worker_id: [(datetime.fromisoformat(ts), val) for ts, val in data]
             for worker_id, data in tracking_data["worker_last_seen"].items()
         }
 

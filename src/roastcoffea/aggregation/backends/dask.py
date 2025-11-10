@@ -45,7 +45,7 @@ class DaskTrackingDataParser(AbstractTrackingDataParser):
             # Sum cores across all workers (use latest value for each worker)
             cores_sum = 0
             core_counts = []
-            for worker_id, timeline in worker_cores.items():
+            for _worker_id, timeline in worker_cores.items():
                 if timeline:
                     # Use the latest (or any) core count for this worker
                     # Cores don't change over time, so any value is fine

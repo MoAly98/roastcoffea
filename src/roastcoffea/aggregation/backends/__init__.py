@@ -6,13 +6,11 @@ into standardized worker metrics dictionaries.
 
 from __future__ import annotations
 
-from typing import Type
-
 from roastcoffea.aggregation.backends.base import AbstractTrackingDataParser
 from roastcoffea.aggregation.backends.dask import DaskTrackingDataParser
 
 # Registry mapping backend name to parser class
-_PARSER_REGISTRY: dict[str, Type[AbstractTrackingDataParser]] = {
+_PARSER_REGISTRY: dict[str, type[AbstractTrackingDataParser]] = {
     "dask": DaskTrackingDataParser,
 }
 
