@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 import datetime
 import logging
+import time
 from typing import Any
 
 from roastcoffea.backends.base import AbstractMetricsBackend
@@ -238,13 +239,17 @@ class DaskMetricsBackend(AbstractMetricsBackend):
             )
             return None
 
-    def get_span_metrics(self, span_info: Any) -> dict[str, Any]:
-        """Extract metrics from a span.
+    def get_span_metrics(self, span_info: Any, delay: float = 0.5) -> dict[str, Any]:
+        """Extract metrics from a span from scheduler.
+
+        Span metrics sync from workers to scheduler after a delay (default: 0.5s interval).
 
         Parameters
         ----------
         span_info : dict or Any
             Span info dict from create_span containing 'id' and 'name'
+        delay : float, default 0.5
+            Delay in seconds before extracting span metrics
 
         Returns
         -------
@@ -276,6 +281,8 @@ class DaskMetricsBackend(AbstractMetricsBackend):
                 # Return the cumulative_worker_metrics property
                 return span_obj.cumulative_worker_metrics
 
+            # Retry logic to handle heartbeat synchronization delays
+            time.sleep(delay)
             metrics = self.client.run_on_scheduler(_get_span_metrics, span_id=span_id)
             return metrics if metrics else {}
 

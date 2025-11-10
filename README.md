@@ -235,25 +235,126 @@ print(f"Compression overhead: {metrics['total_compression_overhead_seconds']:.1f
 
 ### Visualization
 
+roastcoffea provides comprehensive visualization capabilities for all collected metrics.
+
+#### Worker Timeline Plots
+
 ```python
 from roastcoffea import (
     plot_worker_count_timeline,
     plot_memory_utilization_timeline,
-    load_measurement,
+    plot_occupancy_timeline,
+    plot_executing_tasks_timeline,
+    plot_worker_activity_timeline,
+    plot_total_active_tasks_timeline,
 )
 
-# Load a saved measurement
+# After collecting metrics with track_workers=True
+tracking_data = collector.get_metrics()["tracking_data"]
+
+# Worker count over time
+plot_worker_count_timeline(
+    tracking_data=tracking_data,
+    output_path="worker_count.png"
+)
+
+# Memory utilization percentage over time
+plot_memory_utilization_timeline(
+    tracking_data=tracking_data,
+    output_path="memory_util.png"
+)
+
+# Worker occupancy (task saturation) over time
+plot_occupancy_timeline(
+    tracking_data=tracking_data,
+    output_path="occupancy.png"
+)
+
+# Executing tasks per worker over time
+plot_executing_tasks_timeline(
+    tracking_data=tracking_data,
+    output_path="executing_tasks.png"
+)
+
+# Active tasks per worker over time
+plot_worker_activity_timeline(
+    tracking_data=tracking_data,
+    output_path="worker_activity.png"
+)
+
+# Total active tasks across all workers
+plot_total_active_tasks_timeline(
+    tracking_data=tracking_data,
+    output_path="total_activity.png"
+)
+```
+
+#### Efficiency & Scaling Summary Plots
+
+```python
+from roastcoffea import (
+    plot_efficiency_summary,
+    plot_resource_utilization,
+)
+
+metrics = collector.get_metrics()
+
+# Efficiency metrics bar chart
+plot_efficiency_summary(
+    metrics=metrics,
+    output_path="efficiency.png"
+)
+
+# Resource utilization summary
+plot_resource_utilization(
+    metrics=metrics,
+    output_path="resources.png"
+)
+```
+
+#### Per-Task Fine Metrics (Dask Spans)
+
+```python
+from roastcoffea import (
+    plot_per_task_cpu_io,
+    plot_per_task_bytes_read,
+    plot_per_task_overhead,
+)
+
+# Get span metrics from collector
+span_metrics = collector.span_metrics
+
+# CPU vs I/O time per task
+plot_per_task_cpu_io(
+    span_metrics=span_metrics,
+    output_path="per_task_cpu_io.png"
+)
+
+# Bytes read per task (if disk-read available)
+plot_per_task_bytes_read(
+    span_metrics=span_metrics,
+    output_path="per_task_bytes.png"
+)
+
+# Compression & serialization overhead per task
+plot_per_task_overhead(
+    span_metrics=span_metrics,
+    output_path="per_task_overhead.png"
+)
+```
+
+#### Loading Saved Measurements
+
+```python
+from roastcoffea import load_measurement
+
+# Load a previously saved measurement
 metrics, t0, t1 = load_measurement("benchmarks/my_run")
 
-# Create plots (requires track_workers=True when collecting)
-if "tracking_data" in metrics and metrics["tracking_data"] is not None:
-    plot_worker_count_timeline(
-        tracking_data=metrics["tracking_data"], output_path="worker_timeline.png"
-    )
-
-    plot_memory_utilization_timeline(
-        tracking_data=metrics["tracking_data"], output_path="memory_timeline.png"
-    )
+# Use metrics for any of the above plots
+tracking_data = metrics.get("tracking_data")
+if tracking_data:
+    plot_worker_count_timeline(tracking_data, output_path="worker_count.png")
 ```
 
 ### Disable Worker Tracking

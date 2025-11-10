@@ -38,13 +38,13 @@ class TestAggregateWorkflowMetrics:
         assert "total_cpu_time" in metrics
         assert "num_chunks" in metrics
         assert "total_events" in metrics
-        assert "total_bytes_compressed" in metrics
+        assert "total_bytes_read_coffea" in metrics
 
         assert metrics["wall_time"] == 50.0
         assert metrics["total_cpu_time"] == 100.0
         assert metrics["num_chunks"] == 50
         assert metrics["total_events"] == 1_000_000
-        assert metrics["total_bytes_compressed"] == 10_000_000_000
+        assert metrics["total_bytes_read_coffea"] == 10_000_000_000
 
     def test_aggregate_throughput_metrics(self, sample_coffea_report):
         """Calculates throughput metrics."""
@@ -127,22 +127,7 @@ class TestAggregateWorkflowMetrics:
 
         # Should aggregate across all datasets
         assert metrics["total_events"] == 1_000_000
-        assert metrics["total_bytes_compressed"] == 10_000_000_000
-
-    def test_aggregate_estimates_compression_ratio(self, sample_coffea_report):
-        """Compression ratio returns None (stub until Dask Spans implemented)."""
-        metrics = aggregate_workflow_metrics(
-            coffea_report=sample_coffea_report,
-            t_start=0.0,
-            t_end=50.0,
-        )
-
-        assert "compression_ratio" in metrics
-        assert "total_bytes_uncompressed" in metrics
-
-        # Should be None until Dask Spans integration
-        assert metrics["compression_ratio"] is None
-        assert metrics["total_bytes_uncompressed"] is None
+        assert metrics["total_bytes_read_coffea"] == 10_000_000_000
 
     def test_aggregate_handles_zero_wall_time(self):
         """Handles edge case of zero wall time gracefully."""

@@ -6,10 +6,7 @@ from typing import Any
 
 from roastcoffea.aggregation.backends import get_parser
 from roastcoffea.aggregation.efficiency import calculate_efficiency_metrics
-from roastcoffea.aggregation.fine_metrics import (
-    calculate_compression_from_spans,
-    parse_fine_metrics,
-)
+from roastcoffea.aggregation.fine_metrics import parse_fine_metrics
 from roastcoffea.aggregation.workflow import aggregate_workflow_metrics
 
 
@@ -40,6 +37,7 @@ class MetricsAggregator:
         t_end: float,
         custom_metrics: dict[str, Any] | None = None,
         span_metrics: dict[str, Any] | None = None,
+        processor_name: str | None = None,
     ) -> dict[str, Any]:
         """Aggregate all metrics from workflow run.
 
@@ -57,6 +55,8 @@ class MetricsAggregator:
             Per-dataset metrics
         span_metrics : dict, optional
             Dask Spans cumulative_worker_metrics
+        processor_name : str, optional
+            Name of processor class for filtering fine metrics
 
         Returns
         -------
@@ -79,19 +79,13 @@ class MetricsAggregator:
         # Parse fine metrics from Spans if available
         fine_metrics = {}
         if span_metrics:
-            fine_metrics = parse_fine_metrics(span_metrics)
+            fine_metrics = parse_fine_metrics(span_metrics, processor_name=processor_name)
 
             # Update compression metrics with real data from Spans
-            compressed_bytes = workflow_metrics.get("total_bytes_compressed", 0)
-            if compressed_bytes > 0:
-                compression_ratio, total_bytes_uncompressed = (
-                    calculate_compression_from_spans(compressed_bytes, span_metrics)
-                )
-                if compression_ratio is not None:
-                    workflow_metrics["compression_ratio"] = compression_ratio
-                    workflow_metrics["total_bytes_uncompressed"] = (
-                        total_bytes_uncompressed
-                    )
+            # Don't calculate compression ratio - the two metrics measure different things:
+            # - Coffea bytesread: compressed bytes from file
+            # - Dask memory-read: incomplete tracking of in-memory access
+            # We don't have enough information to compute a valid compression ratio
 
         # Calculate efficiency metrics
         efficiency_metrics = calculate_efficiency_metrics(

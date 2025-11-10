@@ -174,3 +174,6 @@ test = { features = ["test"], solve-group = "default" }
 [tool.pixi.dependencies]
 xrootd = ">=5.8.4,<6"
 fsspec-xrootd = ">=0.5.1,<0.6"
+
+[tool.pixi.feature.dev.dependencies]
+scikit-hep-testdata = ">=0.5.8,<0.6"

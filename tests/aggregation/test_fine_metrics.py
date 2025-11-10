@@ -4,10 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from roastcoffea.aggregation.fine_metrics import (
-    calculate_compression_from_spans,
-    parse_fine_metrics,
-)
+from roastcoffea.aggregation.fine_metrics import parse_fine_metrics
 
 
 class TestParseFineMetrics:
@@ -37,22 +34,22 @@ class TestParseFineMetrics:
         """Extracts CPU time from thread-cpu."""
         metrics = parse_fine_metrics(sample_spans_data)
 
-        assert metrics["cpu_time_seconds"] == 100.0
+        assert metrics["processor_cpu_time_seconds"] == 100.0
 
-    def test_parse_extracts_io_time(self, sample_spans_data):
-        """Extracts I/O time from thread-noncpu."""
+    def test_parse_extracts_noncpu_time(self, sample_spans_data):
+        """Extracts non-CPU time from thread-noncpu."""
         metrics = parse_fine_metrics(sample_spans_data)
 
-        assert metrics["io_time_seconds"] == 50.0
+        assert metrics["processor_noncpu_time_seconds"] == 50.0
 
     def test_parse_calculates_percentages(self, sample_spans_data):
-        """Calculates CPU and I/O percentages."""
+        """Calculates CPU and non-CPU percentages."""
         metrics = parse_fine_metrics(sample_spans_data)
 
         # 100 / (100 + 50) = 66.67%
-        assert metrics["cpu_percentage"] == pytest.approx(66.67, rel=0.01)
+        assert metrics["processor_cpu_percentage"] == pytest.approx(66.67, rel=0.01)
         # 50 / (100 + 50) = 33.33%
-        assert metrics["io_percentage"] == pytest.approx(33.33, rel=0.01)
+        assert metrics["processor_noncpu_percentage"] == pytest.approx(33.33, rel=0.01)
 
     def test_parse_extracts_disk_io(self, sample_spans_data):
         """Extracts disk I/O bytes."""
@@ -81,10 +78,10 @@ class TestParseFineMetrics:
         """Handles missing metrics gracefully (returns 0)."""
         metrics = parse_fine_metrics({})
 
-        assert metrics["cpu_time_seconds"] == 0.0
-        assert metrics["io_time_seconds"] == 0.0
-        assert metrics["cpu_percentage"] == 0.0
-        assert metrics["io_percentage"] == 0.0
+        assert metrics["processor_cpu_time_seconds"] == 0.0
+        assert metrics["processor_noncpu_time_seconds"] == 0.0
+        assert metrics["processor_cpu_percentage"] == 0.0
+        assert metrics["processor_noncpu_percentage"] == 0.0
         assert metrics["disk_read_bytes"] == 0
         assert metrics["disk_write_bytes"] == 0
 
@@ -95,58 +92,29 @@ class TestParseFineMetrics:
             ("execute", "task", "thread-noncpu", "seconds"): 0.0,
         })
 
-        assert metrics["cpu_percentage"] == 0.0
-        assert metrics["io_percentage"] == 0.0
+        assert metrics["processor_cpu_percentage"] == 0.0
+        assert metrics["processor_noncpu_percentage"] == 0.0
 
+    def test_separates_processor_from_overhead(self):
+        """Separates processor metrics from Dask overhead when processor_name given."""
+        spans_data = {
+            # Processor work
+            ("execute", "MyProcessor", "thread-cpu", "seconds"): 100.0,
+            ("execute", "MyProcessor", "thread-noncpu", "seconds"): 20.0,
+            # Dask overhead
+            ("execute", "lambda", "thread-cpu", "seconds"): 5.0,
+            ("execute", "lambda", "thread-noncpu", "seconds"): 2.0,
+        }
 
-class TestCalculateCompressionFromSpans:
-    """Test compression calculation from Spans data."""
+        metrics = parse_fine_metrics(spans_data, processor_name="MyProcessor")
 
-    def test_calculates_compression_ratio(self):
-        """Calculates compression ratio from compressed and uncompressed bytes."""
-        spans_data = {("execute", "task", "disk-read", "bytes"): 10_000_000_000}
-        compressed = 4_000_000_000  # 4 GB compressed
-
-        ratio, uncompressed = calculate_compression_from_spans(compressed, spans_data)
-
-        assert ratio == pytest.approx(2.5)  # 10 / 4 = 2.5x
-        assert uncompressed == 10_000_000_000
-
-    def test_returns_none_if_no_disk_read(self):
-        """Returns None if disk-read not available in Spans."""
-        ratio, uncompressed = calculate_compression_from_spans(
-            4_000_000_000, {}  # Missing disk-read
-        )
-
-        assert ratio is None
-        assert uncompressed is None
-
-    def test_returns_none_if_zero_disk_read(self):
-        """Returns None if disk-read is zero."""
-        spans_data = {("execute", "task", "disk-read", "bytes"): 0}
-
-        ratio, uncompressed = calculate_compression_from_spans(
-            4_000_000_000, spans_data
-        )
-
-        assert ratio is None
-        assert uncompressed is None
-
-    def test_returns_none_if_zero_compressed(self):
-        """Returns None if compressed bytes is zero."""
-        spans_data = {("execute", "task", "disk-read", "bytes"): 10_000_000_000}
-
-        ratio, uncompressed = calculate_compression_from_spans(0, spans_data)
-
-        assert ratio is None
-        assert uncompressed is None
-
-    def test_handles_no_compression(self):
-        """Handles case where files are not compressed (ratio = 1.0)."""
-        spans_data = {("execute", "task", "disk-read", "bytes"): 5_000_000_000}
-        compressed = 5_000_000_000  # Same size
-
-        ratio, uncompressed = calculate_compression_from_spans(compressed, spans_data)
-
-        assert ratio == pytest.approx(1.0)
-        assert uncompressed == 5_000_000_000
+        # Processor metrics
+        assert metrics["processor_cpu_time_seconds"] == 100.0
+        assert metrics["processor_noncpu_time_seconds"] == 20.0
+        # Overhead metrics
+        assert metrics["overhead_cpu_time_seconds"] == 5.0
+        assert metrics["overhead_noncpu_time_seconds"] == 2.0
+        # Percentages only for processor
+        total = 100.0 + 20.0
+        assert metrics["processor_cpu_percentage"] == pytest.approx(100.0 / total * 100)
+        assert metrics["processor_noncpu_percentage"] == pytest.approx(20.0 / total * 100)

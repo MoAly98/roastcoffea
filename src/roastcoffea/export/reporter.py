@@ -58,27 +58,21 @@ def format_throughput_table(metrics: dict[str, Any]) -> Table:
         f"{metrics.get('overall_rate_gbps', 0):.2f} Gbps ({metrics.get('overall_rate_mbps', 0):.1f} MB/s)",
     )
 
-    # Compression (only if available from Dask Spans)
-    ratio = metrics.get("compression_ratio")
-    if ratio is not None:
-        table.add_row("Compression Ratio", f"{ratio:.2f}x")
-    else:
-        table.add_row("Compression Ratio", "[dim]N/A (requires Dask Spans)[/dim]")
+    # Data volume from Coffea
+    bytes_coffea = metrics.get("total_bytes_read_coffea", 0)
+    if bytes_coffea:
+        table.add_row(
+            "Total Bytes Read (Coffea)",
+            f"{_format_bytes(bytes_coffea)}",
+        )
 
-    # Data volume
-    compressed = metrics.get("total_bytes_compressed", 0)
-    uncompressed = metrics.get("total_bytes_uncompressed")
-    if compressed:
-        if uncompressed is not None:
-            table.add_row(
-                "Total Data Read",
-                f"{_format_bytes(compressed)} compressed, {_format_bytes(uncompressed)} uncompressed",
-            )
-        else:
-            table.add_row(
-                "Total Data Read",
-                f"{_format_bytes(compressed)} compressed",
-            )
+    # Data volume from Dask Spans (if available)
+    bytes_dask = metrics.get("total_bytes_memory_read_dask", 0)
+    if bytes_dask:
+        table.add_row(
+            "Memory Read (Dask Spans)",
+            f"{_format_bytes(bytes_dask)}",
+        )
 
     return table
 
@@ -251,11 +245,13 @@ def format_fine_metrics_table(metrics: dict[str, Any]) -> Table | None:
     Table or None
         Rich table if fine metrics available, None otherwise
     """
-    # Check if any fine metrics are available
-    cpu_time = metrics.get("cpu_time_seconds")
-    io_time = metrics.get("io_time_seconds")
+    # Check if any fine metrics are available (new names)
+    processor_cpu = metrics.get("processor_cpu_time_seconds")
+    processor_noncpu = metrics.get("processor_noncpu_time_seconds")
+    overhead_cpu = metrics.get("overhead_cpu_time_seconds")
+    overhead_noncpu = metrics.get("overhead_noncpu_time_seconds")
 
-    if cpu_time is None and io_time is None:
+    if processor_cpu is None and processor_noncpu is None:
         return None
 
     table = Table(
@@ -266,17 +262,23 @@ def format_fine_metrics_table(metrics: dict[str, Any]) -> Table | None:
     table.add_column("Metric", style="cyan", no_wrap=True)
     table.add_column("Value", style="magenta")
 
-    # CPU vs I/O breakdown
-    if cpu_time is not None:
-        table.add_row("CPU Time", _format_time(cpu_time))
-    if io_time is not None:
-        table.add_row("I/O Time", _format_time(io_time))
+    # Processor CPU vs non-CPU breakdown
+    if processor_cpu is not None:
+        table.add_row("Processor CPU Time", _format_time(processor_cpu))
+    if processor_noncpu is not None:
+        table.add_row("Processor Non-CPU Time", _format_time(processor_noncpu))
 
-    cpu_pct = metrics.get("cpu_percentage")
-    io_pct = metrics.get("io_percentage")
-    if cpu_pct is not None and io_pct is not None:
-        table.add_row("CPU %", f"{cpu_pct:.1f}%")
-        table.add_row("I/O %", f"{io_pct:.1f}%")
+    processor_cpu_pct = metrics.get("processor_cpu_percentage")
+    processor_noncpu_pct = metrics.get("processor_noncpu_percentage")
+    if processor_cpu_pct is not None and processor_noncpu_pct is not None:
+        table.add_row("  CPU %", f"{processor_cpu_pct:.1f}%")
+        table.add_row("  Non-CPU %", f"{processor_noncpu_pct:.1f}%")
+
+    # Dask overhead (if separated)
+    if overhead_cpu is not None and overhead_cpu > 0:
+        table.add_row("Dask Overhead CPU Time", _format_time(overhead_cpu))
+    if overhead_noncpu is not None and overhead_noncpu > 0:
+        table.add_row("Dask Overhead Non-CPU Time", _format_time(overhead_noncpu))
 
     # Disk I/O
     disk_read = metrics.get("disk_read_bytes")

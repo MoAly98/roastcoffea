@@ -41,19 +41,32 @@ class MetricsCollector:
         Enable worker tracking (default: True)
     worker_tracking_interval : float, optional
         Sampling interval in seconds (default: 1.0)
+    processor_instance : ProcessorABC, optional
+        Coffea processor instance. If provided, fine metrics will separate
+        processor work from Dask overhead. Without this, all activities
+        (including Dask internals) are aggregated together.
 
     Examples
     --------
     >>> from dask.distributed import Client
     >>> from roastcoffea.collector import MetricsCollector
     >>>
+    >>> # Basic usage (aggregates all activities)
     >>> client = Client()
     >>> with MetricsCollector(client) as collector:
     ...     output, report = runner(...)
     ...     collector.set_coffea_report(report)
     >>>
+    >>> # Recommended: separate processor from overhead
+    >>> processor = MyProcessor()
+    >>> with MetricsCollector(client, processor_instance=processor) as collector:
+    ...     output, report = runner(fileset, processor_instance=processor)
+    ...     collector.set_coffea_report(report)
+    >>>
     >>> metrics = collector.metrics
     >>> print(f"Throughput: {metrics['overall_rate_gbps']:.2f} Gbps")
+    >>> print(f"Processor CPU: {metrics['processor_cpu_time_seconds']:.2f}s")
+    >>> print(f"Dask overhead: {metrics['overhead_cpu_time_seconds']:.2f}s")
     """
 
     def __init__(
@@ -62,12 +75,20 @@ class MetricsCollector:
         backend: str = "dask",
         track_workers: bool = True,
         worker_tracking_interval: float = 1.0,
+        processor_instance: Any = None,
     ) -> None:
         """Initialize MetricsCollector."""
         self.client = client
         self.backend = backend
         self.track_workers = track_workers
         self.worker_tracking_interval = worker_tracking_interval
+        self.processor_instance = processor_instance
+
+        # Get processor name for filtering metrics
+        if processor_instance is not None:
+            self.processor_name = processor_instance.__class__.__name__
+        else:
+            self.processor_name = None
 
         # Initialize backend
         if backend == "dask":
@@ -167,6 +188,14 @@ class MetricsCollector:
             msg = "Coffea report not set - call set_coffea_report() first"
             raise RuntimeError(msg)
 
+        # Warn if span metrics collected without processor_name
+        if self.span_metrics and self.processor_name is None:
+            logger.warning(
+                "Fine metrics will be aggregated from ALL task activities (including Dask overhead). "
+                "To separate processor metrics from Dask overhead, pass processor_instance to MetricsCollector: "
+                "MetricsCollector(client, processor_instance=my_processor)"
+            )
+
         self.metrics = self.aggregator.aggregate(
             coffea_report=self.coffea_report,
             tracking_data=self.tracking_data,
@@ -174,6 +203,7 @@ class MetricsCollector:
             t_end=self.t_end,
             custom_metrics=getattr(self, "custom_metrics", None),
             span_metrics=self.span_metrics,
+            processor_name=self.processor_name,
         )
 
     def get_metrics(self) -> dict[str, Any]:

@@ -57,7 +57,7 @@ def aggregate_workflow_metrics(
         }
 
     # Extract and aggregate metrics from combined report
-    total_bytes_compressed = 0
+    total_bytes_read_coffea = 0
     total_events = 0
     total_cpu_time = 0
 
@@ -68,23 +68,18 @@ def aggregate_workflow_metrics(
 
         # Get performance counters
         perf_counters = dataset_data.get("performance_counters", {})
-        total_bytes_compressed += perf_counters.get("num_requested_bytes", 0)
+        total_bytes_read_coffea += perf_counters.get("num_requested_bytes", 0)
 
         # Get events and duration
         total_events += dataset_data.get("entries", 0)
         total_cpu_time += dataset_data.get("duration", 0)
 
-    # Uncompressed bytes and compression ratio not available from Coffea report
-    # Will be available when Dask Spans integration is added
-    total_bytes_uncompressed = None
-    compression_ratio = None
-
-    # Calculate throughput metrics (based on compressed bytes)
+    # Calculate throughput metrics (based on Coffea bytesread)
     overall_rate_gbps = (
-        (total_bytes_compressed * 8 / 1e9) / wall_time if wall_time > 0 else 0
+        (total_bytes_read_coffea * 8 / 1e9) / wall_time if wall_time > 0 else 0
     )
     overall_rate_mbps = (
-        (total_bytes_compressed / 1e6) / wall_time if wall_time > 0 else 0
+        (total_bytes_read_coffea / 1e6) / wall_time if wall_time > 0 else 0
     )
 
     # Calculate event rate metrics
@@ -101,7 +96,6 @@ def aggregate_workflow_metrics(
         # Throughput metrics
         "overall_rate_gbps": overall_rate_gbps,
         "overall_rate_mbps": overall_rate_mbps,
-        "compression_ratio": compression_ratio,
         # Event processing metrics
         "total_events": total_events,
         "event_rate_wall_khz": event_rate_wall_khz,
@@ -112,6 +106,5 @@ def aggregate_workflow_metrics(
         "num_chunks": num_chunks,
         "avg_cpu_time_per_chunk": avg_cpu_time_per_chunk,
         # Data volume metrics
-        "total_bytes_compressed": total_bytes_compressed,
-        "total_bytes_uncompressed": total_bytes_uncompressed,
+        "total_bytes_read_coffea": total_bytes_read_coffea,  # From Coffea's bytesread
     }

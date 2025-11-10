@@ -9,7 +9,7 @@ from __future__ import annotations
 from typing import Any
 
 
-def parse_fine_metrics(cumulative_worker_metrics: dict[str, Any]) -> dict[str, Any]:
+def parse_fine_metrics(cumulative_worker_metrics: dict[str, Any], processor_name: str | None = None) -> dict[str, Any]:
     """Parse Dask Spans cumulative_worker_metrics into fine metrics.
 
     Parameters
@@ -19,15 +19,21 @@ def parse_fine_metrics(cumulative_worker_metrics: dict[str, Any]) -> dict[str, A
         ('execute', task_prefix, activity, unit) -> value
         Activities include: thread-cpu, thread-noncpu, disk-read, disk-write,
         compress, decompress, serialize, deserialize
+    processor_name : str, optional
+        Name of processor class to filter metrics for. If provided, only metrics
+        from this processor are included in processor_* fields, and other metrics
+        go into overhead_* fields.
 
     Returns
     -------
     dict
         Parsed fine metrics with keys:
-        - cpu_time_seconds: Pure CPU time
-        - io_time_seconds: I/O + waiting time
-        - cpu_percentage: CPU / (CPU + I/O) × 100
-        - io_percentage: I/O / (CPU + I/O) × 100
+        - processor_cpu_time_seconds: CPU time in processor
+        - processor_noncpu_time_seconds: Non-CPU time in processor (waiting, GIL, etc)
+        - processor_cpu_percentage: CPU / (CPU + non-CPU) × 100 for processor
+        - processor_noncpu_percentage: Non-CPU / (CPU + non-CPU) × 100 for processor
+        - overhead_cpu_time_seconds: CPU time in Dask overhead (if processor_name given)
+        - overhead_noncpu_time_seconds: Non-CPU time in Dask overhead
         - disk_read_bytes: Bytes read from disk
         - disk_write_bytes: Bytes written to disk
         - decompression_time_seconds: Time spent decompressing
@@ -37,12 +43,15 @@ def parse_fine_metrics(cumulative_worker_metrics: dict[str, Any]) -> dict[str, A
         - total_serialization_overhead_seconds: Sum of serialize + deserialize
         - total_compression_overhead_seconds: Sum of compress + decompress
     """
-    # Aggregate metrics by activity type across all task prefixes
+    # Aggregate metrics by activity type
     # Metrics have keys like: ('execute', task_prefix, activity, unit)
-    cpu_time = 0.0
-    io_time = 0.0
+    processor_cpu = 0.0
+    processor_noncpu = 0.0
+    overhead_cpu = 0.0
+    overhead_noncpu = 0.0
     disk_read = 0
     disk_write = 0
+    memory_read = 0
     decompress_time = 0.0
     compress_time = 0.0
     deserialize_time = 0.0
@@ -52,18 +61,32 @@ def parse_fine_metrics(cumulative_worker_metrics: dict[str, Any]) -> dict[str, A
         if not isinstance(key, tuple) or len(key) < 3:
             continue
 
-        # Extract activity from tuple key
-        # Format: (context, task_prefix, activity, unit) or similar
+        # Extract components from tuple key
+        # Format: (context, task_prefix, activity, unit)
+        context = key[0] if len(key) > 0 else None
+        task_prefix = key[1] if len(key) > 1 else None
         activity = key[2] if len(key) > 2 else None
+        unit = key[3] if len(key) > 3 else None
+
+        # Determine if this is processor work or overhead
+        is_processor = (processor_name is None) or (task_prefix == processor_name)
 
         if activity == "thread-cpu":
-            cpu_time += value
+            if is_processor:
+                processor_cpu += value
+            else:
+                overhead_cpu += value
         elif activity == "thread-noncpu":
-            io_time += value
-        elif activity == "disk-read":
+            if is_processor:
+                processor_noncpu += value
+            else:
+                overhead_noncpu += value
+        elif activity == "disk-read" and unit == "bytes":
             disk_read += value
-        elif activity == "disk-write":
+        elif activity == "disk-write" and unit == "bytes":
             disk_write += value
+        elif activity == "memory-read" and unit == "bytes":
+            memory_read += value
         elif activity == "decompress":
             decompress_time += value
         elif activity == "compress":
@@ -73,22 +96,26 @@ def parse_fine_metrics(cumulative_worker_metrics: dict[str, Any]) -> dict[str, A
         elif activity == "serialize":
             serialize_time += value
 
-    # Calculate percentages
-    total_time = cpu_time + io_time
-    cpu_percentage = (cpu_time / total_time * 100) if total_time > 0 else 0.0
-    io_percentage = (io_time / total_time * 100) if total_time > 0 else 0.0
+    # Calculate percentages for processor
+    processor_total = processor_cpu + processor_noncpu
+    processor_cpu_pct = (processor_cpu / processor_total * 100) if processor_total > 0 else 0.0
+    processor_noncpu_pct = (processor_noncpu / processor_total * 100) if processor_total > 0 else 0.0
 
     # Calculate overhead totals
     total_serialization_overhead = serialize_time + deserialize_time
     total_compression_overhead = compress_time + decompress_time
 
     return {
-        # Time breakdown
-        "cpu_time_seconds": cpu_time,
-        "io_time_seconds": io_time,
-        "cpu_percentage": cpu_percentage,
-        "io_percentage": io_percentage,
-        # Disk I/O
+        # Processor time breakdown
+        "processor_cpu_time_seconds": processor_cpu,
+        "processor_noncpu_time_seconds": processor_noncpu,
+        "processor_cpu_percentage": processor_cpu_pct,
+        "processor_noncpu_percentage": processor_noncpu_pct,
+        # Dask overhead (only populated if processor_name given)
+        "overhead_cpu_time_seconds": overhead_cpu,
+        "overhead_noncpu_time_seconds": overhead_noncpu,
+        # Data volume from Dask Spans
+        "total_bytes_memory_read_dask": memory_read,  # In-memory data access tracked by Dask
         "disk_read_bytes": disk_read,
         "disk_write_bytes": disk_write,
         # Compression overhead
@@ -100,59 +127,3 @@ def parse_fine_metrics(cumulative_worker_metrics: dict[str, Any]) -> dict[str, A
         "serialization_time_seconds": serialize_time,
         "total_serialization_overhead_seconds": total_serialization_overhead,
     }
-
-
-def calculate_compression_from_spans(
-    compressed_bytes: float,
-    cumulative_worker_metrics: dict[str, Any],
-) -> tuple[float | None, float | None]:
-    """Calculate compression ratio and uncompressed bytes from Spans data.
-
-    Dask Spans track disk-read (actual disk I/O) or memory-read (in-memory access)
-    which combined with compressed bytes from Coffea gives us real compression ratio.
-
-    Parameters
-    ----------
-    compressed_bytes : float
-        Compressed bytes from Coffea report (bytesread)
-    cumulative_worker_metrics : dict
-        Raw metrics from span.cumulative_worker_metrics with tuple keys
-
-    Returns
-    -------
-    compression_ratio : float or None
-        Uncompressed / compressed ratio, or None if data unavailable
-    total_bytes_uncompressed : float or None
-        Actual uncompressed bytes read, or None if data unavailable
-    """
-    # Aggregate disk-read and memory-read across all tasks
-    # disk-read: actual disk I/O (local files, spills)
-    # memory-read: in-memory data access (includes decompressed ROOT data)
-    disk_read_bytes = 0
-    memory_read_bytes = 0
-
-    for key, value in cumulative_worker_metrics.items():
-        if not isinstance(key, tuple) or len(key) < 3:
-            continue
-
-        activity = key[2]
-        unit = key[3] if len(key) >= 4 else None
-
-        if activity == "disk-read" and unit == "bytes":
-            disk_read_bytes += value
-        elif activity == "memory-read" and unit == "bytes":
-            memory_read_bytes += value
-
-    # Prefer disk-read if available (actual file I/O), otherwise use memory-read
-    uncompressed_bytes = disk_read_bytes if disk_read_bytes > 0 else memory_read_bytes
-
-    if uncompressed_bytes == 0:
-        return None, None
-
-    if compressed_bytes == 0:
-        return None, None
-
-    # Calculate real compression ratio
-    compression_ratio = uncompressed_bytes / compressed_bytes
-
-    return compression_ratio, float(uncompressed_bytes)
