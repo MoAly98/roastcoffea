@@ -8,6 +8,92 @@ from pathlib import Path
 from typing import Any
 
 
+def _serialize_for_json(obj: Any) -> Any:
+    """Recursively convert datetime objects to ISO strings for JSON serialization.
+
+    Parameters
+    ----------
+    obj : Any
+        Object to serialize
+
+    Returns
+    -------
+    Any
+        JSON-serializable object
+    """
+    if isinstance(obj, dict):
+        return {
+            (k.isoformat() if isinstance(k, datetime) else k): _serialize_for_json(v)
+            for k, v in obj.items()
+        }
+    if isinstance(obj, list):
+        return [_serialize_for_json(item) for item in obj]
+    if isinstance(obj, tuple):
+        return tuple(_serialize_for_json(item) for item in obj)
+    if isinstance(obj, datetime):
+        return obj.isoformat()
+    return obj
+
+
+def _deserialize_tracking_data(tracking_data: dict[str, Any] | None) -> dict[str, Any] | None:
+    """Convert ISO timestamp strings back to datetime objects in tracking_data.
+
+    Parameters
+    ----------
+    tracking_data : dict or None
+        Tracking data with ISO string timestamps
+
+    Returns
+    -------
+    dict or None
+        Tracking data with datetime objects
+    """
+    if tracking_data is None:
+        return None
+
+    result = {}
+
+    # Convert worker_counts keys from ISO strings to datetime
+    if "worker_counts" in tracking_data:
+        result["worker_counts"] = {
+            datetime.fromisoformat(k): v
+            for k, v in tracking_data["worker_counts"].items()
+        }
+
+    # Convert worker_memory timestamps from ISO strings to datetime
+    if "worker_memory" in tracking_data:
+        result["worker_memory"] = {
+            worker_id: [
+                (datetime.fromisoformat(ts), val) for ts, val in data
+            ]
+            for worker_id, data in tracking_data["worker_memory"].items()
+        }
+
+    # Convert worker_memory_limit timestamps from ISO strings to datetime
+    if "worker_memory_limit" in tracking_data:
+        result["worker_memory_limit"] = {
+            worker_id: [
+                (datetime.fromisoformat(ts), val) for ts, val in data
+            ]
+            for worker_id, data in tracking_data["worker_memory_limit"].items()
+        }
+
+    # Convert worker_active_tasks timestamps from ISO strings to datetime
+    if "worker_active_tasks" in tracking_data:
+        result["worker_active_tasks"] = {
+            worker_id: [
+                (datetime.fromisoformat(ts), val) for ts, val in data
+            ]
+            for worker_id, data in tracking_data["worker_active_tasks"].items()
+        }
+
+    # Preserve cores_per_worker as-is
+    if "cores_per_worker" in tracking_data:
+        result["cores_per_worker"] = tracking_data["cores_per_worker"]
+
+    return result
+
+
 def save_measurement(
     metrics: dict[str, Any],
     t0: float,
@@ -47,10 +133,11 @@ def save_measurement(
     measurement_path = Path(output_dir) / measurement_name
     measurement_path.mkdir(parents=True, exist_ok=True)
 
-    # Save metrics with timestamp
+    # Save metrics with timestamp (serialize datetime objects first)
     metrics_file = measurement_path / "metrics.json"
+    serialized_metrics = _serialize_for_json(metrics)
     with Path(metrics_file).open("w", encoding="utf-8") as f:
-        json.dump(metrics, f, indent=2, default=str)
+        json.dump(serialized_metrics, f, indent=2)
 
     # Save timing information
     with Path(measurement_path / "start_end_time.txt").open("w", encoding="utf-8") as f:
@@ -104,6 +191,10 @@ def load_measurement(measurement_path: Path) -> tuple[dict[str, Any], float, flo
 
     with Path(metrics_file).open(encoding="utf-8") as f:
         metrics = json.load(f)
+
+    # Deserialize tracking_data timestamps back to datetime objects
+    if "tracking_data" in metrics:
+        metrics["tracking_data"] = _deserialize_tracking_data(metrics["tracking_data"])
 
     # Load timing
     timing_file = measurement_path / "start_end_time.txt"
