@@ -9,8 +9,17 @@ import time
 from pathlib import Path
 from typing import Any
 
+from rich.console import Console
+
 from roastcoffea.aggregation.core import MetricsAggregator
 from roastcoffea.backends.dask import DaskMetricsBackend
+from roastcoffea.export.measurements import save_measurement
+from roastcoffea.export.reporter import (
+    format_event_processing_table,
+    format_resources_table,
+    format_throughput_table,
+    format_timing_table,
+)
 
 
 class MetricsCollector:
@@ -156,8 +165,6 @@ class MetricsCollector:
         Path
             Path to measurement directory
         """
-        from roastcoffea.export.measurements import save_measurement
-
         metrics = self.get_metrics()
 
         return save_measurement(
@@ -170,15 +177,6 @@ class MetricsCollector:
 
     def print_summary(self) -> None:
         """Print Rich table summary of metrics."""
-        from rich.console import Console
-
-        from roastcoffea.export.reporter import (
-            format_event_processing_table,
-            format_resources_table,
-            format_throughput_table,
-            format_timing_table,
-        )
-
         console = Console()
         metrics = self.get_metrics()
 

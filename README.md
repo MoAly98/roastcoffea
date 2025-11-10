@@ -24,30 +24,29 @@ pip install -e .
 
 ```python
 from coffea.processor import Runner, DaskExecutor
-from dask.distributed import Client
+from dask.distributed import Client, LocalCluster
 from roastcoffea import MetricsCollector
 
-# Setup Dask client
-client = Client()
+# Setup Dask client and cluster
+with LocalCluster(n_workers=4) as cluster, Client(cluster) as client:
+    # Wrap your Coffea workflow with MetricsCollector
+    with MetricsCollector(client, track_workers=True) as collector:
+        # Run your normal Coffea workflow
+        executor = DaskExecutor(client=client)
+        runner = Runner(executor=executor, savemetrics=True)
+        output, report = runner(fileset, processor_instance=my_processor, treename="Events")
 
-# Wrap your Coffea workflow with MetricsCollector
-with MetricsCollector(client) as collector:
-    # Run your normal Coffea workflow
-    executor = DaskExecutor(client=client)
-    runner = Runner(executor=executor, savemetrics=True)
-    output, report = runner(fileset, processor_instance=my_processor)
+        # Provide the report to collector
+        collector.set_coffea_report(report)
 
-    # Provide the report to collector
-    collector.set_coffea_report(report)
-
-# Print performance summary
-collector.print_summary()
-
-# Access metrics programmatically
+# Access metrics after collector context exit
 metrics = collector.get_metrics()
 print(f"Throughput: {metrics['overall_rate_gbps']:.2f} Gbps")
 print(f"Event rate: {metrics['event_rate_wall_khz']:.1f} kHz")
 print(f"Core efficiency: {metrics['core_efficiency']:.1%}")
+
+# Print summary tables
+collector.print_summary()
 
 # Save for later analysis
 collector.save_measurement(output_dir="benchmarks/", measurement_name="my_run")

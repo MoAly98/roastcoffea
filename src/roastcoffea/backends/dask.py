@@ -36,13 +36,7 @@ def _start_tracking_on_scheduler(dask_scheduler, interval: float = 1.0):
     dask_scheduler.worker_memory_limit = {}
     dask_scheduler.worker_active_tasks = {}
     dask_scheduler.track_count = True
-
-    # Capture cores_per_worker from first worker
-    if dask_scheduler.workers:
-        first_worker = next(iter(dask_scheduler.workers.values()))
-        dask_scheduler.cores_per_worker = first_worker.nthreads
-    else:
-        dask_scheduler.cores_per_worker = None
+    dask_scheduler.cores_per_worker = None  # Will be set when workers are available
 
     async def track_worker_metrics():
         """Async task to track worker metrics."""
@@ -52,6 +46,11 @@ def _start_tracking_on_scheduler(dask_scheduler, interval: float = 1.0):
             # Record worker count
             num_workers = len(dask_scheduler.workers)
             dask_scheduler.worker_counts[timestamp] = num_workers
+
+            # Capture cores_per_worker from first worker (when available)
+            if dask_scheduler.cores_per_worker is None and dask_scheduler.workers:
+                first_worker = next(iter(dask_scheduler.workers.values()))
+                dask_scheduler.cores_per_worker = first_worker.nthreads
 
             # Record memory, memory limit, and active tasks for each worker
             for worker_id, worker_state in dask_scheduler.workers.items():

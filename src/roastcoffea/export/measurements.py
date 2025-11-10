@@ -43,7 +43,7 @@ def save_measurement(
         measurement_name = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
     # Create measurement directory
-    measurement_path = output_dir / measurement_name
+    measurement_path = Path(output_dir) / measurement_name
     measurement_path.mkdir(parents=True, exist_ok=True)
 
     # Save metrics with timestamp
