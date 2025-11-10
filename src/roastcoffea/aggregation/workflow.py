@@ -74,18 +74,18 @@ def aggregate_workflow_metrics(
         total_events += dataset_data.get("entries", 0)
         total_cpu_time += dataset_data.get("duration", 0)
 
-    # Estimate uncompressed bytes (typical NanoAOD compression ~2.5x)
-    estimated_compression_ratio = 2.5
-    total_bytes_uncompressed = total_bytes_compressed * estimated_compression_ratio
+    # Uncompressed bytes and compression ratio not available from Coffea report
+    # Will be available when Dask Spans integration is added
+    total_bytes_uncompressed = None
+    compression_ratio = None
 
-    # Calculate throughput metrics
+    # Calculate throughput metrics (based on compressed bytes)
     overall_rate_gbps = (
         (total_bytes_compressed * 8 / 1e9) / wall_time if wall_time > 0 else 0
     )
     overall_rate_mbps = (
         (total_bytes_compressed / 1e6) / wall_time if wall_time > 0 else 0
     )
-    compression_ratio = estimated_compression_ratio
 
     # Calculate event rate metrics
     event_rate_wall_khz = (total_events / wall_time) / 1000 if wall_time > 0 else 0

@@ -135,14 +135,17 @@ class TestFormatResourcesTable:
         metrics = {
             "avg_workers": 2.5,
             "peak_workers": 4,
+            "cores_per_worker": 4.0,
             "total_cores": 16.0,
             "core_efficiency": 0.75,
             "speedup_factor": 3.0,
+            "peak_memory_bytes": 2_000_000_000,
+            "avg_memory_per_worker_bytes": 1_500_000_000,
         }
 
         table = format_resources_table(metrics)
 
-        assert len(table.rows) >= 3  # Workers, cores, efficiency
+        assert len(table.rows) >= 8  # Workers, cores, efficiency, memory
 
     def test_handles_missing_worker_tracking(self):
         """Resources table handles missing worker tracking data."""

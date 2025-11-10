@@ -58,18 +58,27 @@ def format_throughput_table(metrics: dict[str, Any]) -> Table:
         f"{metrics.get('overall_rate_gbps', 0):.2f} Gbps ({metrics.get('overall_rate_mbps', 0):.1f} MB/s)",
     )
 
-    # Compression
-    ratio = metrics.get("compression_ratio", 0)
-    table.add_row("Compression Ratio", f"{ratio:.2f}x")
+    # Compression (only if available from Dask Spans)
+    ratio = metrics.get("compression_ratio")
+    if ratio is not None:
+        table.add_row("Compression Ratio", f"{ratio:.2f}x")
+    else:
+        table.add_row("Compression Ratio", "[dim]N/A (requires Dask Spans)[/dim]")
 
     # Data volume
     compressed = metrics.get("total_bytes_compressed", 0)
-    uncompressed = metrics.get("total_bytes_uncompressed", 0)
-    if compressed or uncompressed:
-        table.add_row(
-            "Total Data Read",
-            f"{_format_bytes(compressed)} compressed, {_format_bytes(uncompressed)} uncompressed",
-        )
+    uncompressed = metrics.get("total_bytes_uncompressed")
+    if compressed:
+        if uncompressed is not None:
+            table.add_row(
+                "Total Data Read",
+                f"{_format_bytes(compressed)} compressed, {_format_bytes(uncompressed)} uncompressed",
+            )
+        else:
+            table.add_row(
+                "Total Data Read",
+                f"{_format_bytes(compressed)} compressed",
+            )
 
     return table
 
@@ -177,6 +186,19 @@ def format_resources_table(metrics: dict[str, Any]) -> Table:
         table.add_row("Speedup Factor", f"{speedup:.1f}x")
     else:
         table.add_row("Speedup Factor", "[dim]N/A (no worker tracking)[/dim]")
+
+    # Memory metrics
+    peak_memory = metrics.get("peak_memory_bytes")
+    if peak_memory is not None:
+        table.add_row("Peak Memory (per worker)", _format_bytes(peak_memory))
+    else:
+        table.add_row("Peak Memory (per worker)", "[dim]N/A (no worker tracking)[/dim]")
+
+    avg_memory = metrics.get("avg_memory_per_worker_bytes")
+    if avg_memory is not None:
+        table.add_row("Avg Memory (per worker)", _format_bytes(avg_memory))
+    else:
+        table.add_row("Avg Memory (per worker)", "[dim]N/A (no worker tracking)[/dim]")
 
     return table
 

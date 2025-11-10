@@ -66,11 +66,11 @@ collector.save_measurement(output_dir="benchmarks/", measurement_name="my_run")
 | `num_chunks` | Coffea Report | Number of data chunks processed |
 | `avg_cpu_time_per_chunk` | Coffea Report | Average CPU time per chunk |
 | `total_events` | Coffea Report | Total number of events processed |
-| `bytes_read_compressed` | Coffea Report | Compressed bytes read from files |
-| `bytes_read_uncompressed` | Coffea Report | Uncompressed bytes read |
-| `compression_ratio` | Derived | Uncompressed / compressed bytes ratio |
+| `total_bytes_compressed` | Coffea Report | Compressed bytes read from files |
+| `total_bytes_uncompressed` | Dask Spans (v0.2+) | Actual uncompressed bytes read (stub: returns None until Spans implemented) |
+| `compression_ratio` | Dask Spans (v0.2+) | Uncompressed / compressed bytes ratio (stub: returns None until Spans implemented) |
 | `overall_rate_gbps` | Derived | Data processing rate in Gbps |
-| `overall_rate_mbs` | Derived | Data processing rate in MB/s |
+| `overall_rate_mbps` | Derived | Data processing rate in MB/s |
 | `event_rate_wall_khz` | Derived | Events/sec from wall time (kHz) |
 | `event_rate_agg_khz` | Derived | Events/sec from aggregated CPU time (kHz) |
 

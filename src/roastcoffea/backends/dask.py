@@ -129,7 +129,7 @@ def _start_tracking_on_scheduler(dask_scheduler, interval: float = 1.0):
 def _stop_tracking_on_scheduler(dask_scheduler) -> dict:
     """Stop tracking and return collected data.
 
-    This function runs ON THE SCHEDULER via client.run_on_scheduler().
+    This function runs on the scheduler via client.run_on_scheduler().
 
     Parameters
     ----------

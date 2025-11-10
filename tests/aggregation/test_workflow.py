@@ -130,7 +130,7 @@ class TestAggregateWorkflowMetrics:
         assert metrics["total_bytes_compressed"] == 10_000_000_000
 
     def test_aggregate_estimates_compression_ratio(self, sample_coffea_report):
-        """Estimates compression ratio for uncompressed bytes."""
+        """Compression ratio returns None (stub until Dask Spans implemented)."""
         metrics = aggregate_workflow_metrics(
             coffea_report=sample_coffea_report,
             t_start=0.0,
@@ -140,11 +140,9 @@ class TestAggregateWorkflowMetrics:
         assert "compression_ratio" in metrics
         assert "total_bytes_uncompressed" in metrics
 
-        # Should estimate ~2.5x compression for NanoAOD
-        assert metrics["compression_ratio"] == pytest.approx(2.5)
-        assert metrics["total_bytes_uncompressed"] == pytest.approx(
-            10_000_000_000 * 2.5
-        )
+        # Should be None until Dask Spans integration
+        assert metrics["compression_ratio"] is None
+        assert metrics["total_bytes_uncompressed"] is None
 
     def test_aggregate_handles_zero_wall_time(self):
         """Handles edge case of zero wall time gracefully."""
