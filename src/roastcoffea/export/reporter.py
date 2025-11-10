@@ -236,3 +236,78 @@ def format_timing_table(metrics: dict[str, Any]) -> Table:
         table.add_row("Avg CPU Time/Chunk", _format_time(avg_cpu_per_chunk))
 
     return table
+
+
+def format_fine_metrics_table(metrics: dict[str, Any]) -> Table | None:
+    """Format fine-grained metrics from Dask Spans as Rich table.
+
+    Parameters
+    ----------
+    metrics : dict
+        Metrics dictionary
+
+    Returns
+    -------
+    Table or None
+        Rich table if fine metrics available, None otherwise
+    """
+    # Check if any fine metrics are available
+    cpu_time = metrics.get("cpu_time_seconds")
+    io_time = metrics.get("io_time_seconds")
+
+    if cpu_time is None and io_time is None:
+        return None
+
+    table = Table(
+        title="Fine Metrics (from Dask Spans)",
+        show_header=True,
+        header_style="bold cyan",
+    )
+    table.add_column("Metric", style="cyan", no_wrap=True)
+    table.add_column("Value", style="magenta")
+
+    # CPU vs I/O breakdown
+    if cpu_time is not None:
+        table.add_row("CPU Time", _format_time(cpu_time))
+    if io_time is not None:
+        table.add_row("I/O Time", _format_time(io_time))
+
+    cpu_pct = metrics.get("cpu_percentage")
+    io_pct = metrics.get("io_percentage")
+    if cpu_pct is not None and io_pct is not None:
+        table.add_row("CPU %", f"{cpu_pct:.1f}%")
+        table.add_row("I/O %", f"{io_pct:.1f}%")
+
+    # Disk I/O
+    disk_read = metrics.get("disk_read_bytes")
+    disk_write = metrics.get("disk_write_bytes")
+    if disk_read is not None and disk_read > 0:
+        table.add_row("Disk Read", _format_bytes(disk_read))
+    if disk_write is not None and disk_write > 0:
+        table.add_row("Disk Write", _format_bytes(disk_write))
+
+    # Compression overhead
+    compress_time = metrics.get("compression_time_seconds")
+    decompress_time = metrics.get("decompression_time_seconds")
+    total_compression = metrics.get("total_compression_overhead_seconds")
+
+    if total_compression is not None and total_compression > 0:
+        table.add_row("Compression Overhead", _format_time(total_compression))
+        if compress_time is not None and compress_time > 0:
+            table.add_row("  • Compress", _format_time(compress_time))
+        if decompress_time is not None and decompress_time > 0:
+            table.add_row("  • Decompress", _format_time(decompress_time))
+
+    # Serialization overhead
+    serialize_time = metrics.get("serialization_time_seconds")
+    deserialize_time = metrics.get("deserialization_time_seconds")
+    total_serialization = metrics.get("total_serialization_overhead_seconds")
+
+    if total_serialization is not None and total_serialization > 0:
+        table.add_row("Serialization Overhead", _format_time(total_serialization))
+        if serialize_time is not None and serialize_time > 0:
+            table.add_row("  • Serialize", _format_time(serialize_time))
+        if deserialize_time is not None and deserialize_time > 0:
+            table.add_row("  • Deserialize", _format_time(deserialize_time))
+
+    return table

@@ -22,37 +22,97 @@ pip install -e .
 
 ## Quick Start
 
+### Complete Example
+
 ```python
-from coffea.processor import Runner, DaskExecutor
+from coffea import processor
+from coffea.nanoevents import NanoEventsFactory, NanoAODSchema
 from dask.distributed import Client, LocalCluster
 from roastcoffea import MetricsCollector
 
-# Setup Dask client and cluster
-with LocalCluster(n_workers=4) as cluster, Client(cluster) as client:
-    # Wrap your Coffea workflow with MetricsCollector
-    with MetricsCollector(client, track_workers=True) as collector:
-        # Run your normal Coffea workflow
-        executor = DaskExecutor(client=client)
-        runner = Runner(executor=executor, savemetrics=True)
-        output, report = runner(
-            fileset, processor_instance=my_processor, treename="Events"
+# Define a simple processor
+class MyProcessor(processor.ProcessorABC):
+    def process(self, events):
+        # Example: select jets with pT > 30 GeV
+        jets = events.Jet[events.Jet.pt > 30]
+
+        return {
+            "njets": len(jets),
+            "jet_pt": jets.pt.flatten().sum(),
+        }
+
+    def postprocess(self, accumulator):
+        return accumulator
+
+# Define your fileset
+fileset = {
+    "TTbar": {
+        "files": {
+            "root://xrootd.example.com//data/TTbar_1.root": "Events",
+            "root://xrootd.example.com//data/TTbar_2.root": "Events",
+        }
+    },
+}
+
+# Setup Dask cluster and run with metrics collection
+with LocalCluster(n_workers=4, threads_per_worker=2) as cluster:
+    with Client(cluster) as client:
+        # Create MetricsCollector
+        with MetricsCollector(client, track_workers=True) as collector:
+            # Run your Coffea workflow
+            executor = processor.DaskExecutor(client=client)
+            runner = processor.Runner(
+                executor=executor,
+                savemetrics=True,
+                schema=NanoAODSchema,
+            )
+
+            output, report = runner(
+                fileset,
+                treename="Events",
+                processor_instance=MyProcessor(),
+            )
+
+            # Provide the report to collector
+            collector.set_coffea_report(report)
+
+        # After context exit, metrics are aggregated
+        # Print Rich tables with all metrics
+        collector.print_summary()
+
+        # Access specific metrics
+        metrics = collector.get_metrics()
+        print(f"\nThroughput: {metrics['overall_rate_gbps']:.2f} Gbps")
+        print(f"Event rate: {metrics['event_rate_wall_khz']:.1f} kHz")
+
+        # Fine metrics (automatic with Dask Spans)
+        if metrics.get('cpu_percentage') is not None:
+            print(f"CPU %: {metrics['cpu_percentage']:.1f}%")
+            print(f"I/O %: {metrics['io_percentage']:.1f}%")
+            print(f"Compression ratio: {metrics.get('compression_ratio', 'N/A')}")
+
+        # Save measurement for later analysis
+        collector.save_measurement(
+            output_dir="benchmarks/",
+            measurement_name="ttbar_analysis"
         )
+```
 
-        # Provide the report to collector
-        collector.set_coffea_report(report)
+### Minimal Example
 
-# Access metrics after collector context exit
-metrics = collector.get_metrics()
-print(f"Throughput: {metrics['overall_rate_gbps']:.2f} Gbps")
-print(f"Event rate: {metrics['event_rate_wall_khz']:.1f} kHz")
-if metrics["core_efficiency"] is not None:
-    print(f"Core efficiency: {metrics['core_efficiency']:.1%}")
+```python
+from dask.distributed import Client
+from roastcoffea import MetricsCollector
 
-# Print summary tables
+client = Client()
+
+with MetricsCollector(client) as collector:
+    # Your Coffea workflow here
+    output, report = runner(fileset, processor_instance=my_processor)
+    collector.set_coffea_report(report)
+
+# Print summary
 collector.print_summary()
-
-# Save for later analysis
-collector.save_measurement(output_dir="benchmarks/", measurement_name="my_run")
 ```
 
 ## Metrics Reference
@@ -132,6 +192,45 @@ with MetricsCollector(client) as collector:
     }
 
     collector.set_coffea_report(report, custom_metrics=custom_metrics)
+```
+
+### Fine-Grained Metrics (Dask Spans)
+
+ Automatic collection of CPU/I/O breakdown and real compression ratios.
+
+```python
+with MetricsCollector(client) as collector:
+    output, report = runner(fileset, processor_instance=my_processor)
+    collector.set_coffea_report(report)
+
+# Print summary includes fine metrics table when available
+collector.print_summary()
+
+# Access fine metrics directly
+metrics = collector.get_metrics()
+print(f"CPU %: {metrics['cpu_percentage']:.1f}%")
+print(f"I/O %: {metrics['io_percentage']:.1f}%")
+print(f"Compression ratio: {metrics.get('compression_ratio', 'N/A')}")
+print(f"Compression overhead: {metrics['total_compression_overhead_seconds']:.1f}s")
+```
+
+**Fine metrics table output example**:
+```
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━┓
+┃ Metric                         ┃ Value       ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━┩
+│ CPU Time                       │ 125.3s      │
+│ I/O Time                       │ 48.7s       │
+│ CPU %                          │ 72.0%       │
+│ I/O %                          │ 28.0%       │
+│ Disk Read                      │ 12.50 GB    │
+│ Compression Overhead           │ 5.2s        │
+│   • Decompress                 │ 4.8s        │
+│   • Compress                   │ 0.4s        │
+│ Serialization Overhead         │ 3.1s        │
+│   • Deserialize                │ 2.1s        │
+│   • Serialize                  │ 1.0s        │
+└────────────────────────────────┴─────────────┘
 ```
 
 ### Visualization

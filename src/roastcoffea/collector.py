@@ -16,6 +16,7 @@ from roastcoffea.backends.dask import DaskMetricsBackend
 from roastcoffea.export.measurements import save_measurement
 from roastcoffea.export.reporter import (
     format_event_processing_table,
+    format_fine_metrics_table,
     format_resources_table,
     format_throughput_table,
     format_timing_table,
@@ -80,6 +81,8 @@ class MetricsCollector:
         self.t_end: float | None = None
         self.coffea_report: dict[str, Any] | None = None
         self.tracking_data: dict[str, Any] | None = None
+        self.span_context: Any = None
+        self.span_metrics: dict[str, Any] | None = None
         self.metrics: dict[str, Any] | None = None
 
     def __enter__(self) -> MetricsCollector:
@@ -89,11 +92,22 @@ class MetricsCollector:
         if self.track_workers:
             self.metrics_backend.start_tracking(interval=self.worker_tracking_interval)
 
+        # Create Span for fine-grained metrics
+        self.span_context = self.metrics_backend.create_span("coffea-processing")
+        if self.span_context is not None:
+            # Enter the span context
+            self.span_context.__enter__()
+
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         """Exit context manager - stop tracking and aggregate metrics."""
         self.t_end = time.perf_counter()
+
+        # Exit span context and extract metrics
+        if self.span_context is not None:
+            self.span_context.__exit__(exc_type, exc_val, exc_tb)
+            self.span_metrics = self.metrics_backend.get_span_metrics(self.span_context)
 
         if self.track_workers:
             self.tracking_data = self.metrics_backend.stop_tracking()
@@ -133,6 +147,7 @@ class MetricsCollector:
             t_start=self.t_start,
             t_end=self.t_end,
             custom_metrics=getattr(self, "custom_metrics", None),
+            span_metrics=self.span_metrics,
         )
 
     def get_metrics(self) -> dict[str, Any]:
@@ -201,4 +216,11 @@ class MetricsCollector:
         console.print(format_resources_table(metrics))
         console.print()
         console.print(format_timing_table(metrics))
+
+        # Print fine metrics table if available
+        fine_table = format_fine_metrics_table(metrics)
+        if fine_table is not None:
+            console.print()
+            console.print(fine_table)
+
         console.print()

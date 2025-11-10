@@ -6,6 +6,7 @@ from rich.table import Table
 
 from roastcoffea.export.reporter import (
     format_event_processing_table,
+    format_fine_metrics_table,
     format_resources_table,
     format_throughput_table,
     format_timing_table,
@@ -219,3 +220,162 @@ class TestFormatTimingTable:
         # Table should be created successfully
         assert isinstance(table, Table)
         # Actual formatting is tested by implementation
+
+
+class TestFormatFineMetricsTable:
+    """Test fine metrics (Dask Spans) Rich table formatting."""
+
+    def test_returns_rich_table_when_data_available(self):
+        """format_fine_metrics_table returns Rich Table when metrics available."""
+        metrics = {
+            "cpu_time_seconds": 100.0,
+            "io_time_seconds": 50.0,
+            "cpu_percentage": 66.67,
+            "io_percentage": 33.33,
+            "disk_read_bytes": 10_000_000_000,
+            "disk_write_bytes": 500_000_000,
+            "compression_time_seconds": 1.0,
+            "decompression_time_seconds": 5.0,
+            "total_compression_overhead_seconds": 6.0,
+            "serialization_time_seconds": 2.0,
+            "deserialization_time_seconds": 3.0,
+            "total_serialization_overhead_seconds": 5.0,
+        }
+
+        table = format_fine_metrics_table(metrics)
+
+        assert isinstance(table, Table)
+        assert table.title == "Fine Metrics (from Dask Spans)"
+
+    def test_returns_none_when_no_data_available(self):
+        """format_fine_metrics_table returns None when no fine metrics available."""
+        metrics = {
+            "overall_rate_gbps": 1.5,
+            "wall_time": 100.0,
+        }
+
+        table = format_fine_metrics_table(metrics)
+
+        assert table is None
+
+    def test_table_includes_cpu_io_breakdown(self):
+        """Fine metrics table includes CPU and I/O time breakdown."""
+        metrics = {
+            "cpu_time_seconds": 100.0,
+            "io_time_seconds": 50.0,
+            "cpu_percentage": 66.67,
+            "io_percentage": 33.33,
+        }
+
+        table = format_fine_metrics_table(metrics)
+
+        assert len(table.rows) >= 4  # CPU time, I/O time, CPU %, I/O %
+
+    def test_table_includes_disk_io(self):
+        """Fine metrics table includes disk I/O if non-zero."""
+        metrics = {
+            "cpu_time_seconds": 100.0,
+            "io_time_seconds": 50.0,
+            "cpu_percentage": 66.67,
+            "io_percentage": 33.33,
+            "disk_read_bytes": 10_000_000_000,
+            "disk_write_bytes": 500_000_000,
+        }
+
+        table = format_fine_metrics_table(metrics)
+
+        # Should have CPU time, I/O time, CPU %, I/O %, disk read, disk write = 6 rows
+        assert len(table.rows) == 6
+
+    def test_table_includes_compression_overhead(self):
+        """Fine metrics table includes compression overhead if non-zero."""
+        metrics = {
+            "cpu_time_seconds": 100.0,
+            "io_time_seconds": 50.0,
+            "cpu_percentage": 66.67,
+            "io_percentage": 33.33,
+            "compression_time_seconds": 1.0,
+            "decompression_time_seconds": 5.0,
+            "total_compression_overhead_seconds": 6.0,
+        }
+
+        table = format_fine_metrics_table(metrics)
+
+        # CPU time, I/O time, CPU %, I/O %, total compression, compress, decompress = 7 rows
+        assert len(table.rows) == 7
+
+    def test_table_includes_serialization_overhead(self):
+        """Fine metrics table includes serialization overhead if non-zero."""
+        metrics = {
+            "cpu_time_seconds": 100.0,
+            "io_time_seconds": 50.0,
+            "cpu_percentage": 66.67,
+            "io_percentage": 33.33,
+            "serialization_time_seconds": 2.0,
+            "deserialization_time_seconds": 3.0,
+            "total_serialization_overhead_seconds": 5.0,
+        }
+
+        table = format_fine_metrics_table(metrics)
+
+        # CPU time, I/O time, CPU %, I/O %, total serialization, serialize, deserialize = 7 rows
+        assert len(table.rows) == 7
+
+    def test_omits_zero_disk_io(self):
+        """Fine metrics table omits disk I/O if zero or None."""
+        metrics = {
+            "cpu_time_seconds": 100.0,
+            "io_time_seconds": 50.0,
+            "cpu_percentage": 66.67,
+            "io_percentage": 33.33,
+            "disk_read_bytes": 0,
+            "disk_write_bytes": None,
+        }
+
+        table = format_fine_metrics_table(metrics)
+
+        # Should have CPU time, I/O time, CPU %, I/O % (4 rows), no disk rows
+        assert len(table.rows) == 4
+
+    def test_omits_zero_compression_overhead(self):
+        """Fine metrics table omits compression if zero."""
+        metrics = {
+            "cpu_time_seconds": 100.0,
+            "io_time_seconds": 50.0,
+            "cpu_percentage": 66.67,
+            "io_percentage": 33.33,
+            "total_compression_overhead_seconds": 0.0,
+        }
+
+        table = format_fine_metrics_table(metrics)
+
+        # Should have CPU time, I/O time, CPU %, I/O % (4 rows), no compression
+        assert len(table.rows) == 4
+
+    def test_omits_zero_serialization_overhead(self):
+        """Fine metrics table omits serialization if zero."""
+        metrics = {
+            "cpu_time_seconds": 100.0,
+            "io_time_seconds": 50.0,
+            "cpu_percentage": 66.67,
+            "io_percentage": 33.33,
+            "total_serialization_overhead_seconds": 0.0,
+        }
+
+        table = format_fine_metrics_table(metrics)
+
+        # Should have CPU time, I/O time, CPU %, I/O % (4 rows), no serialization
+        assert len(table.rows) == 4
+
+    def test_handles_partial_metrics(self):
+        """Fine metrics table handles partial metrics gracefully."""
+        metrics = {
+            "cpu_time_seconds": 100.0,
+            # io_time_seconds missing
+            "disk_read_bytes": 10_000_000_000,
+        }
+
+        table = format_fine_metrics_table(metrics)
+
+        # Should still create table with whatever is available
+        assert isinstance(table, Table)

@@ -211,25 +211,38 @@ class DaskMetricsBackend(AbstractMetricsBackend):
 
         Returns
         -------
-        span_id : Any
-            Span identifier
+        span_context : Any
+            Dask Span context manager
         """
-        return None
+        try:
+            from distributed import span
 
-    def get_span_metrics(self, span_id: Any) -> dict[str, Any]:
+            return span(name)
+        except ImportError:
+            # If distributed.span not available, return None
+            return None
+
+    def get_span_metrics(self, span_context: Any) -> dict[str, Any]:
         """Extract metrics from a span.
 
         Parameters
         ----------
-        span_id : Any
-            Span identifier from create_span
+        span_context : Any
+            Span context from create_span
 
         Returns
         -------
         dict
-            Span metrics
+            cumulative_worker_metrics from span, or empty dict if unavailable
         """
-        return {}
+        if span_context is None:
+            return {}
+
+        # Extract cumulative_worker_metrics from span
+        try:
+            return getattr(span_context, "cumulative_worker_metrics", {})
+        except AttributeError:
+            return {}
 
     def supports_fine_metrics(self) -> bool:
         """Check if this backend supports fine-grained metrics.

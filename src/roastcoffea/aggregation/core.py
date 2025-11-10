@@ -6,6 +6,10 @@ from typing import Any
 
 from roastcoffea.aggregation.backends import get_parser
 from roastcoffea.aggregation.efficiency import calculate_efficiency_metrics
+from roastcoffea.aggregation.fine_metrics import (
+    calculate_compression_from_spans,
+    parse_fine_metrics,
+)
 from roastcoffea.aggregation.workflow import aggregate_workflow_metrics
 
 
@@ -35,6 +39,7 @@ class MetricsAggregator:
         t_start: float,
         t_end: float,
         custom_metrics: dict[str, Any] | None = None,
+        span_metrics: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Aggregate all metrics from workflow run.
 
@@ -50,6 +55,8 @@ class MetricsAggregator:
             End time
         custom_metrics : dict, optional
             Per-dataset metrics
+        span_metrics : dict, optional
+            Dask Spans cumulative_worker_metrics
 
         Returns
         -------
@@ -69,6 +76,23 @@ class MetricsAggregator:
         if tracking_data is not None:
             worker_metrics = self.parser.parse_tracking_data(tracking_data)
 
+        # Parse fine metrics from Spans if available
+        fine_metrics = {}
+        if span_metrics:
+            fine_metrics = parse_fine_metrics(span_metrics)
+
+            # Update compression metrics with real data from Spans
+            compressed_bytes = workflow_metrics.get("total_bytes_compressed", 0)
+            if compressed_bytes > 0:
+                compression_ratio, total_bytes_uncompressed = (
+                    calculate_compression_from_spans(compressed_bytes, span_metrics)
+                )
+                if compression_ratio is not None:
+                    workflow_metrics["compression_ratio"] = compression_ratio
+                    workflow_metrics["total_bytes_uncompressed"] = (
+                        total_bytes_uncompressed
+                    )
+
         # Calculate efficiency metrics
         efficiency_metrics = calculate_efficiency_metrics(
             workflow_metrics=workflow_metrics,
@@ -80,6 +104,7 @@ class MetricsAggregator:
         combined_metrics.update(workflow_metrics)
         combined_metrics.update(worker_metrics)
         combined_metrics.update(efficiency_metrics)
+        combined_metrics.update(fine_metrics)
 
         # Preserve raw tracking data for visualization
         combined_metrics["tracking_data"] = tracking_data
