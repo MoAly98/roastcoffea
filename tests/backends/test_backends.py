@@ -68,14 +68,17 @@ class TestDaskMetricsBackend:
         assert "worker_memory" in tracking_data
         assert "worker_memory_limit" in tracking_data
         assert "worker_active_tasks" in tracking_data
-        assert "cores_per_worker" in tracking_data
+        assert "worker_cores" in tracking_data
 
         # Should have collected at least 2 samples
         assert len(tracking_data["worker_counts"]) >= 2
 
-        # cores_per_worker should be captured
-        assert tracking_data["cores_per_worker"] is not None
-        assert tracking_data["cores_per_worker"] > 0
+        # worker_cores should be captured for each worker
+        assert tracking_data["worker_cores"]
+        for worker_id, cores_timeline in tracking_data["worker_cores"].items():
+            assert cores_timeline  # Should have samples
+            # Cores should be > 0
+            assert all(cores > 0 for _, cores in cores_timeline)
 
     def test_tracking_captures_worker_count(self, local_cluster):
         """Tracking captures correct worker count."""

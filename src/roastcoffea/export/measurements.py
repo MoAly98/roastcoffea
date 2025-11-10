@@ -87,7 +87,16 @@ def _deserialize_tracking_data(tracking_data: dict[str, Any] | None) -> dict[str
             for worker_id, data in tracking_data["worker_active_tasks"].items()
         }
 
-    # Preserve cores_per_worker as-is
+    # Convert worker_cores timestamps from ISO strings to datetime
+    if "worker_cores" in tracking_data:
+        result["worker_cores"] = {
+            worker_id: [
+                (datetime.fromisoformat(ts), val) for ts, val in data
+            ]
+            for worker_id, data in tracking_data["worker_cores"].items()
+        }
+
+    # Preserve legacy cores_per_worker if present (for backwards compatibility)
     if "cores_per_worker" in tracking_data:
         result["cores_per_worker"] = tracking_data["cores_per_worker"]
 

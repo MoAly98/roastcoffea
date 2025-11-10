@@ -152,6 +152,12 @@ def format_resources_table(metrics: dict[str, Any]) -> Table:
         table.add_row("Peak Workers", "[dim]N/A (no worker tracking)[/dim]")
 
     # Core metrics
+    cores_per_worker = metrics.get("cores_per_worker")
+    if cores_per_worker is not None:
+        table.add_row("Cores per Worker", f"{cores_per_worker:.1f}")
+    else:
+        table.add_row("Cores per Worker", "[dim]N/A (no worker tracking)[/dim]")
+
     total_cores = metrics.get("total_cores")
     if total_cores is not None:
         table.add_row("Total Cores", f"{total_cores:.0f}")

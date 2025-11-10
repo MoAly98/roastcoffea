@@ -45,7 +45,8 @@ with LocalCluster(n_workers=4) as cluster, Client(cluster) as client:
 metrics = collector.get_metrics()
 print(f"Throughput: {metrics['overall_rate_gbps']:.2f} Gbps")
 print(f"Event rate: {metrics['event_rate_wall_khz']:.1f} kHz")
-print(f"Core efficiency: {metrics['core_efficiency']:.1%}")
+if metrics['core_efficiency'] is not None:
+    print(f"Core efficiency: {metrics['core_efficiency']:.1%}")
 
 # Print summary tables
 collector.print_summary()

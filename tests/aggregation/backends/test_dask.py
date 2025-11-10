@@ -67,7 +67,18 @@ class TestParseTrackingData:
                     (t2, 2),
                 ],
             },
-            "cores_per_worker": 4,
+            "worker_cores": {
+                "worker1": [
+                    (t0, 4),
+                    (t1, 4),
+                    (t2, 4),
+                ],
+                "worker2": [
+                    (t0, 4),
+                    (t1, 4),
+                    (t2, 4),
+                ],
+            },
         }
 
     def test_parse_tracking_data_returns_dict(self, sample_tracking_data):
@@ -91,6 +102,8 @@ class TestParseTrackingData:
 
         # 2 workers * 4 cores each = 8 total cores
         assert metrics["total_cores"] == pytest.approx(8.0)
+        # Average cores per worker = 4.0
+        assert metrics["cores_per_worker"] == pytest.approx(4.0)
 
     def test_parse_tracking_data_calculates_memory_metrics(self, sample_tracking_data):
         """parse_tracking_data calculates memory statistics."""
@@ -103,7 +116,7 @@ class TestParseTrackingData:
         assert metrics["avg_memory_per_worker_bytes"] > 0
 
     def test_parse_tracking_data_handles_missing_cores_per_worker(self):
-        """parse_tracking_data handles missing cores_per_worker gracefully."""
+        """parse_tracking_data handles missing worker_cores gracefully."""
         tracking_data = {
             "worker_counts": {
                 datetime.datetime(2025, 1, 1, 12, 0, 0): 2,
@@ -111,7 +124,7 @@ class TestParseTrackingData:
             "worker_memory": {},
             "worker_memory_limit": {},
             "worker_active_tasks": {},
-            "cores_per_worker": None,
+            "worker_cores": {},
         }
 
         metrics = parse_tracking_data(tracking_data)
@@ -122,15 +135,39 @@ class TestParseTrackingData:
 
         # cores-related metrics should be None
         assert metrics["total_cores"] is None
+        assert metrics["cores_per_worker"] is None
+
+    def test_parse_tracking_data_heterogeneous_cores(self):
+        """parse_tracking_data handles heterogeneous cluster (different cores per worker)."""
+        t0 = datetime.datetime(2025, 1, 1, 12, 0, 0)
+
+        tracking_data = {
+            "worker_counts": {t0: 3},
+            "worker_memory": {},
+            "worker_memory_limit": {},
+            "worker_active_tasks": {},
+            "worker_cores": {
+                "worker1": [(t0, 4)],  # 4 cores
+                "worker2": [(t0, 8)],  # 8 cores
+                "worker3": [(t0, 2)],  # 2 cores
+            },
+        }
+
+        metrics = parse_tracking_data(tracking_data)
+
+        # Total cores should be sum: 4 + 8 + 2 = 14
+        assert metrics["total_cores"] == pytest.approx(14.0)
+        # Average cores per worker: (4 + 8 + 2) / 3 = 4.67
+        assert metrics["cores_per_worker"] == pytest.approx(14.0 / 3)
 
     def test_parse_tracking_data_handles_empty_data(self):
         """parse_tracking_data handles completely empty tracking data."""
-        tracking_data: dict[str, dict | None] = {
+        tracking_data: dict[str, dict] = {
             "worker_counts": {},
             "worker_memory": {},
             "worker_memory_limit": {},
             "worker_active_tasks": {},
-            "cores_per_worker": None,
+            "worker_cores": {},
         }
 
         metrics = parse_tracking_data(tracking_data)

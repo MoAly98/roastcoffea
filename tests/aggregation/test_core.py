@@ -43,7 +43,10 @@ class TestMetricsAggregator:
                 "worker1": [(t0, 2), (t1, 1)],
                 "worker2": [(t0, 1), (t1, 2)],
             },
-            "cores_per_worker": 4,
+            "worker_cores": {
+                "worker1": [(t0, 4), (t1, 4)],
+                "worker2": [(t0, 4), (t1, 4)],
+            },
         }
 
     def test_aggregate_combines_all_metrics(

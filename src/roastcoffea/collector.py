@@ -142,11 +142,19 @@ class MetricsCollector:
         -------
         dict
             Aggregated metrics dictionary
+
+        Raises
+        ------
+        RuntimeError
+            If metrics aggregation failed
         """
         if self.metrics is None:
             self._aggregate_metrics()
 
-        assert self.metrics is not None
+        if self.metrics is None:
+            msg = "Metrics aggregation failed - this should not happen"
+            raise RuntimeError(msg)
+
         return self.metrics
 
     def save_measurement(

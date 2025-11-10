@@ -242,3 +242,51 @@ class TestLoadMeasurement:
         assert loaded_metrics == original_metrics
         assert t0 == 10.0
         assert t1 == 110.0
+
+    def test_save_and_load_with_tracking_data(self, tmp_path):
+        """save and load handles tracking_data with datetime objects."""
+        import datetime
+
+        t0_dt = datetime.datetime(2025, 1, 1, 12, 0, 0)
+        t1_dt = datetime.datetime(2025, 1, 1, 12, 0, 10)
+
+        metrics_with_tracking = {
+            "wall_time": 100.0,
+            "tracking_data": {
+                "worker_counts": {
+                    t0_dt: 2,
+                    t1_dt: 4,
+                },
+                "worker_memory": {
+                    "worker1": [(t0_dt, 1_000_000), (t1_dt, 2_000_000)],
+                },
+                "worker_memory_limit": {
+                    "worker1": [(t0_dt, 8_000_000), (t1_dt, 8_000_000)],
+                },
+                "worker_active_tasks": {
+                    "worker1": [(t0_dt, 1), (t1_dt, 2)],
+                },
+                "cores_per_worker": 4,
+            },
+        }
+
+        measurement_path = save_measurement(
+            metrics=metrics_with_tracking,
+            t0=0.0,
+            t1=100.0,
+            output_dir=tmp_path,
+            measurement_name="tracking_test",
+        )
+
+        loaded_metrics, _, _ = load_measurement(measurement_path)
+
+        # Verify tracking_data was preserved with datetime objects
+        assert "tracking_data" in loaded_metrics
+        assert loaded_metrics["tracking_data"] is not None
+
+        tracking = loaded_metrics["tracking_data"]
+        assert t0_dt in tracking["worker_counts"]
+        assert tracking["worker_counts"][t0_dt] == 2
+
+        assert len(tracking["worker_memory"]["worker1"]) == 2
+        assert tracking["worker_memory"]["worker1"][0] == (t0_dt, 1_000_000)
