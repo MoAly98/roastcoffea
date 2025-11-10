@@ -28,10 +28,18 @@ Basic Usage:
 from __future__ import annotations
 
 from roastcoffea.collector import MetricsCollector
+from roastcoffea.export.measurements import load_measurement
+from roastcoffea.visualization.plots import (
+    plot_memory_utilization_timeline,
+    plot_worker_count_timeline,
+)
 
 __version__ = "0.1.0"
 
 __all__ = [
     "MetricsCollector",
+    "load_measurement",
+    "plot_memory_utilization_timeline",
+    "plot_worker_count_timeline",
     "__version__",
 ]

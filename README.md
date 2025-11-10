@@ -106,14 +106,13 @@ with MetricsCollector(client) as collector:
 ### Visualization
 
 ```python
-from roastcoffea.visualization.plots import (
+from roastcoffea import (
     plot_worker_count_timeline,
     plot_memory_utilization_timeline,
+    load_measurement,
 )
 
 # Get tracking data from a saved measurement
-from roastcoffea.export.measurements import load_measurement
-
 metrics, t0, t1 = load_measurement("benchmarks/my_run")
 
 # Create plots
