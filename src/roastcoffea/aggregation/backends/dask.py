@@ -11,60 +11,65 @@ from typing import Any
 
 import numpy as np
 
+from roastcoffea.aggregation.backends.base import AbstractTrackingDataParser
 
-def parse_tracking_data(tracking_data: dict[str, Any]) -> dict[str, Any]:
-    """Parse Dask scheduler tracking data into aggregated metrics.
 
-    Parameters
-    ----------
-    tracking_data : dict
-        Raw tracking data from DaskMetricsBackend.stop_tracking()
+class DaskTrackingDataParser(AbstractTrackingDataParser):
+    """Parser for Dask scheduler tracking data."""
 
-    Returns
-    -------
-    dict
-        Aggregated worker metrics
-    """
-    worker_counts = tracking_data.get("worker_counts", {})
-    worker_memory = tracking_data.get("worker_memory", {})
-    worker_cores = tracking_data.get("worker_cores", {})
+    def parse_tracking_data(self, tracking_data: dict[str, Any]) -> dict[str, Any]:
+        """Parse Dask scheduler tracking data into aggregated metrics.
 
-    # Calculate worker metrics
-    avg_workers = calculate_time_averaged_workers(worker_counts)
-    peak_workers = max(worker_counts.values()) if worker_counts else 0
+        Parameters
+        ----------
+        tracking_data : dict
+            Raw tracking data from DaskMetricsBackend.stop_tracking()
 
-    # Calculate total cores and cores per worker from per-worker core tracking
-    total_cores = None
-    cores_per_worker = None
-    if worker_cores:
-        # Sum cores across all workers (use latest value for each worker)
-        cores_sum = 0
-        core_counts = []
-        for worker_id, timeline in worker_cores.items():
-            if timeline:
-                # Use the latest (or any) core count for this worker
-                # Cores don't change over time, so any value is fine
-                worker_core_count = timeline[-1][1]
-                cores_sum += worker_core_count
-                core_counts.append(worker_core_count)
+        Returns
+        -------
+        dict
+            Aggregated worker metrics
+        """
+        worker_counts = tracking_data.get("worker_counts", {})
+        worker_memory = tracking_data.get("worker_memory", {})
+        worker_cores = tracking_data.get("worker_cores", {})
 
-        if cores_sum > 0:
-            total_cores = float(cores_sum)
-            # Calculate average cores per worker
-            cores_per_worker = float(np.mean(core_counts)) if core_counts else None
+        # Calculate worker metrics
+        avg_workers = calculate_time_averaged_workers(worker_counts)
+        peak_workers = max(worker_counts.values()) if worker_counts else 0
 
-    # Calculate memory metrics
-    peak_memory_bytes = calculate_peak_memory(worker_memory)
-    avg_memory_per_worker_bytes = calculate_average_memory_per_worker(worker_memory)
+        # Calculate total cores and cores per worker from per-worker core tracking
+        total_cores = None
+        cores_per_worker = None
+        if worker_cores:
+            # Sum cores across all workers (use latest value for each worker)
+            cores_sum = 0
+            core_counts = []
+            for worker_id, timeline in worker_cores.items():
+                if timeline:
+                    # Use the latest (or any) core count for this worker
+                    # Cores don't change over time, so any value is fine
+                    worker_core_count = timeline[-1][1]
+                    cores_sum += worker_core_count
+                    core_counts.append(worker_core_count)
 
-    return {
-        "avg_workers": avg_workers,
-        "peak_workers": peak_workers,
-        "total_cores": total_cores,
-        "cores_per_worker": cores_per_worker,
-        "peak_memory_bytes": peak_memory_bytes,
-        "avg_memory_per_worker_bytes": avg_memory_per_worker_bytes,
-    }
+            if cores_sum > 0:
+                total_cores = float(cores_sum)
+                # Calculate average cores per worker
+                cores_per_worker = float(np.mean(core_counts)) if core_counts else None
+
+        # Calculate memory metrics
+        peak_memory_bytes = calculate_peak_memory(worker_memory)
+        avg_memory_per_worker_bytes = calculate_average_memory_per_worker(worker_memory)
+
+        return {
+            "avg_workers": avg_workers,
+            "peak_workers": peak_workers,
+            "total_cores": total_cores,
+            "cores_per_worker": cores_per_worker,
+            "peak_memory_bytes": peak_memory_bytes,
+            "avg_memory_per_worker_bytes": avg_memory_per_worker_bytes,
+        }
 
 
 def calculate_time_averaged_workers(

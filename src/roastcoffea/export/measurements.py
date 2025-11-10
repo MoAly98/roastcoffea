@@ -96,6 +96,42 @@ def _deserialize_tracking_data(tracking_data: dict[str, Any] | None) -> dict[str
             for worker_id, data in tracking_data["worker_cores"].items()
         }
 
+    # Convert worker_nbytes timestamps from ISO strings to datetime
+    if "worker_nbytes" in tracking_data:
+        result["worker_nbytes"] = {
+            worker_id: [
+                (datetime.fromisoformat(ts), val) for ts, val in data
+            ]
+            for worker_id, data in tracking_data["worker_nbytes"].items()
+        }
+
+    # Convert worker_occupancy timestamps from ISO strings to datetime
+    if "worker_occupancy" in tracking_data:
+        result["worker_occupancy"] = {
+            worker_id: [
+                (datetime.fromisoformat(ts), val) for ts, val in data
+            ]
+            for worker_id, data in tracking_data["worker_occupancy"].items()
+        }
+
+    # Convert worker_executing timestamps from ISO strings to datetime
+    if "worker_executing" in tracking_data:
+        result["worker_executing"] = {
+            worker_id: [
+                (datetime.fromisoformat(ts), val) for ts, val in data
+            ]
+            for worker_id, data in tracking_data["worker_executing"].items()
+        }
+
+    # Convert worker_last_seen timestamps from ISO strings to datetime
+    if "worker_last_seen" in tracking_data:
+        result["worker_last_seen"] = {
+            worker_id: [
+                (datetime.fromisoformat(ts), val) for ts, val in data
+            ]
+            for worker_id, data in tracking_data["worker_last_seen"].items()
+        }
+
     # Preserve legacy cores_per_worker if present (for backwards compatibility)
     if "cores_per_worker" in tracking_data:
         result["cores_per_worker"] = tracking_data["cores_per_worker"]

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from roastcoffea.aggregation.backends.dask import parse_tracking_data
+from roastcoffea.aggregation.backends import get_parser
 from roastcoffea.aggregation.efficiency import calculate_efficiency_metrics
 from roastcoffea.aggregation.workflow import aggregate_workflow_metrics
 
@@ -25,10 +25,8 @@ class MetricsAggregator:
         ValueError
             If backend is not supported
         """
-        if backend not in ["dask"]:
-            msg = f"Unsupported backend: {backend}"
-            raise ValueError(msg)
         self.backend = backend
+        self.parser = get_parser(backend)
 
     def aggregate(
         self,
@@ -68,8 +66,8 @@ class MetricsAggregator:
 
         # Parse worker metrics if tracking data available
         worker_metrics = {}
-        if tracking_data is not None and self.backend == "dask":
-            worker_metrics = parse_tracking_data(tracking_data)
+        if tracking_data is not None:
+            worker_metrics = self.parser.parse_tracking_data(tracking_data)
 
         # Calculate efficiency metrics
         efficiency_metrics = calculate_efficiency_metrics(

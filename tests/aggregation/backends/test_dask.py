@@ -8,10 +8,10 @@ from typing import Any
 import pytest
 
 from roastcoffea.aggregation.backends.dask import (
+    DaskTrackingDataParser,
     calculate_average_memory_per_worker,
     calculate_peak_memory,
     calculate_time_averaged_workers,
-    parse_tracking_data,
 )
 
 
@@ -83,7 +83,8 @@ class TestParseTrackingData:
 
     def test_parse_tracking_data_returns_dict(self, sample_tracking_data):
         """parse_tracking_data returns aggregated metrics dictionary."""
-        metrics = parse_tracking_data(sample_tracking_data)
+        parser = DaskTrackingDataParser()
+        metrics = parser.parse_tracking_data(sample_tracking_data)
 
         assert isinstance(metrics, dict)
         assert "avg_workers" in metrics
@@ -94,7 +95,8 @@ class TestParseTrackingData:
 
     def test_parse_tracking_data_calculates_worker_metrics(self, sample_tracking_data):
         """parse_tracking_data calculates correct worker statistics."""
-        metrics = parse_tracking_data(sample_tracking_data)
+        parser = DaskTrackingDataParser()
+        metrics = parser.parse_tracking_data(sample_tracking_data)
 
         # All samples have 2 workers
         assert metrics["avg_workers"] == pytest.approx(2.0)
@@ -107,7 +109,8 @@ class TestParseTrackingData:
 
     def test_parse_tracking_data_calculates_memory_metrics(self, sample_tracking_data):
         """parse_tracking_data calculates memory statistics."""
-        metrics = parse_tracking_data(sample_tracking_data)
+        parser = DaskTrackingDataParser()
+        metrics = parser.parse_tracking_data(sample_tracking_data)
 
         # Peak memory should be worker1 at t2: 2 GB
         assert metrics["peak_memory_bytes"] == 2_000_000_000
@@ -127,7 +130,8 @@ class TestParseTrackingData:
             "worker_cores": {},
         }
 
-        metrics = parse_tracking_data(tracking_data)
+        parser = DaskTrackingDataParser()
+        metrics = parser.parse_tracking_data(tracking_data)
 
         # Should still calculate worker metrics
         assert metrics["avg_workers"] == 2.0
@@ -153,7 +157,8 @@ class TestParseTrackingData:
             },
         }
 
-        metrics = parse_tracking_data(tracking_data)
+        parser = DaskTrackingDataParser()
+        metrics = parser.parse_tracking_data(tracking_data)
 
         # Total cores should be sum: 4 + 8 + 2 = 14
         assert metrics["total_cores"] == pytest.approx(14.0)
@@ -170,7 +175,8 @@ class TestParseTrackingData:
             "worker_cores": {},
         }
 
-        metrics = parse_tracking_data(tracking_data)
+        parser = DaskTrackingDataParser()
+        metrics = parser.parse_tracking_data(tracking_data)
 
         # Should return zero/None values without crashing
         assert metrics["avg_workers"] == 0.0

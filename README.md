@@ -55,31 +55,59 @@ collector.print_summary()
 collector.save_measurement(output_dir="benchmarks/", measurement_name="my_run")
 ```
 
-## Metrics Collected
+## Metrics Reference
 
-### Throughput Metrics
-- **Data Rate**: Overall data processing rate (Gbps, MB/s)
-- **Compression Ratio**: Uncompressed/compressed data ratio
-- **Total Data Volume**: Compressed and uncompressed bytes read
+### Workflow Metrics (from Coffea Report)
 
-### Event Processing Metrics
-- **Total Events**: Number of events processed
-- **Event Rate (Wall Clock)**: Events/sec from wall time perspective (kHz)
-- **Event Rate (Aggregated)**: Events/sec from aggregated CPU time (kHz)
-- **Event Rate (Core-Averaged)**: Events/sec/core (Hz per core)
+| Metric | Source | Description |
+|--------|--------|-------------|
+| `wall_time` | Coffea Report | Real elapsed time for the workflow |
+| `total_cpu_time` | Coffea Report | Sum of all task durations across workers |
+| `num_chunks` | Coffea Report | Number of data chunks processed |
+| `avg_cpu_time_per_chunk` | Coffea Report | Average CPU time per chunk |
+| `total_events` | Coffea Report | Total number of events processed |
+| `bytes_read_compressed` | Coffea Report | Compressed bytes read from files |
+| `bytes_read_uncompressed` | Coffea Report | Uncompressed bytes read |
+| `compression_ratio` | Derived | Uncompressed / compressed bytes ratio |
+| `overall_rate_gbps` | Derived | Data processing rate in Gbps |
+| `overall_rate_mbs` | Derived | Data processing rate in MB/s |
+| `event_rate_wall_khz` | Derived | Events/sec from wall time (kHz) |
+| `event_rate_agg_khz` | Derived | Events/sec from aggregated CPU time (kHz) |
 
-### Resource Utilization
-- **Workers (Time-Averaged)**: Time-weighted average worker count
-- **Peak Workers**: Maximum workers observed
-- **Total Cores**: Total cores available across all workers
-- **Core Efficiency**: Fraction of cores actually used (0-1)
-- **Speedup Factor**: Parallel speedup achieved
+### Worker Metrics (from Scheduler Tracking)
 
-### Timing Metrics
-- **Wall Time**: Real elapsed time
-- **Total CPU Time**: Sum of all task durations
-- **Number of Chunks**: Chunks processed
-- **Avg CPU Time/Chunk**: Average processing time per chunk
+| Metric | Source | Description |
+|--------|--------|-------------|
+| `avg_workers` | Scheduler Tracking | Time-weighted average worker count |
+| `peak_workers` | Scheduler Tracking | Maximum number of workers observed |
+| `cores_per_worker` | Scheduler Tracking | Average cores per worker |
+| `total_cores` | Scheduler Tracking | Total cores across all workers |
+| `peak_memory_bytes` | Scheduler Tracking | Peak memory usage across all workers |
+| `avg_memory_per_worker_bytes` | Scheduler Tracking | Time-averaged memory per worker |
+
+### Efficiency Metrics (Derived)
+
+| Metric | Source | Description |
+|--------|--------|-------------|
+| `core_efficiency` | Derived | Fraction of available cores actually used (0-1) |
+| `speedup_factor` | Derived | Parallel speedup achieved vs single core |
+| `event_rate_core_hz` | Derived | Events/sec/core (Hz per core) |
+
+### Per-Worker Time-Series Data (from Scheduler Tracking)
+
+Raw tracking data available in `metrics["tracking_data"]` for visualization:
+
+| Field | Description |
+|-------|-------------|
+| `worker_counts` | Worker count over time |
+| `worker_memory` | Process memory usage per worker over time |
+| `worker_memory_limit` | Memory limit per worker over time |
+| `worker_cores` | Cores per worker over time |
+| `worker_active_tasks` | Tasks assigned (processing + queued) per worker |
+| `worker_executing` | Tasks actually running per worker |
+| `worker_nbytes` | Data stored on worker (vs process overhead) |
+| `worker_occupancy` | Worker saturation metric (0.0 = idle, higher = saturated) |
+| `worker_last_seen` | Last heartbeat timestamp (for detecting dead workers) |
 
 ## Advanced Usage
 

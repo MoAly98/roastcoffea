@@ -36,6 +36,10 @@ def _start_tracking_on_scheduler(dask_scheduler, interval: float = 1.0):
     dask_scheduler.worker_memory_limit = {}
     dask_scheduler.worker_active_tasks = {}
     dask_scheduler.worker_cores = {}
+    dask_scheduler.worker_nbytes = {}
+    dask_scheduler.worker_occupancy = {}
+    dask_scheduler.worker_executing = {}
+    dask_scheduler.worker_last_seen = {}
     dask_scheduler.track_count = True
 
     async def track_worker_metrics():
@@ -47,7 +51,7 @@ def _start_tracking_on_scheduler(dask_scheduler, interval: float = 1.0):
             num_workers = len(dask_scheduler.workers)
             dask_scheduler.worker_counts[timestamp] = num_workers
 
-            # Record memory, cores, memory limit, and active tasks for each worker
+            # Record metrics for each worker
             for worker_id, worker_state in dask_scheduler.workers.items():
                 # Get memory from worker metrics
                 memory_bytes = worker_state.metrics.get("memory", 0)
@@ -58,9 +62,22 @@ def _start_tracking_on_scheduler(dask_scheduler, interval: float = 1.0):
                 # Get cores (nthreads)
                 cores = worker_state.nthreads
 
-                # Get active tasks
+                # Get active tasks (processing)
                 processing: set = getattr(worker_state, "processing", set())
                 active_tasks = len(processing) if processing else 0
+
+                # Get data stored on worker (nbytes)
+                nbytes = getattr(worker_state, "nbytes", 0)
+
+                # Get worker occupancy (saturation metric)
+                occupancy = getattr(worker_state, "occupancy", 0.0)
+
+                # Get executing tasks (subset of processing that's actually running)
+                executing: set = getattr(worker_state, "executing", set())
+                executing_tasks = len(executing) if executing else 0
+
+                # Get last_seen timestamp (for detecting dead workers)
+                last_seen = getattr(worker_state, "last_seen", 0.0)
 
                 # Initialize worker-specific lists if not present
                 if worker_id not in dask_scheduler.worker_memory:
@@ -71,6 +88,14 @@ def _start_tracking_on_scheduler(dask_scheduler, interval: float = 1.0):
                     dask_scheduler.worker_active_tasks[worker_id] = []
                 if worker_id not in dask_scheduler.worker_cores:
                     dask_scheduler.worker_cores[worker_id] = []
+                if worker_id not in dask_scheduler.worker_nbytes:
+                    dask_scheduler.worker_nbytes[worker_id] = []
+                if worker_id not in dask_scheduler.worker_occupancy:
+                    dask_scheduler.worker_occupancy[worker_id] = []
+                if worker_id not in dask_scheduler.worker_executing:
+                    dask_scheduler.worker_executing[worker_id] = []
+                if worker_id not in dask_scheduler.worker_last_seen:
+                    dask_scheduler.worker_last_seen[worker_id] = []
 
                 # Append timestamped data
                 dask_scheduler.worker_memory[worker_id].append(
@@ -84,6 +109,18 @@ def _start_tracking_on_scheduler(dask_scheduler, interval: float = 1.0):
                 )
                 dask_scheduler.worker_cores[worker_id].append(
                     (timestamp, cores)
+                )
+                dask_scheduler.worker_nbytes[worker_id].append(
+                    (timestamp, nbytes)
+                )
+                dask_scheduler.worker_occupancy[worker_id].append(
+                    (timestamp, occupancy)
+                )
+                dask_scheduler.worker_executing[worker_id].append(
+                    (timestamp, executing_tasks)
+                )
+                dask_scheduler.worker_last_seen[worker_id].append(
+                    (timestamp, last_seen)
                 )
 
             # Sleep for interval
@@ -118,6 +155,10 @@ def _stop_tracking_on_scheduler(dask_scheduler) -> dict:
         "worker_memory_limit": getattr(dask_scheduler, "worker_memory_limit", {}),
         "worker_active_tasks": getattr(dask_scheduler, "worker_active_tasks", {}),
         "worker_cores": getattr(dask_scheduler, "worker_cores", {}),
+        "worker_nbytes": getattr(dask_scheduler, "worker_nbytes", {}),
+        "worker_occupancy": getattr(dask_scheduler, "worker_occupancy", {}),
+        "worker_executing": getattr(dask_scheduler, "worker_executing", {}),
+        "worker_last_seen": getattr(dask_scheduler, "worker_last_seen", {}),
     }
 
 
