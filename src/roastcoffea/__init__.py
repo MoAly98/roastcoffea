@@ -29,10 +29,25 @@ from __future__ import annotations
 
 from roastcoffea.collector import MetricsCollector
 from roastcoffea.export.measurements import load_measurement
-from roastcoffea.visualization.plots import (
-    plot_memory_utilization_timeline,
-    plot_worker_count_timeline,
+from roastcoffea.visualization.plots.cpu import (
+    plot_executing_tasks_timeline,
+    plot_occupancy_timeline,
 )
+from roastcoffea.visualization.plots.memory import plot_memory_utilization_timeline
+from roastcoffea.visualization.plots.per_task import (
+    plot_per_task_bytes_read,
+    plot_per_task_cpu_io,
+    plot_per_task_overhead,
+)
+from roastcoffea.visualization.plots.scaling import (
+    plot_efficiency_summary,
+    plot_resource_utilization,
+)
+from roastcoffea.visualization.plots.throughput import (
+    plot_total_active_tasks_timeline,
+    plot_worker_activity_timeline,
+)
+from roastcoffea.visualization.plots.workers import plot_worker_count_timeline
 
 __version__ = "0.1.0"
 
@@ -40,6 +55,18 @@ __all__ = [
     "MetricsCollector",
     "__version__",
     "load_measurement",
-    "plot_memory_utilization_timeline",
+    # Worker timeline plots
     "plot_worker_count_timeline",
+    "plot_memory_utilization_timeline",
+    "plot_occupancy_timeline",
+    "plot_executing_tasks_timeline",
+    "plot_worker_activity_timeline",
+    "plot_total_active_tasks_timeline",
+    # Summary plots
+    "plot_efficiency_summary",
+    "plot_resource_utilization",
+    # Per-task fine metrics plots
+    "plot_per_task_cpu_io",
+    "plot_per_task_bytes_read",
+    "plot_per_task_overhead",
 ]

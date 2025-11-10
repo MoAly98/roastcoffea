@@ -108,8 +108,8 @@ def calculate_compression_from_spans(
 ) -> tuple[float | None, float | None]:
     """Calculate compression ratio and uncompressed bytes from Spans data.
 
-    Dask Spans track disk-read (uncompressed bytes actually read) which combined
-    with compressed bytes from Coffea gives us real compression ratio.
+    Dask Spans track disk-read (actual disk I/O) or memory-read (in-memory access)
+    which combined with compressed bytes from Coffea gives us real compression ratio.
 
     Parameters
     ----------
@@ -125,12 +125,26 @@ def calculate_compression_from_spans(
     total_bytes_uncompressed : float or None
         Actual uncompressed bytes read, or None if data unavailable
     """
-    # Aggregate disk-read across all tasks
-    uncompressed_bytes = 0
+    # Aggregate disk-read and memory-read across all tasks
+    # disk-read: actual disk I/O (local files, spills)
+    # memory-read: in-memory data access (includes decompressed ROOT data)
+    disk_read_bytes = 0
+    memory_read_bytes = 0
 
     for key, value in cumulative_worker_metrics.items():
-        if isinstance(key, tuple) and len(key) >= 3 and key[2] == "disk-read":
-            uncompressed_bytes += value
+        if not isinstance(key, tuple) or len(key) < 3:
+            continue
+
+        activity = key[2]
+        unit = key[3] if len(key) >= 4 else None
+
+        if activity == "disk-read" and unit == "bytes":
+            disk_read_bytes += value
+        elif activity == "memory-read" and unit == "bytes":
+            memory_read_bytes += value
+
+    # Prefer disk-read if available (actual file I/O), otherwise use memory-read
+    uncompressed_bytes = disk_read_bytes if disk_read_bytes > 0 else memory_read_bytes
 
     if uncompressed_bytes == 0:
         return None, None
