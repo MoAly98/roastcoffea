@@ -16,6 +16,7 @@ from roastcoffea.aggregation.core import MetricsAggregator
 from roastcoffea.backends.dask import DaskMetricsBackend
 from roastcoffea.export.measurements import save_measurement
 from roastcoffea.export.reporter import (
+    format_chunk_metrics_table,
     format_event_processing_table,
     format_fine_metrics_table,
     format_resources_table,
@@ -322,5 +323,11 @@ class MetricsCollector:
         if fine_table is not None:
             console.print()
             console.print(fine_table)
+
+        # Print chunk metrics table if available
+        chunk_table = format_chunk_metrics_table(metrics)
+        if chunk_table is not None:
+            console.print()
+            console.print(chunk_table)
 
         console.print()

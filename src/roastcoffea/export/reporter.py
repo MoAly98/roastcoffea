@@ -313,3 +313,121 @@ def format_fine_metrics_table(metrics: dict[str, Any]) -> Table | None:
             table.add_row("  • Deserialize", _format_time(deserialize_time))
 
     return table
+
+
+def format_chunk_metrics_table(metrics: dict[str, Any]) -> Table | None:
+    """Format chunk-level metrics as Rich table.
+
+    Parameters
+    ----------
+    metrics : dict
+        Metrics dictionary
+
+    Returns
+    -------
+    Table or None
+        Rich table, or None if no chunk metrics available
+    """
+    num_chunks = metrics.get("num_chunks", 0)
+
+    if num_chunks == 0:
+        return None
+
+    table = Table(
+        title="Chunk Metrics",
+        show_header=True,
+        header_style="bold cyan",
+    )
+    table.add_column("Metric", style="cyan", no_wrap=True)
+    table.add_column("Value", style="magenta")
+
+    # Basic stats
+    table.add_row("Total Chunks", str(num_chunks))
+
+    num_successful = metrics.get("num_successful_chunks", num_chunks)
+    num_failed = metrics.get("num_failed_chunks", 0)
+    if num_failed > 0:
+        table.add_row("  • Successful", str(num_successful))
+        table.add_row("  • Failed", str(num_failed), style="red")
+
+    # Timing statistics
+    mean_duration = metrics.get("chunk_duration_mean")
+    if mean_duration is not None:
+        table.add_row("Mean Chunk Time", _format_time(mean_duration))
+
+        min_duration = metrics.get("chunk_duration_min")
+        max_duration = metrics.get("chunk_duration_max")
+        std_duration = metrics.get("chunk_duration_std")
+
+        if min_duration is not None:
+            table.add_row("  • Min", _format_time(min_duration))
+        if max_duration is not None:
+            table.add_row("  • Max", _format_time(max_duration))
+        if std_duration is not None and std_duration > 0:
+            table.add_row("  • Std Dev", _format_time(std_duration))
+
+    # Memory statistics
+    mean_mem = metrics.get("chunk_mem_delta_mean_mb")
+    if mean_mem is not None:
+        table.add_row("Mean Memory Delta", f"{mean_mem:.1f} MB")
+
+        max_mem = metrics.get("chunk_mem_delta_max_mb")
+        min_mem = metrics.get("chunk_mem_delta_min_mb")
+
+        if min_mem is not None:
+            table.add_row("  • Min", f"{min_mem:.1f} MB")
+        if max_mem is not None:
+            table.add_row("  • Max", f"{max_mem:.1f} MB")
+
+    # Event statistics
+    chunk_events_mean = metrics.get("chunk_events_mean")
+    if chunk_events_mean is not None:
+        table.add_row("Mean Events/Chunk", f"{chunk_events_mean:.0f}")
+
+        min_events = metrics.get("chunk_events_min")
+        max_events = metrics.get("chunk_events_max")
+
+        if min_events is not None:
+            table.add_row("  • Min", f"{min_events:.0f}")
+        if max_events is not None:
+            table.add_row("  • Max", f"{max_events:.0f}")
+
+    # Per-dataset breakdown
+    per_dataset = metrics.get("per_dataset")
+    if per_dataset and len(per_dataset) > 1:
+        table.add_row("", "")  # Spacer
+        table.add_row("Per-Dataset Breakdown", "", style="bold")
+
+        for dataset, data in per_dataset.items():
+            num_dataset_chunks = data.get("num_chunks", 0)
+            mean_time = data.get("mean_duration", 0)
+            table.add_row(f"  {dataset}", f"{num_dataset_chunks} chunks, {_format_time(mean_time)} avg")
+
+    # Section timing breakdown
+    sections = metrics.get("sections")
+    if sections:
+        table.add_row("", "")  # Spacer
+        table.add_row("Section Timing", "", style="bold")
+
+        # Sort by total duration (most expensive first)
+        sorted_sections = sorted(
+            sections.items(),
+            key=lambda x: x[1].get("total_duration", 0),
+            reverse=True,
+        )
+
+        for name, data in sorted_sections[:5]:  # Top 5 sections
+            mean_time = data.get("mean_duration", 0)
+            count = data.get("count", 0)
+            section_type = data.get("type", "section")
+
+            if section_type == "memory":
+                mean_mem = data.get("mean_mem_delta_mb", 0)
+                table.add_row(
+                    f"  {name}",
+                    f"{_format_time(mean_time)} ({count}x), {mean_mem:.1f} MB avg",
+                )
+            else:
+                table.add_row(f"  {name}", f"{_format_time(mean_time)} ({count}x)")
+
+    return table
