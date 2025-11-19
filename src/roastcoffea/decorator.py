@@ -15,8 +15,8 @@ from roastcoffea.utils import get_process_memory
 if TYPE_CHECKING:
     from roastcoffea.collector import MetricsCollector
 
-# Global registry for active collector
-_active_collector: MetricsCollector | None = None
+# Module-level registry for active collector (avoids global keyword)
+_registry = {"collector": None}
 
 
 def set_active_collector(collector: MetricsCollector | None) -> None:
@@ -25,8 +25,7 @@ def set_active_collector(collector: MetricsCollector | None) -> None:
     Args:
         collector: MetricsCollector instance or None to clear
     """
-    global _active_collector
-    _active_collector = collector
+    _registry["collector"] = collector
 
 
 def get_active_collector() -> MetricsCollector | None:
@@ -35,7 +34,7 @@ def get_active_collector() -> MetricsCollector | None:
     Returns:
         Active MetricsCollector or None if no collector is active
     """
-    return _active_collector
+    return _registry["collector"]
 
 
 def track_metrics(func: Callable) -> Callable:
