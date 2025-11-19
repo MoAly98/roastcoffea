@@ -10,6 +10,7 @@ import time
 from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any, Generator
 
+from roastcoffea.decorator import get_active_collector
 from roastcoffea.utils import get_process_memory
 
 if TYPE_CHECKING:
@@ -51,8 +52,6 @@ def track_time(name: str, collector: MetricsCollector | None = None, metadata: d
         Timing metrics are automatically attached to the current chunk
         if used within a @track_metrics decorated function.
     """
-    from roastcoffea.decorator import get_active_collector
-
     if collector is None:
         collector = get_active_collector()
 
@@ -116,8 +115,6 @@ def track_memory(name: str, collector: MetricsCollector | None = None, metadata:
         Memory metrics are automatically attached to the current chunk
         if used within a @track_metrics decorated function.
     """
-    from roastcoffea.decorator import get_active_collector
-
     if collector is None:
         collector = get_active_collector()
 

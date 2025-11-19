@@ -14,6 +14,7 @@ from rich.console import Console
 
 from roastcoffea.aggregation.core import MetricsAggregator
 from roastcoffea.backends.dask import DaskMetricsBackend
+from roastcoffea.decorator import set_active_collector
 from roastcoffea.export.measurements import save_measurement
 from roastcoffea.export.reporter import (
     format_chunk_metrics_table,
@@ -119,7 +120,6 @@ class MetricsCollector:
         self.t_start = time.perf_counter()
 
         # Register this collector as active for decorator use
-        from roastcoffea.decorator import set_active_collector
         set_active_collector(self)
 
         if self.track_workers:
@@ -147,7 +147,6 @@ class MetricsCollector:
         self.t_end = time.perf_counter()
 
         # Unregister active collector
-        from roastcoffea.decorator import set_active_collector
         set_active_collector(None)
 
         # Exit span context and extract metrics
