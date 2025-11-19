@@ -10,6 +10,8 @@ import time
 from contextlib import contextmanager
 from typing import TYPE_CHECKING, Any, Generator
 
+from roastcoffea.utils import get_process_memory
+
 if TYPE_CHECKING:
     from roastcoffea.collector import MetricsCollector
 
@@ -127,14 +129,14 @@ def track_memory(name: str, collector: MetricsCollector | None = None, metadata:
     if metadata:
         memory_metrics.update(metadata)
 
-    mem_before = _get_process_memory()
+    mem_before = get_process_memory()
     t_start = time.time()
 
     try:
         yield memory_metrics
     finally:
         t_end = time.time()
-        mem_after = _get_process_memory()
+        mem_after = get_process_memory()
 
         memory_metrics["t_start"] = t_start
         memory_metrics["t_end"] = t_end
@@ -145,19 +147,3 @@ def track_memory(name: str, collector: MetricsCollector | None = None, metadata:
 
         if collector is not None:
             collector.record_section_metrics(memory_metrics)
-
-
-def _get_process_memory() -> float:
-    """Get current process memory usage in MB.
-
-    Returns:
-        Memory usage in MB, or 0.0 if psutil not available
-    """
-    try:
-        import psutil
-        import os
-
-        process = psutil.Process(os.getpid())
-        return process.memory_info().rss / 1024**2  # Convert to MB
-    except ImportError:
-        return 0.0

@@ -10,6 +10,8 @@ import functools
 import time
 from typing import TYPE_CHECKING, Any, Callable
 
+from roastcoffea.utils import get_process_memory
+
 if TYPE_CHECKING:
     from roastcoffea.collector import MetricsCollector
 
@@ -75,7 +77,7 @@ def track_metrics(func: Callable) -> Callable:
 
         # Capture start time and memory
         t_start = time.time()
-        mem_before = _get_process_memory()
+        mem_before = get_process_memory()
 
         # Extract chunk metadata from events
         chunk_metadata = _extract_chunk_metadata(events)
@@ -86,7 +88,7 @@ def track_metrics(func: Callable) -> Callable:
 
             # Capture end time and memory
             t_end = time.time()
-            mem_after = _get_process_memory()
+            mem_after = get_process_memory()
 
             # Record chunk metrics
             chunk_metrics = {
@@ -117,22 +119,6 @@ def track_metrics(func: Callable) -> Callable:
             raise
 
     return wrapper
-
-
-def _get_process_memory() -> float:
-    """Get current process memory usage in MB.
-
-    Returns:
-        Memory usage in MB, or 0.0 if psutil not available
-    """
-    try:
-        import psutil
-        import os
-
-        process = psutil.Process(os.getpid())
-        return process.memory_info().rss / 1024**2  # Convert to MB
-    except ImportError:
-        return 0.0
 
 
 def _extract_chunk_metadata(events: Any) -> dict[str, Any]:
