@@ -16,7 +16,7 @@ from coffea import processor
 from coffea.nanoevents import NanoAODSchema
 from dask.distributed import Client, LocalCluster
 
-from roastcoffea import MetricsCollector
+from roastcoffea import MetricsCollector, track_metrics, track_memory, track_time
 
 NanoAODSchema.warn_missing_crossrefs = False
 
@@ -217,3 +217,125 @@ def test_metrics_collector_e2e_no_worker_tracking(dask_cluster, test_fileset):
     assert "wall_time" in metrics
     assert "total_events" in metrics
     assert "overall_rate_gbps" in metrics
+
+
+class ChunkTrackingProcessor(processor.ProcessorABC):
+    """Processor with chunk-level instrumentation for E2E testing."""
+
+    @track_metrics
+    def process(self, events):
+        """Process events with chunk tracking."""
+        output = {}
+
+        with track_time("event_selection"):
+            # Simple selection
+            selected = events[events.event.event % 2 == 0]
+
+        with track_memory("load_jets"):
+            # Load jets branch
+            jets = events.Jet
+
+        output["sum"] = len(selected)
+        output["num_jets"] = len(jets)
+        return output
+
+    def postprocess(self, accumulator):
+        """No postprocessing needed."""
+        return accumulator
+
+
+@pytest.mark.slow
+def test_metrics_collector_e2e_with_chunk_tracking(dask_cluster, test_fileset):
+    """Test full workflow with chunk-level instrumentation."""
+    test_processor = ChunkTrackingProcessor()
+
+    with MetricsCollector(
+        client=dask_cluster,
+        track_workers=True,
+        processor_instance=test_processor,
+    ) as collector:
+        executor = processor.DaskExecutor(client=dask_cluster)
+        runner = processor.Runner(
+            executor=executor,
+            schema=NanoAODSchema,
+            chunksize=10_000,
+            savemetrics=True,
+        )
+
+        _output, report = runner(
+            test_fileset, processor_instance=test_processor, treename="Events"
+        )
+        collector.set_coffea_report(report)
+
+    metrics = collector.get_metrics()
+
+    # Verify chunk metrics are present
+    assert "num_chunks" in metrics
+    assert metrics["num_chunks"] > 0
+    assert metrics["num_successful_chunks"] > 0
+    assert metrics["num_failed_chunks"] == 0
+
+    # Verify timing statistics
+    assert "chunk_duration_mean" in metrics
+    assert "chunk_duration_min" in metrics
+    assert "chunk_duration_max" in metrics
+    assert metrics["chunk_duration_mean"] > 0
+
+    # Verify event counts from chunks
+    assert "total_events_from_chunks" in metrics
+    assert metrics["total_events_from_chunks"] > 0
+
+    # Verify per-dataset breakdown
+    assert "per_dataset" in metrics
+    assert "test_dataset" in metrics["per_dataset"]
+    assert metrics["per_dataset"]["test_dataset"]["num_chunks"] > 0
+
+    # Verify section metrics
+    assert "sections" in metrics
+    assert "event_selection" in metrics["sections"]
+    assert "load_jets" in metrics["sections"]
+    assert metrics["sections"]["event_selection"]["type"] == "time"
+    assert metrics["sections"]["load_jets"]["type"] == "memory"
+
+    # Verify raw chunk data is preserved
+    assert "raw_chunk_metrics" in metrics
+    assert len(metrics["raw_chunk_metrics"]) == metrics["num_chunks"]
+
+    # Verify raw section data is preserved
+    assert "raw_section_metrics" in metrics
+    assert len(metrics["raw_section_metrics"]) > 0
+
+
+@pytest.mark.slow
+def test_metrics_collector_e2e_chunk_tracking_print_summary(
+    dask_cluster, test_fileset, capsys
+):
+    """Test that chunk metrics appear in print_summary()."""
+    test_processor = ChunkTrackingProcessor()
+
+    with MetricsCollector(
+        client=dask_cluster, processor_instance=test_processor
+    ) as collector:
+        executor = processor.DaskExecutor(client=dask_cluster)
+        runner = processor.Runner(
+            executor=executor,
+            schema=NanoAODSchema,
+            chunksize=10_000,
+            savemetrics=True,
+        )
+
+        _output, report = runner(
+            test_fileset, processor_instance=test_processor, treename="Events"
+        )
+        collector.set_coffea_report(report)
+
+    # Print summary
+    collector.print_summary()
+
+    # Capture output
+    captured = capsys.readouterr()
+
+    # Verify chunk metrics table is printed
+    assert "Chunk Metrics" in captured.out
+    assert "Total Chunks" in captured.out
+    assert "Mean Chunk Time" in captured.out
