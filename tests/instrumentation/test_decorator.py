@@ -257,6 +257,162 @@ class TestMetadataExtraction:
         # But not try to extract from non-dict metadata
         assert "metadata" not in metadata
 
+    def test_extract_metadata_from_nanoevents_like_object(self):
+        """Metadata extraction from NanoEvents-like structure."""
+        from roastcoffea.decorator import _extract_chunk_metadata
+
+        class MockBehavior:
+            """Mock NanoEvents behavior."""
+            def get(self, key):
+                if key == "__events_factory__":
+                    return MockFactory()
+                return None
+
+        class MockFactory:
+            """Mock events factory with partition key."""
+            def __init__(self):
+                self._partition_key = {
+                    "dataset": "my_dataset",
+                    "filename": "/path/to/file.root",
+                    "entrysteps": [0, 1000],
+                }
+
+        class NanoEventsLike:
+            """Mock NanoEvents object."""
+            def __init__(self):
+                self.behavior = MockBehavior()
+
+            def __len__(self):
+                return 1000
+
+        events = NanoEventsLike()
+        metadata = _extract_chunk_metadata(events)
+
+        assert metadata["num_events"] == 1000
+        assert metadata["dataset"] == "my_dataset"
+        assert metadata["file"] == "/path/to/file.root"
+        assert metadata["entry_start"] == 0
+        assert metadata["entry_stop"] == 1000
+
+    def test_extract_metadata_nanoevents_partial_entrysteps(self):
+        """Metadata extraction handles partial entry steps."""
+        from roastcoffea.decorator import _extract_chunk_metadata
+
+        class MockBehavior:
+            """Mock behavior with partial entrysteps."""
+            def get(self, key):
+                if key == "__events_factory__":
+                    return MockFactory()
+                return None
+
+        class MockFactory:
+            """Mock factory with only start entry."""
+            def __init__(self):
+                self._partition_key = {
+                    "dataset": "test",
+                    "entrysteps": [500, None],
+                }
+
+        class NanoEventsLike:
+            """Mock NanoEvents."""
+            def __init__(self):
+                self.behavior = MockBehavior()
+
+            def __len__(self):
+                return 100
+
+        events = NanoEventsLike()
+        metadata = _extract_chunk_metadata(events)
+
+        assert metadata["entry_start"] == 500
+        assert "entry_stop" not in metadata
+
+    def test_extract_metadata_nanoevents_no_factory(self):
+        """Metadata extraction when factory is None."""
+        from roastcoffea.decorator import _extract_chunk_metadata
+
+        class MockBehavior:
+            """Mock behavior returning None for factory."""
+            def get(self, key):
+                return None
+
+        class NanoEventsLike:
+            """Mock NanoEvents without factory."""
+            def __init__(self):
+                self.behavior = MockBehavior()
+
+            def __len__(self):
+                return 200
+
+        events = NanoEventsLike()
+        metadata = _extract_chunk_metadata(events)
+
+        # Should still get num_events
+        assert metadata["num_events"] == 200
+        # But no dataset/file info
+        assert "dataset" not in metadata
+        assert "file" not in metadata
+
+    def test_extract_metadata_nanoevents_no_partition_key(self):
+        """Metadata extraction when factory has no partition key."""
+        from roastcoffea.decorator import _extract_chunk_metadata
+
+        class MockBehavior:
+            """Mock behavior."""
+            def get(self, key):
+                if key == "__events_factory__":
+                    return MockFactory()
+                return None
+
+        class MockFactory:
+            """Mock factory without _partition_key."""
+            pass
+
+        class NanoEventsLike:
+            """Mock NanoEvents."""
+            def __init__(self):
+                self.behavior = MockBehavior()
+
+            def __len__(self):
+                return 150
+
+        events = NanoEventsLike()
+        metadata = _extract_chunk_metadata(events)
+
+        assert metadata["num_events"] == 150
+        assert "dataset" not in metadata
+
+    def test_extract_metadata_nanoevents_non_dict_partition_key(self):
+        """Metadata extraction when partition key is not a dict."""
+        from roastcoffea.decorator import _extract_chunk_metadata
+
+        class MockBehavior:
+            """Mock behavior."""
+            def get(self, key):
+                if key == "__events_factory__":
+                    return MockFactory()
+                return None
+
+        class MockFactory:
+            """Mock factory with non-dict partition key."""
+            def __init__(self):
+                self._partition_key = "not a dict"
+
+        class NanoEventsLike:
+            """Mock NanoEvents."""
+            def __init__(self):
+                self.behavior = MockBehavior()
+
+            def __len__(self):
+                return 75
+
+        events = NanoEventsLike()
+        metadata = _extract_chunk_metadata(events)
+
+        assert metadata["num_events"] == 75
+        # Should not crash, just skip extraction
+        assert "dataset" not in metadata
+
 
 class TestActiveCollectorRegistry:
     """Test active collector registry functions."""
