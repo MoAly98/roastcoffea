@@ -5,6 +5,7 @@ from __future__ import annotations
 from rich.table import Table
 
 from roastcoffea.export.reporter import (
+    format_chunk_metrics_table,
     format_event_processing_table,
     format_fine_metrics_table,
     format_resources_table,
@@ -379,3 +380,192 @@ class TestFormatFineMetricsTable:
 
         # Should still create table with whatever is available
         assert isinstance(table, Table)
+
+
+class TestFormatChunkMetricsTable:
+    """Test chunk metrics Rich table formatting."""
+
+    def test_returns_none_when_no_chunks(self):
+        """format_chunk_metrics_table returns None when no chunks."""
+        metrics = {"num_chunks": 0}
+
+        table = format_chunk_metrics_table(metrics)
+
+        assert table is None
+
+    def test_returns_rich_table_when_chunks_present(self):
+        """format_chunk_metrics_table returns Rich Table when chunks present."""
+        metrics = {
+            "num_chunks": 10,
+            "num_successful_chunks": 10,
+            "num_failed_chunks": 0,
+            "chunk_duration_mean": 2.5,
+            "chunk_duration_min": 1.0,
+            "chunk_duration_max": 5.0,
+            "chunk_duration_std": 1.2,
+            "total_events_from_chunks": 100000,
+            "chunk_events_mean": 10000,
+            "chunk_events_min": 8000,
+            "chunk_events_max": 12000,
+        }
+
+        table = format_chunk_metrics_table(metrics)
+
+        assert isinstance(table, Table)
+        assert table.title == "Chunk Metrics"
+
+    def test_table_includes_basic_stats(self):
+        """Chunk table includes basic statistics."""
+        metrics = {
+            "num_chunks": 5,
+            "num_successful_chunks": 4,
+            "num_failed_chunks": 1,
+        }
+
+        table = format_chunk_metrics_table(metrics)
+
+        assert isinstance(table, Table)
+        # Should have at least total chunks, successful, failed rows
+        assert len(table.rows) >= 3
+
+    def test_table_includes_timing_stats(self):
+        """Chunk table includes timing statistics."""
+        metrics = {
+            "num_chunks": 10,
+            "chunk_duration_mean": 3.5,
+            "chunk_duration_min": 2.0,
+            "chunk_duration_max": 5.0,
+            "chunk_duration_std": 0.8,
+        }
+
+        table = format_chunk_metrics_table(metrics)
+
+        assert isinstance(table, Table)
+        # Should include timing rows
+        assert len(table.rows) > 1
+
+    def test_table_includes_memory_stats(self):
+        """Chunk table includes memory statistics when available."""
+        metrics = {
+            "num_chunks": 10,
+            "chunk_mem_delta_mean_mb": 150.0,
+            "chunk_mem_delta_min_mb": 100.0,
+            "chunk_mem_delta_max_mb": 200.0,
+            "chunk_mem_delta_std_mb": 25.0,
+        }
+
+        table = format_chunk_metrics_table(metrics)
+
+        assert isinstance(table, Table)
+
+    def test_table_includes_event_stats(self):
+        """Chunk table includes event statistics when available."""
+        metrics = {
+            "num_chunks": 8,
+            "total_events_from_chunks": 80000,
+            "chunk_events_mean": 10000,
+            "chunk_events_min": 9000,
+            "chunk_events_max": 11000,
+        }
+
+        table = format_chunk_metrics_table(metrics)
+
+        assert isinstance(table, Table)
+
+    def test_table_includes_per_dataset_breakdown(self):
+        """Chunk table includes per-dataset breakdown when available."""
+        metrics = {
+            "num_chunks": 20,
+            "per_dataset": {
+                "dataset_A": {
+                    "num_chunks": 12,
+                    "mean_duration": 2.5,
+                    "total_events": 120000,
+                    "mean_events_per_chunk": 10000,
+                },
+                "dataset_B": {
+                    "num_chunks": 8,
+                    "mean_duration": 3.0,
+                    "total_events": 80000,
+                    "mean_events_per_chunk": 10000,
+                },
+            },
+        }
+
+        table = format_chunk_metrics_table(metrics)
+
+        assert isinstance(table, Table)
+
+    def test_table_includes_section_breakdown(self):
+        """Chunk table includes section breakdown when available."""
+        metrics = {
+            "num_chunks": 10,
+            "sections": {
+                "jet_selection": {
+                    "count": 10,
+                    "mean_duration": 0.5,
+                    "type": "time",
+                },
+                "load_branches": {
+                    "count": 10,
+                    "mean_duration": 1.0,
+                    "mean_mem_delta_mb": 50.0,
+                    "type": "memory",
+                },
+            },
+        }
+
+        table = format_chunk_metrics_table(metrics)
+
+        assert isinstance(table, Table)
+
+    def test_handles_minimal_metrics(self):
+        """Chunk table handles minimal metrics gracefully."""
+        metrics = {
+            "num_chunks": 3,
+        }
+
+        table = format_chunk_metrics_table(metrics)
+
+        # Should still create table
+        assert isinstance(table, Table)
+
+    def test_handles_complete_metrics(self):
+        """Chunk table handles complete metrics set."""
+        metrics = {
+            "num_chunks": 15,
+            "num_successful_chunks": 14,
+            "num_failed_chunks": 1,
+            "chunk_duration_mean": 2.8,
+            "chunk_duration_min": 1.5,
+            "chunk_duration_max": 4.5,
+            "chunk_duration_std": 0.9,
+            "chunk_mem_delta_mean_mb": 120.0,
+            "chunk_mem_delta_min_mb": 80.0,
+            "chunk_mem_delta_max_mb": 180.0,
+            "chunk_mem_delta_std_mb": 30.0,
+            "total_events_from_chunks": 150000,
+            "chunk_events_mean": 10000,
+            "chunk_events_min": 9000,
+            "chunk_events_max": 11000,
+            "per_dataset": {
+                "test_dataset": {
+                    "num_chunks": 15,
+                    "mean_duration": 2.8,
+                    "total_events": 150000,
+                    "mean_events_per_chunk": 10000,
+                },
+            },
+            "sections": {
+                "selection": {
+                    "count": 15,
+                    "mean_duration": 0.8,
+                    "type": "time",
+                },
+            },
+        }
+
+        table = format_chunk_metrics_table(metrics)
+
+        assert isinstance(table, Table)
+        assert len(table.rows) > 5  # Should have many rows with all this data
