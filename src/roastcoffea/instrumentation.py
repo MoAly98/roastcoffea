@@ -15,38 +15,38 @@ if TYPE_CHECKING:
 
 
 @contextmanager
-def track_section(name: str, collector: MetricsCollector | None = None, metadata: dict[str, Any] | None = None) -> Generator[dict[str, Any], None, None]:
-    """Context manager to track timing for a named section.
+def track_time(name: str, collector: MetricsCollector | None = None, metadata: dict[str, Any] | None = None) -> Generator[dict[str, Any], None, None]:
+    """Context manager to track timing for a named operation.
 
-    Measures wall time for a specific section of code within processor.process().
+    Measures wall time for a specific operation within processor.process().
     Useful for identifying bottlenecks and understanding where time is spent.
 
     Args:
-        name: Name of the section (e.g., "jet_selection", "histogram_filling")
+        name: Name of the operation (e.g., "jet_selection", "histogram_filling")
         collector: MetricsCollector instance. If None, uses active collector from decorator
-        metadata: Optional additional metadata to attach to this section
+        metadata: Optional additional metadata to attach to this operation
 
     Yields:
-        Dictionary that will be populated with section metrics
+        Dictionary that will be populated with timing metrics
 
     Usage:
         ```python
-        from roastcoffea import track_section
+        from roastcoffea import track_time
 
         class MyProcessor(processor.ProcessorABC):
             @track_metrics
             def process(self, events):
-                with track_section("jet_selection"):
+                with track_time("jet_selection"):
                     jets = events.Jet[events.Jet.pt > 30]
 
-                with track_section("event_selection"):
+                with track_time("event_selection"):
                     selected = events[ak.num(jets) >= 2]
 
                 return results
         ```
 
     Note:
-        Section metrics are automatically attached to the current chunk
+        Timing metrics are automatically attached to the current chunk
         if used within a @track_metrics decorated function.
     """
     from roastcoffea.decorator import get_active_collector
@@ -54,26 +54,26 @@ def track_section(name: str, collector: MetricsCollector | None = None, metadata
     if collector is None:
         collector = get_active_collector()
 
-    section_metrics: dict[str, Any] = {
+    time_metrics: dict[str, Any] = {
         "name": name,
-        "type": "section",
+        "type": "time",
     }
 
     if metadata:
-        section_metrics.update(metadata)
+        time_metrics.update(metadata)
 
     t_start = time.time()
 
     try:
-        yield section_metrics
+        yield time_metrics
     finally:
         t_end = time.time()
-        section_metrics["t_start"] = t_start
-        section_metrics["t_end"] = t_end
-        section_metrics["duration"] = t_end - t_start
+        time_metrics["t_start"] = t_start
+        time_metrics["t_end"] = t_end
+        time_metrics["duration"] = t_end - t_start
 
         if collector is not None:
-            collector.record_section_metrics(section_metrics)
+            collector.record_section_metrics(time_metrics)
 
 
 @contextmanager

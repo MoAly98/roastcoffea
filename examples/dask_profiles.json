@@ -1,0 +1,86 @@
+{
+  "tcp://127.0.0.1:61801": {
+    "meta": {
+      "address": "tcp://127.0.0.1:61801",
+      "name": 0,
+      "host": "127.0.0.1",
+      "nthreads": 1,
+      "memory_limit": 8589934592,
+      "versions": {}
+    },
+    "profile": {
+      "description": {
+        "filename": "",
+        "name": "",
+        "line_number": 0,
+        "line": ""
+      },
+      "children": {},
+      "count": 0,
+      "identifier": "root"
+    }
+  },
+  "tcp://127.0.0.1:61802": {
+    "meta": {
+      "address": "tcp://127.0.0.1:61802",
+      "name": 2,
+      "host": "127.0.0.1",
+      "nthreads": 1,
+      "memory_limit": 8589934592,
+      "versions": {}
+    },
+    "profile": {
+      "description": {
+        "filename": "",
+        "name": "",
+        "line_number": 0,
+        "line": ""
+      },
+      "children": {},
+      "count": 0,
+      "identifier": "root"
+    }
+  },
+  "tcp://127.0.0.1:61803": {
+    "meta": {
+      "address": "tcp://127.0.0.1:61803",
+      "name": 3,
+      "host": "127.0.0.1",
+      "nthreads": 1,
+      "memory_limit": 8589934592,
+      "versions": {}
+    },
+    "profile": {
+      "description": {
+        "filename": "",
+        "name": "",
+        "line_number": 0,
+        "line": ""
+      },
+      "children": {},
+      "count": 0,
+      "identifier": "root"
+    }
+  },
+  "tcp://127.0.0.1:61804": {
+    "meta": {
+      "address": "tcp://127.0.0.1:61804",
+      "name": 1,
+      "host": "127.0.0.1",
+      "nthreads": 1,
+      "memory_limit": 8589934592,
+      "versions": {}
+    },
+    "profile": {
+      "description": {
+        "filename": "",
+        "name": "",
+        "line_number": 0,
+        "line": ""
+      },
+      "children": {},
+      "count": 0,
+      "identifier": "root"
+    }
+  }
+}
