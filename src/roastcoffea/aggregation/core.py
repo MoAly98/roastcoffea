@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from roastcoffea.aggregation.backends import get_parser
+from roastcoffea.aggregation.chunk import aggregate_chunk_metrics
 from roastcoffea.aggregation.efficiency import calculate_efficiency_metrics
 from roastcoffea.aggregation.fine_metrics import parse_fine_metrics
 from roastcoffea.aggregation.workflow import aggregate_workflow_metrics
@@ -38,6 +39,8 @@ class MetricsAggregator:
         custom_metrics: dict[str, Any] | None = None,
         span_metrics: dict[str, Any] | None = None,
         processor_name: str | None = None,
+        chunk_metrics: list[dict[str, Any]] | None = None,
+        section_metrics: list[dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
         """Aggregate all metrics from workflow run.
 
@@ -57,6 +60,10 @@ class MetricsAggregator:
             Dask Spans cumulative_worker_metrics
         processor_name : str, optional
             Name of processor class for filtering fine metrics
+        chunk_metrics : list of dict, optional
+            Per-chunk metrics from @track_metrics decorator
+        section_metrics : list of dict, optional
+            Section metrics from track_section() and track_memory()
 
         Returns
         -------
@@ -87,6 +94,14 @@ class MetricsAggregator:
             # - Dask memory-read: incomplete tracking of in-memory access
             # We don't have enough information to compute a valid compression ratio
 
+        # Aggregate chunk metrics if available
+        chunk_agg_metrics = {}
+        if chunk_metrics:
+            chunk_agg_metrics = aggregate_chunk_metrics(
+                chunk_metrics=chunk_metrics,
+                section_metrics=section_metrics,
+            )
+
         # Calculate efficiency metrics
         efficiency_metrics = calculate_efficiency_metrics(
             workflow_metrics=workflow_metrics,
@@ -99,8 +114,15 @@ class MetricsAggregator:
         combined_metrics.update(worker_metrics)
         combined_metrics.update(efficiency_metrics)
         combined_metrics.update(fine_metrics)
+        combined_metrics.update(chunk_agg_metrics)
 
         # Preserve raw tracking data for visualization
         combined_metrics["tracking_data"] = tracking_data
+
+        # Preserve raw chunk metrics for detailed analysis
+        if chunk_metrics:
+            combined_metrics["raw_chunk_metrics"] = chunk_metrics
+        if section_metrics:
+            combined_metrics["raw_section_metrics"] = section_metrics
 
         return combined_metrics

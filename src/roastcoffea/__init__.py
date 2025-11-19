@@ -28,7 +28,9 @@ Basic Usage:
 from __future__ import annotations
 
 from roastcoffea.collector import MetricsCollector
+from roastcoffea.decorator import track_metrics
 from roastcoffea.export.measurements import load_measurement
+from roastcoffea.instrumentation import track_memory, track_section
 from roastcoffea.visualization.plots.cpu import (
     plot_executing_tasks_timeline,
     plot_occupancy_timeline,
@@ -55,6 +57,10 @@ __all__ = [
     "MetricsCollector",
     "__version__",
     "load_measurement",
+    # Instrumentation
+    "track_metrics",
+    "track_section",
+    "track_memory",
     # Worker timeline plots
     "plot_worker_count_timeline",
     "plot_memory_utilization_timeline",

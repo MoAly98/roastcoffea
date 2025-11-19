@@ -109,9 +109,17 @@ class MetricsCollector:
         self.span_metrics: dict[str, Any] | None = None
         self.metrics: dict[str, Any] | None = None
 
+        # Chunk-level tracking
+        self.chunk_metrics: list[dict[str, Any]] = []
+        self.section_metrics: list[dict[str, Any]] = []
+
     def __enter__(self) -> MetricsCollector:
         """Enter context manager - start tracking."""
         self.t_start = time.perf_counter()
+
+        # Register this collector as active for decorator use
+        from roastcoffea.decorator import set_active_collector
+        set_active_collector(self)
 
         if self.track_workers:
             self.metrics_backend.start_tracking(interval=self.worker_tracking_interval)
@@ -137,6 +145,10 @@ class MetricsCollector:
         """Exit context manager - stop tracking and aggregate metrics."""
         self.t_end = time.perf_counter()
 
+        # Unregister active collector
+        from roastcoffea.decorator import set_active_collector
+        set_active_collector(None)
+
         # Exit span context and extract metrics
         if self.span_info is not None:
             try:
@@ -159,9 +171,39 @@ class MetricsCollector:
         if self.track_workers:
             self.tracking_data = self.metrics_backend.stop_tracking()
 
+        # Log chunk metrics collected
+        if self.chunk_metrics:
+            logger.debug(f"Collected metrics for {len(self.chunk_metrics)} chunks")
+        if self.section_metrics:
+            logger.debug(f"Collected metrics for {len(self.section_metrics)} sections")
+
         # Auto-aggregate if we have a coffea report
         if self.coffea_report is not None:
             self._aggregate_metrics()
+
+    def record_chunk_metrics(self, chunk_data: dict[str, Any]) -> None:
+        """Record metrics for a single chunk.
+
+        Called by @track_metrics decorator.
+
+        Parameters
+        ----------
+        chunk_data : dict
+            Chunk metrics including timing, memory, metadata
+        """
+        self.chunk_metrics.append(chunk_data)
+
+    def record_section_metrics(self, section_data: dict[str, Any]) -> None:
+        """Record metrics for a section or memory tracking.
+
+        Called by track_section() and track_memory() context managers.
+
+        Parameters
+        ----------
+        section_data : dict
+            Section metrics including timing, memory, metadata
+        """
+        self.section_metrics.append(section_data)
 
     def set_coffea_report(
         self, report: dict[str, Any], custom_metrics: dict[str, Any] | None = None
@@ -204,6 +246,8 @@ class MetricsCollector:
             custom_metrics=getattr(self, "custom_metrics", None),
             span_metrics=self.span_metrics,
             processor_name=self.processor_name,
+            chunk_metrics=self.chunk_metrics if self.chunk_metrics else None,
+            section_metrics=self.section_metrics if self.section_metrics else None,
         )
 
     def get_metrics(self) -> dict[str, Any]:
