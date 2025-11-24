@@ -8,33 +8,9 @@ from __future__ import annotations
 
 import functools
 import time
-from typing import TYPE_CHECKING, Any, Callable
+from typing import Any, Callable
 
 from roastcoffea.utils import get_process_memory
-
-if TYPE_CHECKING:
-    from roastcoffea.collector import MetricsCollector
-
-# Module-level registry for active collector (avoids global keyword)
-_registry = {"collector": None}
-
-
-def set_active_collector(collector: MetricsCollector | None) -> None:
-    """Set the active metrics collector for decorator use.
-
-    Args:
-        collector: MetricsCollector instance or None to clear
-    """
-    _registry["collector"] = collector
-
-
-def get_active_collector() -> MetricsCollector | None:
-    """Get the currently active metrics collector.
-
-    Returns:
-        Active MetricsCollector or None if no collector is active
-    """
-    return _registry["collector"]
 
 
 def track_metrics(func: Callable) -> Callable:
@@ -44,35 +20,53 @@ def track_metrics(func: Callable) -> Callable:
     - Wall time (start, end, duration)
     - Memory usage (before/after)
     - Chunk metadata (dataset, file, entry range if available)
+    - Fine-grained timing/memory sections from context managers
+
+    The decorator works in distributed Dask mode by injecting metrics
+    directly into the output dictionary as a list. Coffea's tree reduction
+    naturally concatenates these lists across chunks.
 
     Usage:
         ```python
         from coffea import processor
-        from roastcoffea import track_metrics
+        from roastcoffea import track_metrics, track_time, track_memory
 
         class MyProcessor(processor.ProcessorABC):
             @track_metrics
             def process(self, events):
-                # Your processing code
-                return results
+                with track_time(self, "jet_selection"):
+                    jets = events.Jet[events.Jet.pt > 30]
+
+                with track_memory(self, "histogram_filling"):
+                    # ... fill histograms
+
+                return {"sum": len(events)}
         ```
 
     Note:
         The decorator requires an active MetricsCollector context.
-        If no collector is active, the decorator is a no-op.
+        The collector sets `_roastcoffea_collect_metrics = True` on the
+        processor instance to enable collection.
 
     Note:
-        Per-chunk bytes read is not currently tracked - this requires
-        investigation into combining multiple metric sources.
+        Metrics are injected as: `output["__roastcoffea_metrics__"] = [chunk_metrics]`
+        The list format allows natural concatenation during Coffea's tree reduction.
     """
 
     @functools.wraps(func)
     def wrapper(self, events, *args, **kwargs):
-        collector = get_active_collector()
+        # Check if collection is enabled on processor instance
+        should_collect = getattr(self, "_roastcoffea_collect_metrics", False)
 
-        if collector is None:
+        if not should_collect:
             # No active collector - just run the function normally
             return func(self, events, *args, **kwargs)
+
+        # Initialize metrics container for context managers to write to
+        self._roastcoffea_current_chunk = {
+            "timing": {},
+            "memory": {},
+        }
 
         # Capture start time and memory
         t_start = time.time()
@@ -83,13 +77,14 @@ def track_metrics(func: Callable) -> Callable:
 
         try:
             # Run the actual processor
+            # Context managers will write to self._roastcoffea_current_chunk
             result = func(self, events, *args, **kwargs)
 
             # Capture end time and memory
             t_end = time.time()
             mem_after = get_process_memory()
 
-            # Record chunk metrics
+            # Assemble complete chunk metrics
             chunk_metrics = {
                 "t_start": t_start,
                 "t_end": t_end,
@@ -97,10 +92,23 @@ def track_metrics(func: Callable) -> Callable:
                 "mem_before_mb": mem_before,
                 "mem_after_mb": mem_after,
                 "mem_delta_mb": mem_after - mem_before,
+                "timestamp": time.time(),
                 **chunk_metadata,
+                # Include fine-grained sections
+                "timing": self._roastcoffea_current_chunk.get("timing", {}),
+                "memory": self._roastcoffea_current_chunk.get("memory", {}),
             }
 
-            collector.record_chunk_metrics(chunk_metrics)
+            # Clean up container
+            delattr(self, "_roastcoffea_current_chunk")
+
+            # Inject metrics as LIST into output
+            # This is the key: lists concatenate naturally in Coffea's tree reduction
+            if isinstance(result, dict):
+                result["__roastcoffea_metrics__"] = [chunk_metrics]
+            else:
+                # Can't inject into non-dict output
+                pass
 
             return result
 
@@ -114,7 +122,15 @@ def track_metrics(func: Callable) -> Callable:
                 "error": str(e),
                 **chunk_metadata,
             }
-            collector.record_chunk_metrics(chunk_metrics)
+
+            # Clean up container if it exists
+            if hasattr(self, "_roastcoffea_current_chunk"):
+                delattr(self, "_roastcoffea_current_chunk")
+
+            # Try to inject error metrics
+            if isinstance(result, dict):
+                result["__roastcoffea_metrics__"] = [chunk_metrics]
+
             raise
 
     return wrapper
@@ -128,6 +144,7 @@ def _extract_chunk_metadata(events: Any) -> dict[str, Any]:
     - file path
     - entry range (start, stop)
     - number of events
+    - uuid
 
     Args:
         events: Events object (NanoEvents or similar)
@@ -143,9 +160,19 @@ def _extract_chunk_metadata(events: Any) -> dict[str, Any]:
     except Exception:
         pass
 
-    # Try to get metadata from events object
-    # NanoEvents has behavior.get("__events_factory__") which contains metadata
-    if hasattr(events, "behavior"):
+    # Try direct metadata attribute first (NanoEvents provides this)
+    try:
+        metadata_obj = events.metadata
+        metadata["dataset"] = metadata_obj.get("dataset")
+        metadata["file"] = metadata_obj.get("filename")
+        metadata["uuid"] = metadata_obj.get("uuid")
+        metadata["entry_start"] = metadata_obj.get("entrystart")
+        metadata["entry_stop"] = metadata_obj.get("entrystop")
+    except Exception:
+        pass
+
+    # Fallback: Try behavior-based extraction
+    if not metadata.get("dataset") and hasattr(events, "behavior"):
         behavior = events.behavior
         if hasattr(behavior, "get"):
             factory = behavior.get("__events_factory__")
@@ -155,21 +182,19 @@ def _extract_chunk_metadata(events: Any) -> dict[str, Any]:
                     partition_key = factory._partition_key
                     if isinstance(partition_key, dict):
                         # Extract dataset, file, entry range
-                        metadata["dataset"] = partition_key.get("dataset")
-                        metadata["file"] = partition_key.get("filename")
+                        if "dataset" not in metadata:
+                            metadata["dataset"] = partition_key.get("dataset")
+                        if "file" not in metadata:
+                            metadata["file"] = partition_key.get("filename")
 
                         # Entry range
-                        start = partition_key.get("entrysteps", [None, None])[0]
-                        stop = partition_key.get("entrysteps", [None, None])[1]
-                        if start is not None:
-                            metadata["entry_start"] = start
-                        if stop is not None:
-                            metadata["entry_stop"] = stop
-
-    # Try alternative method: check metadata attribute
-    if hasattr(events, "metadata"):
-        meta = events.metadata
-        if isinstance(meta, dict):
-            metadata.update({k: v for k, v in meta.items() if k not in metadata})
+                        if "entry_start" not in metadata:
+                            start = partition_key.get("entrysteps", [None, None])[0]
+                            if start is not None:
+                                metadata["entry_start"] = start
+                        if "entry_stop" not in metadata:
+                            stop = partition_key.get("entrysteps", [None, None])[1]
+                            if stop is not None:
+                                metadata["entry_stop"] = stop
 
     return metadata

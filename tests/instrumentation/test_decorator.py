@@ -4,30 +4,15 @@ from __future__ import annotations
 
 import pytest
 
-from roastcoffea.decorator import (
-    get_active_collector,
-    set_active_collector,
-    track_metrics,
-)
-
-
-class MockCollector:
-    """Mock MetricsCollector for testing."""
-
-    def __init__(self):
-        self.chunk_metrics = []
-
-    def record_chunk_metrics(self, chunk_data):
-        self.chunk_metrics.append(chunk_data)
+from roastcoffea.decorator import track_metrics, _extract_chunk_metadata
 
 
 class MockEvents:
     """Mock events object for testing."""
 
-    def __init__(self, num_events=100, dataset="test", filename="test.root"):
+    def __init__(self, num_events=100, metadata=None):
         self._num_events = num_events
-        self._dataset = dataset
-        self._filename = filename
+        self.metadata = metadata or {}
 
     def __len__(self):
         return self._num_events
@@ -36,9 +21,8 @@ class MockEvents:
 class TestTrackMetricsDecorator:
     """Test @track_metrics decorator."""
 
-    def test_decorator_without_collector_is_noop(self):
-        """Decorator without active collector is a no-op."""
-        set_active_collector(None)
+    def test_decorator_without_collection_flag_is_noop(self):
+        """Decorator without collection flag is a no-op."""
 
         class TestProcessor:
             @track_metrics
@@ -46,19 +30,21 @@ class TestTrackMetricsDecorator:
                 return {"result": len(events)}
 
         processor = TestProcessor()
+        # No _roastcoffea_collect_metrics flag set
         events = MockEvents(num_events=50)
 
         result = processor.process(events)
 
         assert result == {"result": 50}
-        # No collector, so no metrics recorded
+        # No metrics injected
+        assert "__roastcoffea_metrics__" not in result
 
-    def test_decorator_records_chunk_metrics(self):
-        """Decorator records chunk metrics when collector is active."""
-        collector = MockCollector()
-        set_active_collector(collector)
+    def test_decorator_injects_metrics_as_list(self):
+        """Decorator injects chunk metrics as list into output."""
 
         class TestProcessor:
+            _roastcoffea_collect_metrics = True
+
             @track_metrics
             def process(self, events):
                 return {"result": len(events)}
@@ -68,47 +54,46 @@ class TestTrackMetricsDecorator:
 
         result = processor.process(events)
 
-        assert result == {"result": 100}
-        assert len(collector.chunk_metrics) == 1
+        assert result["result"] == 100
+        assert "__roastcoffea_metrics__" in result
+        assert isinstance(result["__roastcoffea_metrics__"], list)
+        assert len(result["__roastcoffea_metrics__"]) == 1
 
-        chunk = collector.chunk_metrics[0]
+        chunk = result["__roastcoffea_metrics__"][0]
         assert "t_start" in chunk
         assert "t_end" in chunk
         assert "duration" in chunk
         assert chunk["duration"] > 0
         assert chunk["num_events"] == 100
 
-        set_active_collector(None)
-
     def test_decorator_captures_timing(self):
         """Decorator captures timing information."""
-        collector = MockCollector()
-        set_active_collector(collector)
 
         class TestProcessor:
+            _roastcoffea_collect_metrics = True
+
             @track_metrics
             def process(self, events):
                 import time
+
                 time.sleep(0.01)  # Small delay
                 return {}
 
         processor = TestProcessor()
         events = MockEvents()
 
-        processor.process(events)
+        result = processor.process(events)
 
-        chunk = collector.chunk_metrics[0]
+        chunk = result["__roastcoffea_metrics__"][0]
         assert chunk["duration"] >= 0.01
         assert chunk["t_end"] > chunk["t_start"]
 
-        set_active_collector(None)
-
     def test_decorator_captures_memory(self):
         """Decorator captures memory information."""
-        collector = MockCollector()
-        set_active_collector(collector)
 
         class TestProcessor:
+            _roastcoffea_collect_metrics = True
+
             @track_metrics
             def process(self, events):
                 return {}
@@ -116,9 +101,9 @@ class TestTrackMetricsDecorator:
         processor = TestProcessor()
         events = MockEvents()
 
-        processor.process(events)
+        result = processor.process(events)
 
-        chunk = collector.chunk_metrics[0]
+        chunk = result["__roastcoffea_metrics__"][0]
         assert "mem_before_mb" in chunk
         assert "mem_after_mb" in chunk
         assert "mem_delta_mb" in chunk
@@ -126,14 +111,12 @@ class TestTrackMetricsDecorator:
         assert chunk["mem_before_mb"] >= 0
         assert chunk["mem_after_mb"] >= 0
 
-        set_active_collector(None)
-
     def test_decorator_captures_event_count(self):
         """Decorator captures event count from len(events)."""
-        collector = MockCollector()
-        set_active_collector(collector)
 
         class TestProcessor:
+            _roastcoffea_collect_metrics = True
+
             @track_metrics
             def process(self, events):
                 return {}
@@ -141,63 +124,76 @@ class TestTrackMetricsDecorator:
         processor = TestProcessor()
         events = MockEvents(num_events=250)
 
-        processor.process(events)
+        result = processor.process(events)
 
-        chunk = collector.chunk_metrics[0]
+        chunk = result["__roastcoffea_metrics__"][0]
         assert chunk["num_events"] == 250
 
-        set_active_collector(None)
-
-    def test_decorator_records_errors(self):
-        """Decorator records chunk even if processing fails."""
-        collector = MockCollector()
-        set_active_collector(collector)
+    def test_decorator_with_non_dict_output(self):
+        """Decorator handles non-dict output gracefully."""
 
         class TestProcessor:
+            _roastcoffea_collect_metrics = True
+
             @track_metrics
             def process(self, events):
-                raise ValueError("Processing failed")
+                return "not a dict"
 
         processor = TestProcessor()
         events = MockEvents()
 
-        with pytest.raises(ValueError, match="Processing failed"):
-            processor.process(events)
+        result = processor.process(events)
 
-        # Should still record chunk with error
-        assert len(collector.chunk_metrics) == 1
-        chunk = collector.chunk_metrics[0]
-        assert "error" in chunk
-        assert chunk["error"] == "Processing failed"
-        assert "t_start" in chunk
-        assert "t_end" in chunk
-        assert "duration" in chunk
+        # Should return original output unchanged
+        assert result == "not a dict"
 
-        set_active_collector(None)
-
-    def test_decorator_multiple_chunks(self):
-        """Decorator records multiple chunks correctly."""
-        collector = MockCollector()
-        set_active_collector(collector)
+    def test_decorator_includes_timing_sections(self):
+        """Decorator includes timing sections from track_time()."""
+        from roastcoffea.instrumentation import track_time
 
         class TestProcessor:
+            _roastcoffea_collect_metrics = True
+
             @track_metrics
             def process(self, events):
-                return {"nevents": len(events)}
+                with track_time(self, "test_section"):
+                    import time
+
+                    time.sleep(0.01)
+                return {}
 
         processor = TestProcessor()
+        events = MockEvents()
 
-        # Process 3 chunks
-        for i in range(3):
-            events = MockEvents(num_events=100 + i * 10)
-            processor.process(events)
+        result = processor.process(events)
 
-        assert len(collector.chunk_metrics) == 3
-        assert collector.chunk_metrics[0]["num_events"] == 100
-        assert collector.chunk_metrics[1]["num_events"] == 110
-        assert collector.chunk_metrics[2]["num_events"] == 120
+        chunk = result["__roastcoffea_metrics__"][0]
+        assert "timing" in chunk
+        assert "test_section" in chunk["timing"]
+        assert chunk["timing"]["test_section"] >= 0.01
 
-        set_active_collector(None)
+    def test_decorator_includes_memory_sections(self):
+        """Decorator includes memory sections from track_memory()."""
+        from roastcoffea.instrumentation import track_memory
+
+        class TestProcessor:
+            _roastcoffea_collect_metrics = True
+
+            @track_metrics
+            def process(self, events):
+                with track_memory(self, "test_memory"):
+                    data = [0] * 1000
+                return {}
+
+        processor = TestProcessor()
+        events = MockEvents()
+
+        result = processor.process(events)
+
+        chunk = result["__roastcoffea_metrics__"][0]
+        assert "memory" in chunk
+        assert "test_memory" in chunk["memory"]
+        assert isinstance(chunk["memory"]["test_memory"], (int, float))
 
 
 class TestMetadataExtraction:
@@ -205,10 +201,10 @@ class TestMetadataExtraction:
 
     def test_extract_metadata_from_events_without_len(self):
         """Metadata extraction handles events without len()."""
-        from roastcoffea.decorator import _extract_chunk_metadata
 
         class EventsWithoutLen:
             """Events object that doesn't support len()."""
+
             pass
 
         events = EventsWithoutLen()
@@ -220,12 +216,24 @@ class TestMetadataExtraction:
 
     def test_extract_metadata_with_metadata_attribute(self):
         """Metadata extraction uses metadata attribute if available."""
-        from roastcoffea.decorator import _extract_chunk_metadata
+
+        class MockMetadata:
+            """Mock metadata object with get method."""
+
+            def get(self, key):
+                return {
+                    "dataset": "test_dataset",
+                    "filename": "test.root",
+                    "entrystart": 0,
+                    "entrystop": 100,
+                    "uuid": "test-uuid",
+                }.get(key)
 
         class EventsWithMetadata:
             """Events with metadata attribute."""
+
             def __init__(self):
-                self.metadata = {"dataset": "test_dataset", "custom_field": "value"}
+                self.metadata = MockMetadata()
 
             def __len__(self):
                 return 100
@@ -235,14 +243,17 @@ class TestMetadataExtraction:
 
         assert metadata["num_events"] == 100
         assert metadata["dataset"] == "test_dataset"
-        assert metadata["custom_field"] == "value"
+        assert metadata["file"] == "test.root"
+        assert metadata["entry_start"] == 0
+        assert metadata["entry_stop"] == 100
+        assert metadata["uuid"] == "test-uuid"
 
     def test_extract_metadata_with_non_dict_metadata(self):
         """Metadata extraction handles non-dict metadata attribute."""
-        from roastcoffea.decorator import _extract_chunk_metadata
 
         class EventsWithBadMetadata:
             """Events with non-dict metadata."""
+
             def __init__(self):
                 self.metadata = "not a dict"
 
@@ -254,15 +265,13 @@ class TestMetadataExtraction:
 
         # Should still get num_events
         assert metadata["num_events"] == 50
-        # But not try to extract from non-dict metadata
-        assert "metadata" not in metadata
 
     def test_extract_metadata_from_nanoevents_like_object(self):
-        """Metadata extraction from NanoEvents-like structure."""
-        from roastcoffea.decorator import _extract_chunk_metadata
+        """Metadata extraction from NanoEvents-like structure (fallback)."""
 
         class MockBehavior:
             """Mock NanoEvents behavior."""
+
             def get(self, key):
                 if key == "__events_factory__":
                     return MockFactory()
@@ -270,6 +279,7 @@ class TestMetadataExtraction:
 
         class MockFactory:
             """Mock events factory with partition key."""
+
             def __init__(self):
                 self._partition_key = {
                     "dataset": "my_dataset",
@@ -279,6 +289,7 @@ class TestMetadataExtraction:
 
         class NanoEventsLike:
             """Mock NanoEvents object."""
+
             def __init__(self):
                 self.behavior = MockBehavior()
 
@@ -296,10 +307,10 @@ class TestMetadataExtraction:
 
     def test_extract_metadata_nanoevents_partial_entrysteps(self):
         """Metadata extraction handles partial entry steps."""
-        from roastcoffea.decorator import _extract_chunk_metadata
 
         class MockBehavior:
             """Mock behavior with partial entrysteps."""
+
             def get(self, key):
                 if key == "__events_factory__":
                     return MockFactory()
@@ -307,6 +318,7 @@ class TestMetadataExtraction:
 
         class MockFactory:
             """Mock factory with only start entry."""
+
             def __init__(self):
                 self._partition_key = {
                     "dataset": "test",
@@ -315,6 +327,7 @@ class TestMetadataExtraction:
 
         class NanoEventsLike:
             """Mock NanoEvents."""
+
             def __init__(self):
                 self.behavior = MockBehavior()
 
@@ -329,15 +342,16 @@ class TestMetadataExtraction:
 
     def test_extract_metadata_nanoevents_no_factory(self):
         """Metadata extraction when factory is None."""
-        from roastcoffea.decorator import _extract_chunk_metadata
 
         class MockBehavior:
             """Mock behavior returning None for factory."""
+
             def get(self, key):
                 return None
 
         class NanoEventsLike:
             """Mock NanoEvents without factory."""
+
             def __init__(self):
                 self.behavior = MockBehavior()
 
@@ -355,10 +369,10 @@ class TestMetadataExtraction:
 
     def test_extract_metadata_nanoevents_no_partition_key(self):
         """Metadata extraction when factory has no partition key."""
-        from roastcoffea.decorator import _extract_chunk_metadata
 
         class MockBehavior:
             """Mock behavior."""
+
             def get(self, key):
                 if key == "__events_factory__":
                     return MockFactory()
@@ -366,10 +380,12 @@ class TestMetadataExtraction:
 
         class MockFactory:
             """Mock factory without _partition_key."""
+
             pass
 
         class NanoEventsLike:
             """Mock NanoEvents."""
+
             def __init__(self):
                 self.behavior = MockBehavior()
 
@@ -384,10 +400,10 @@ class TestMetadataExtraction:
 
     def test_extract_metadata_nanoevents_non_dict_partition_key(self):
         """Metadata extraction when partition key is not a dict."""
-        from roastcoffea.decorator import _extract_chunk_metadata
 
         class MockBehavior:
             """Mock behavior."""
+
             def get(self, key):
                 if key == "__events_factory__":
                     return MockFactory()
@@ -395,11 +411,13 @@ class TestMetadataExtraction:
 
         class MockFactory:
             """Mock factory with non-dict partition key."""
+
             def __init__(self):
                 self._partition_key = "not a dict"
 
         class NanoEventsLike:
             """Mock NanoEvents."""
+
             def __init__(self):
                 self.behavior = MockBehavior()
 
@@ -412,38 +430,3 @@ class TestMetadataExtraction:
         assert metadata["num_events"] == 75
         # Should not crash, just skip extraction
         assert "dataset" not in metadata
-
-
-class TestActiveCollectorRegistry:
-    """Test active collector registry functions."""
-
-    def test_set_and_get_collector(self):
-        """Can set and get active collector."""
-        collector = MockCollector()
-        set_active_collector(collector)
-
-        assert get_active_collector() is collector
-
-        set_active_collector(None)
-        assert get_active_collector() is None
-
-    def test_collector_registry_isolation(self):
-        """Collector registry is properly isolated."""
-        # Start with None
-        set_active_collector(None)
-        assert get_active_collector() is None
-
-        # Set collector 1
-        collector1 = MockCollector()
-        set_active_collector(collector1)
-        assert get_active_collector() is collector1
-
-        # Replace with collector 2
-        collector2 = MockCollector()
-        set_active_collector(collector2)
-        assert get_active_collector() is collector2
-        assert get_active_collector() is not collector1
-
-        # Clear
-        set_active_collector(None)
-        assert get_active_collector() is None

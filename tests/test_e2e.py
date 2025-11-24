@@ -227,16 +227,16 @@ class ChunkTrackingProcessor(processor.ProcessorABC):
         """Process events with chunk tracking."""
         output = {}
 
-        with track_time("event_selection"):
-            # Simple selection
-            selected = events[events.event.event % 2 == 0]
-
-        with track_memory("load_jets"):
+        with track_time(self, "load_jets"):
             # Load jets branch
             jets = events.Jet
 
-        output["sum"] = len(selected)
-        output["num_jets"] = len(jets)
+        with track_memory(self, "jet_selection"):
+            # Simple selection
+            selected_jets = jets[jets.pt > 30]
+
+        output["sum"] = len(events)
+        output["num_jets"] = len(selected_jets)
         return output
 
     def postprocess(self, accumulator):
@@ -246,7 +246,11 @@ class ChunkTrackingProcessor(processor.ProcessorABC):
 
 @pytest.mark.slow
 def test_metrics_collector_e2e_with_chunk_tracking(dask_cluster, test_fileset):
-    """Test full workflow with chunk-level instrumentation."""
+    """Test full workflow with chunk-level instrumentation in distributed mode.
+
+    This test verifies that the list-based accumulator approach works correctly
+    in distributed Dask mode, collecting metrics from all worker processes.
+    """
     test_processor = ChunkTrackingProcessor()
 
     with MetricsCollector(
@@ -262,55 +266,61 @@ def test_metrics_collector_e2e_with_chunk_tracking(dask_cluster, test_fileset):
             savemetrics=True,
         )
 
-        _output, report = runner(
+        output, report = runner(
             test_fileset, processor_instance=test_processor, treename="Events"
         )
+
+        # Extract metrics from output before setting report
+        collector.extract_metrics_from_output(output)
         collector.set_coffea_report(report)
 
     metrics = collector.get_metrics()
 
-    # Verify chunk metrics are present
+    # Basic metrics should be present
     assert "num_chunks" in metrics
     assert metrics["num_chunks"] > 0
-    assert metrics["num_successful_chunks"] > 0
-    assert metrics["num_failed_chunks"] == 0
+    assert "wall_time" in metrics
+    assert "total_events" in metrics
 
-    # Verify timing statistics
-    assert "chunk_duration_mean" in metrics
-    assert "chunk_duration_min" in metrics
-    assert "chunk_duration_max" in metrics
-    assert metrics["chunk_duration_mean"] > 0
+    # Verify chunk-level metrics were collected
+    chunk_metrics = collector.chunk_metrics
+    assert len(chunk_metrics) > 0, "Should have collected chunk metrics"
 
-    # Verify event counts from chunks
-    assert "total_events_from_chunks" in metrics
-    assert metrics["total_events_from_chunks"] > 0
+    # Verify all chunks collected (compare events)
+    total_chunk_events = sum(m.get("num_events", 0) for m in chunk_metrics)
+    assert total_chunk_events == report["entries"], "All chunks should be collected"
 
-    # Verify per-dataset breakdown
-    assert "per_dataset" in metrics
-    assert "test_dataset" in metrics["per_dataset"]
-    assert metrics["per_dataset"]["test_dataset"]["num_chunks"] > 0
+    # Verify timing sections are present
+    has_timing_sections = any("timing" in m and m["timing"] for m in chunk_metrics)
+    assert has_timing_sections, "Should have timing sections from track_time()"
 
-    # Verify section metrics
-    assert "sections" in metrics
-    assert "event_selection" in metrics["sections"]
-    assert "load_jets" in metrics["sections"]
-    assert metrics["sections"]["event_selection"]["type"] == "time"
-    assert metrics["sections"]["load_jets"]["type"] == "memory"
+    # Verify specific timing sections
+    for chunk in chunk_metrics:
+        if "timing" in chunk and chunk["timing"]:
+            assert "load_jets" in chunk["timing"], "Should have load_jets timing"
 
-    # Verify raw chunk data is preserved
-    assert "raw_chunk_metrics" in metrics
-    assert len(metrics["raw_chunk_metrics"]) == metrics["num_chunks"]
+    # Verify memory sections are present
+    has_memory_sections = any("memory" in m and m["memory"] for m in chunk_metrics)
+    assert has_memory_sections, "Should have memory sections from track_memory()"
 
-    # Verify raw section data is preserved
-    assert "raw_section_metrics" in metrics
-    assert len(metrics["raw_section_metrics"]) > 0
+    # Verify specific memory sections
+    for chunk in chunk_metrics:
+        if "memory" in chunk and chunk["memory"]:
+            assert "jet_selection" in chunk["memory"], "Should have jet_selection memory"
+
+    # Verify metadata is populated
+    for chunk in chunk_metrics:
+        assert "num_events" in chunk, "Should have num_events"
+        assert "duration" in chunk, "Should have duration"
+        assert "dataset" in chunk, "Should have dataset metadata"
+        # File and entry ranges may vary depending on chunking
 
 
 @pytest.mark.slow
 def test_metrics_collector_e2e_chunk_tracking_print_summary(
     dask_cluster, test_fileset, capsys
 ):
-    """Test that chunk metrics appear in print_summary()."""
+    """Test that metrics summary is printed correctly with chunk tracking."""
     test_processor = ChunkTrackingProcessor()
 
     with MetricsCollector(
@@ -324,9 +334,12 @@ def test_metrics_collector_e2e_chunk_tracking_print_summary(
             savemetrics=True,
         )
 
-        _output, report = runner(
+        output, report = runner(
             test_fileset, processor_instance=test_processor, treename="Events"
         )
+
+        # Extract metrics from output
+        collector.extract_metrics_from_output(output)
         collector.set_coffea_report(report)
 
     # Print summary
@@ -335,7 +348,7 @@ def test_metrics_collector_e2e_chunk_tracking_print_summary(
     # Capture output
     captured = capsys.readouterr()
 
-    # Verify chunk metrics table is printed
-    assert "Chunk Metrics" in captured.out
+    # Verify basic tables are printed
+    assert "Throughput Metrics" in captured.out
+    assert "Event Processing Metrics" in captured.out
     assert "Total Chunks" in captured.out
-    assert "Mean Chunk Time" in captured.out

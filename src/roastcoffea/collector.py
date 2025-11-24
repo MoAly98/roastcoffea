@@ -14,7 +14,6 @@ from rich.console import Console
 
 from roastcoffea.aggregation.core import MetricsAggregator
 from roastcoffea.backends.dask import DaskMetricsBackend
-from roastcoffea.decorator import set_active_collector
 from roastcoffea.export.measurements import save_measurement
 from roastcoffea.export.reporter import (
     format_chunk_metrics_table,
@@ -119,8 +118,11 @@ class MetricsCollector:
         """Enter context manager - start tracking."""
         self.t_start = time.perf_counter()
 
-        # Register this collector as active for decorator use
-        set_active_collector(self)
+        # Enable metrics collection on processor instance
+        # This allows @track_metrics decorator to inject metrics into output
+        if self.processor_instance is not None:
+            self.processor_instance._roastcoffea_collect_metrics = True
+            logger.debug("Enabled chunk metrics collection on processor instance")
 
         if self.track_workers:
             self.metrics_backend.start_tracking(interval=self.worker_tracking_interval)
@@ -146,8 +148,10 @@ class MetricsCollector:
         """Exit context manager - stop tracking and aggregate metrics."""
         self.t_end = time.perf_counter()
 
-        # Unregister active collector
-        set_active_collector(None)
+        # Disable metrics collection on processor instance
+        if self.processor_instance is not None:
+            self.processor_instance._roastcoffea_collect_metrics = False
+            logger.debug("Disabled chunk metrics collection on processor instance")
 
         # Exit span context and extract metrics
         if self.span_info is not None:
@@ -204,6 +208,34 @@ class MetricsCollector:
             Section metrics including timing, memory, metadata
         """
         self.section_metrics.append(section_data)
+
+    def extract_metrics_from_output(self, output: dict[str, Any]) -> None:
+        """Extract chunk metrics from Coffea output.
+
+        The @track_metrics decorator injects metrics as a list into the output:
+        `output["__roastcoffea_metrics__"] = [chunk_metrics]`
+
+        Coffea's tree reduction naturally concatenates these lists across chunks.
+        This method extracts and stores the concatenated list.
+
+        Parameters
+        ----------
+        output : dict
+            Output dictionary from Coffea workflow
+        """
+        if isinstance(output, dict) and "__roastcoffea_metrics__" in output:
+            metrics_list = output["__roastcoffea_metrics__"]
+
+            if isinstance(metrics_list, list):
+                self.chunk_metrics = metrics_list
+                logger.debug(f"Extracted {len(metrics_list)} chunk metrics from output")
+
+                # Remove from output so user doesn't see internal data
+                del output["__roastcoffea_metrics__"]
+            else:
+                logger.warning(f"Metrics not a list: {type(metrics_list)}")
+        else:
+            logger.debug("No metrics found in output")
 
     def set_coffea_report(
         self, report: dict[str, Any], custom_metrics: dict[str, Any] | None = None
