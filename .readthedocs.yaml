@@ -10,7 +10,7 @@ build:
    tools:
       python: "3.13"
    jobs:
-      pre_install:
-         - curl -fsSL https://pixi.sh/install.sh | bash
-      install:
-         - export PATH="/home/docs/.pixi/bin:$PATH" && pixi run -e docs sphinx-build -b html docs $READTHEDOCS_OUTPUT/html
+      post_create_environment:
+         - pip install uv
+      post_install:
+        - VIRTUAL_ENV=$READTHEDOCS_VIRTUALENV_PATH uv pip install . --group docs
