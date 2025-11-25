@@ -159,7 +159,7 @@ isort.required-imports = ["from __future__ import annotations"]
 
 [tool.pixi.workspace]
 channels = ["conda-forge"]
-platforms = ["osx-arm64"]
+platforms = ["osx-arm64", "linux-64"]
 
 [tool.pixi.pypi-dependencies]
 roastcoffea = { path = ".", editable = true }
