@@ -1,4 +1,4 @@
-# https://docs.readthedocs.com/platform/stable/build-customization.html#install-dependencies-with-uv
+# https://pixi.sh/latest/ide_integration/readthedocs/
 
 version: 2
 
@@ -10,11 +10,8 @@ build:
    tools:
       python: "3.13"
    jobs:
-      pre_create_environment:
-         - asdf plugin add uv
-         - asdf install uv latest
-         - asdf global uv latest
-      create_environment:
-         - uv venv "${READTHEDOCS_VIRTUALENV_PATH}"
+      pre_install:
+         - curl -fsSL https://pixi.sh/install.sh | bash
+         - export PATH="/home/docs/.pixi/bin:$PATH"
       install:
-         - UV_PROJECT_ENVIRONMENT="${READTHEDOCS_VIRTUALENV_PATH}" uv sync --group docs
+         - pixi run -e docs sphinx-build -b html docs $READTHEDOCS_OUTPUT/html

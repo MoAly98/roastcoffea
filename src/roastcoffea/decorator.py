@@ -26,8 +26,8 @@ def track_metrics(func: Callable) -> Callable:
     directly into the output dictionary as a list. Coffea's tree reduction
     naturally concatenates these lists across chunks.
 
-    Usage:
-        ```python
+    Usage::
+
         from coffea import processor
         from roastcoffea import track_metrics, track_time, track_memory
 
@@ -41,7 +41,6 @@ def track_metrics(func: Callable) -> Callable:
                     # ... fill histograms
 
                 return {"sum": len(events)}
-        ```
 
     Note:
         The decorator requires an active MetricsCollector context.

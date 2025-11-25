@@ -2439,18 +2439,18 @@ pytest --cov=roastcoffea --cov-report=html
 
 ---
 
-### Phase 1: Test Infrastructure (TDD)
+### Phase 1: Test Infrastructure (TDD) ✅
 
 **Goal**: Write failing tests for all features.
 
 **Tasks**:
-- [ ] Write test_backends.py (backend tests)
-- [ ] Write test_fine_metrics.py (Spans parsing tests)
-- [ ] Write test_decorator.py (@track_metrics tests)
-- [ ] Write test_instrumentation.py (track_section/memory tests)
-- [ ] Write test_collector.py (MetricsCollector tests)
-- [ ] Write test_aggregation.py (all aggregation modules)
-- [ ] Write test_export.py (tables, JSON)
+- [x] Write test_backends.py (backend tests)
+- [x] Write test_fine_metrics.py (Spans parsing tests)
+- [x] Write test_decorator.py (@track_metrics tests)
+- [x] Write test_instrumentation.py (track_section/memory tests)
+- [x] Write test_collector.py (MetricsCollector tests)
+- [x] Write test_aggregation.py (all aggregation modules)
+- [x] Write test_export.py (tables, JSON)
 
 **Dependencies**: Phase 0
 
@@ -2458,18 +2458,18 @@ pytest --cov=roastcoffea --cov-report=html
 
 ---
 
-### Phase 2: Backend Architecture
+### Phase 2: Backend Architecture ✅ (Mostly Done)
 
 **Goal**: Implement metrics backends.
 
 **Tasks**:
-- [ ] Implement DaskMetricsBackend
-  - [ ] Scheduler-side tracking (adapted from `metrics/worker_tracker.py`)
-  - [ ] Prometheus scraping (HTTP + in-process, adapted from Mo's code)
-  - [ ] Worker lifecycle events (add/remove)
-  - [ ] Dask Spans integration
-- [ ] Implement backend factory (create_backend)
-- [ ] Make backend tests pass
+- [x] Implement DaskMetricsBackend (81% coverage)
+  - [x] Scheduler-side tracking (adapted from `metrics/worker_tracker.py`)
+  - [ ] Prometheus scraping (not implemented)
+  - [x] Worker lifecycle events (add/remove)
+  - [x] Dask Spans integration
+- [x] Implement backend factory (create_backend)
+- [x] Make backend tests pass (tests green)
 
 **Dependencies**: Phase 1
 
@@ -2477,15 +2477,15 @@ pytest --cov=roastcoffea --cov-report=html
 
 ---
 
-### Phase 3: Fine Metrics Parsing
+### Phase 3: Fine Metrics Parsing ✅
 
 **Goal**: Parse Dask Spans metrics.
 
 **Tasks**:
-- [ ] Implement parse_fine_metrics() in aggregation/fine_metrics.py
-- [ ] Handle all activity types (cpu, io, disk, compression, serialization)
-- [ ] Per-task-prefix breakdown
-- [ ] Make fine_metrics tests pass
+- [x] Implement parse_fine_metrics() in aggregation/fine_metrics.py (96% coverage)
+- [x] Handle all activity types (cpu, io, disk, compression, serialization)
+- [x] Per-task-prefix breakdown
+- [x] Make fine_metrics tests pass
 
 **Dependencies**: Phase 2 (needs Spans integration)
 
@@ -2493,20 +2493,19 @@ pytest --cov=roastcoffea --cov-report=html
 
 ---
 
-### Phase 4: Decorator & Instrumentation
+### Phase 4: Decorator & Instrumentation ✅
 
 **Goal**: Per-chunk tracking with streaming.
 
 **Tasks**:
-- [ ] Implement @track_metrics decorator
-  - [ ] Timing, memory measurement
-  - [ ] Metadata extraction (filename, dataset)
-  - [ ] Queue streaming (distributed.Queue)
-  - [ ] Context manager labeling (Dask context_meter)
-- [ ] Implement track_section() context manager
-- [ ] Implement track_memory() context manager
-- [ ] Implement BaseInstrumentationContext
-- [ ] Make decorator/instrumentation tests pass
+- [x] Implement @track_metrics decorator (100% coverage)
+  - [x] Timing, memory measurement
+  - [x] Metadata extraction (filename, dataset)
+  - [ ] Queue streaming (not implemented - using list accumulator instead)
+  - [ ] Context manager labeling (not implemented)
+- [x] Implement track_time() context manager (100% coverage)
+- [x] Implement track_memory() context manager (100% coverage)
+- [x] Make decorator/instrumentation tests pass
 
 **Dependencies**: Phase 2 (needs backend for queue setup)
 
@@ -2514,101 +2513,110 @@ pytest --cov=roastcoffea --cov-report=html
 
 ---
 
-### Phase 5: MetricsCollector & Aggregation
+### Phase 5: MetricsCollector & Aggregation ⚠️ (Partial)
 
 **Goal**: Main entry point, combine all sources.
 
 **Tasks**:
-- [ ] Implement MetricsCollector context manager
-  - [ ] Backend creation
-  - [ ] Queue setup and consumer thread
-  - [ ] Span lifecycle
-  - [ ] Config handling (merge_with_defaults)
-- [ ] Implement all aggregation modules:
-  - [ ] workflow_metrics.py
-  - [ ] worker_metrics.py
-  - [ ] chunk_metrics.py (including per-file aggregation)
-  - [ ] efficiency_metrics.py
-  - [ ] core.py (combine all)
-- [ ] Adapt measurements.py (JSON save/load, no OutputDirectoryManager)
-- [ ] Make collector tests pass
+- [ ] Implement MetricsCollector context manager (19% coverage - major gaps!)
+  - [ ] Backend creation (incomplete)
+  - [ ] Queue setup and consumer thread (not implemented)
+  - [ ] Span lifecycle (incomplete)
+  - [ ] Config handling (incomplete)
+- [x] Implement all aggregation modules:
+  - [x] workflow_metrics.py (96% coverage)
+  - [x] chunk.py (100% coverage)
+  - [x] efficiency_metrics.py (100% coverage)
+  - [x] core.py (89% coverage)
+- [x] Implement measurements.py (90% coverage - JSON save/load)
+- [ ] Make collector tests pass (many paths untested)
 
 **Dependencies**: Phases 2, 3, 4
 
 **Deliverable**: Full metrics collection pipeline, tests green.
 
+**Status**: Aggregation works, but MetricsCollector needs major work.
+
 ---
 
-### Phase 6: Reporting & Visualization
+### Phase 6: Reporting & Visualization ⚠️ (Partial)
 
 **Goal**: Generate plots, tables, dashboards.
 
 **Tasks**:
-- [ ] Adapt reporter.py (Rich tables)
-  - [ ] Throughput table
-  - [ ] Worker table
-  - [ ] Resources table
-  - [ ] Timing table
-- [ ] Implement static plots (matplotlib):
-  - [ ] workers.py
-  - [ ] memory.py
-  - [ ] cpu.py
-  - [ ] throughput.py
-  - [ ] scaling.py
-  - [ ] chunks.py
-- [ ] Implement interactive plots (bokeh):
-  - [ ] workers.py (interactive)
-  - [ ] memory.py (interactive)
-  - [ ] cpu.py (interactive)
-  - [ ] chunks.py (interactive)
-- [ ] Implement HTML dashboard (dashboards/main.py)
-- [ ] Implement HTML table export (export/tables.py)
-- [ ] Make reporter/visualization tests pass
+- [x] Implement reporter.py (98% coverage - Rich tables)
+  - [x] Throughput table
+  - [x] Worker table
+  - [x] Resources table
+  - [x] Timing table
+  - [x] Fine metrics table
+  - [x] Chunk metrics table
+- [x] Implement static plots (matplotlib) - basic versions:
+  - [x] workers.py (100% coverage)
+  - [x] memory.py (95% coverage)
+  - [x] cpu.py (100% coverage)
+  - [x] throughput.py (100% coverage)
+  - [x] scaling.py (100% coverage)
+  - [ ] chunks.py (0% - stub only)
+  - [ ] per_task.py (7% - mostly not implemented)
+- [ ] Implement interactive plots (bokeh) - not implemented
+- [ ] Implement HTML dashboard (0% - stub only)
+- [ ] Implement HTML table export (0% - stub only)
+- [x] Make reporter/visualization tests pass (for implemented features)
 
 **Dependencies**: Phase 5 (needs aggregated metrics)
 
 **Deliverable**: Full reporting suite, tests green.
 
+**Status**: Rich tables and matplotlib plots work. Bokeh, dashboards, and HTML export not done.
+
 ---
 
-### Phase 7: Documentation
+### Phase 7: Documentation ⚠️ (Partial)
 
 **Goal**: User-facing docs.
 
 **Tasks**:
-- [ ] Update README.md (installation, quick start, links)
-- [ ] Write API documentation (Sphinx autodoc)
-- [ ] Write usage tutorial (docs/tutorials.md)
-- [ ] Write advanced guide (custom instrumentation, extensibility)
-- [ ] Create example notebooks:
-  - [ ] Minimal usage
-  - [ ] Standard workflow
-  - [ ] Advanced (custom metrics, plots)
-- [ ] Run pre-commit on all files (linting, formatting)
+- [ ] Update README.md (needs work)
+- [x] Write API documentation (Sphinx autodoc) - **COMPLETE**
+- [x] Write usage tutorial (docs/tutorials.md - exists)
+- [x] Write advanced guide (docs/advanced.md - exists)
+- [x] Write architecture docs (docs/architecture.md - exists)
+- [x] Write concepts docs (docs/concepts.md - complete with accurate I/O descriptions)
+- [x] Write metrics reference (docs/metrics_reference.md - complete with detailed TOC and dropdowns)
+- [x] Write introduction (docs/introduction.md - exists)
+- [x] Write contributing guide (docs/contributing.md - exists)
+- [x] Write quickstart (docs/quickstart.md - exists)
+- [x] Create example notebooks (basic_usage.ipynb exists)
+- [ ] Run pre-commit on all files
 
 **Dependencies**: Phase 6 (needs working code to document)
 
 **Deliverable**: Comprehensive docs.
 
+**Status**: User docs complete with improvements. API reference created with Sphinx autodoc.
+
 ---
 
-### Phase 8: Integration & E2E Tests
+### Phase 8: Integration & E2E Tests ❌ (Not Done)
 
 **Goal**: Real-world validation.
 
 **Tasks**:
-- [ ] Write E2E test with open data file (test_realworld.py)
+- [ ] Write E2E test with open data file (test_e2e.py exists but tests are deselected/skipped)
 - [ ] Write stress tests (10k chunks, adaptive cluster)
 - [ ] Run full test suite, verify all pass
-- [ ] Measure and document performance overhead (docs/benchmarks.md)
+- [ ] Measure and document performance overhead
 
 **Dependencies**: Phases 5, 6 (needs full pipeline)
 
 **Deliverable**: E2E tests pass, benchmarks documented.
 
+**Status**: E2E tests exist but are all deselected - not running in test suite.
+
 ---
 
-### Phase 9: Package & Publish
+### Phase 9: Package & Publish ❌ (Not Done)
 
 **Goal**: Release to PyPI.
 
@@ -2616,14 +2624,16 @@ pytest --cov=roastcoffea --cov-report=html
 - [ ] Build package (`hatch build`)
 - [ ] Test local install (`pip install -e .`)
 - [ ] Verify imports, basic usage
-- [ ] Publish to test PyPI (`hatch publish -r test`)
+- [ ] Publish to test PyPI
 - [ ] Verify install from test PyPI
-- [ ] Publish to PyPI (`hatch publish`)
-- [ ] Create GitHub release (tag v0.1.0)
+- [ ] Publish to PyPI
+- [ ] Create GitHub release
 
 **Dependencies**: Phase 8 (all tests pass)
 
 **Deliverable**: roastcoffea v0.1.0 on PyPI.
+
+**Status**: Not started - blocked by Phase 5 & 8 completion.
 
 ---
 
@@ -2875,6 +2885,68 @@ This design document provides a comprehensive blueprint for roastcoffea v0.1. Ke
 3. **Iterate on design** as implementation reveals issues.
 
 4. **Update design doc** when decisions change (living document).
+
+---
+
+## Current Status (as of 2025-11-25)
+
+### Documentation Progress
+
+#### Completed ✅
+
+1. **Version/Future References Cleanup**
+   - Removed all "v0.2+", "Future", "Planned" mentions from documentation
+   - Removed version metadata from metrics_reference.md header
+   - Changed all future-tense language to present-tense where features exist
+   - Updated TaskVine references (replaced Spark/Ray examples)
+
+2. **Misleading I/O Metrics Descriptions Fixed**
+   - **thread-noncpu**: Now correctly described as "Difference between wall clock time and CPU time (typically I/O time, GPU time, CPU contention, or GIL contention)"
+   - **memory-read**: Now correctly described as "Data read from worker memory (tracked by Dask) - does NOT measure file I/O"
+   - **disk-read/write**: Now correctly described as "Data read/written from disk due to memory spilling (tracked by Dask) - does NOT measure file I/O"
+   - Removed misleading ROOT-specific interpretations
+   - Removed unreliable comparisons between different byte metrics
+   - Updated all instances in metrics_reference.md including:
+     - Raw Activity Metrics table (lines 190-195)
+     - Derived Fine Metrics table (lines 211-221)
+     - Efficiency Metrics section (lines 347-388)
+     - Assumptions & Limitations section (lines 411-420)
+
+3. **Complete Documentation Files Created**
+   - introduction.md: Full introduction with overview, features, use cases
+   - contributing.md: Complete developer guide with setup, testing, PR guidelines
+
+#### In Progress 🔄
+
+1. **Documentation Structure Improvements**
+   - Need to add subsections with dropdowns to concepts.md
+   - Need to restructure metrics_reference.md with better subsections
+   - Need to create searchable tables for users
+
+#### Pending ⏳
+
+1. **API Reference Documentation**
+   - Needs to be auto-generated using Sphinx autodoc
+   - Should include all public APIs from src/roastcoffea/
+
+### Key Clarifications from Mo
+
+**Accurate Metric Definitions** (to prevent future confusion):
+
+1. **disk-read**: "measures spillages (how much being spilled to disk or read from disk because memory cannot accommodate for data)"
+
+2. **memory-read**: "only about how much was read from the memory on the worker"
+
+3. **thread-noncpu**: "Difference between wall clock time and CPU time spent by tasks while running on workers. This is typically I/O time, GPU time, CPU contention, or GIL contention" (based on Dask docs)
+
+4. **Important principle**: "no need to say what is more reliable than what. we only say facts of what everything is."
+
+### Notes for Future Work
+
+- User documentation should focus on subsections and searchability
+- Avoid version references and future-tense language in user-facing docs
+- Always use accurate, factual descriptions without comparisons or interpretations
+- Use TaskVine as the example alternative backend (not Spark/Ray)
 
 ---
 

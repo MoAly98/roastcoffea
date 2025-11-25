@@ -11,6 +11,18 @@ Performance monitoring and metrics collection for Coffea-based HEP analysis work
 - Save and load benchmark measurements
 - Simple context manager API
 
+## Documentation
+
+Complete documentation is available at [roastcoffea.readthedocs.io](https://roastcoffea.readthedocs.io):
+
+- **[Quickstart](https://roastcoffea.readthedocs.io/en/latest/quickstart.html)**: Get started in minutes
+- **[Tutorial](https://roastcoffea.readthedocs.io/en/latest/tutorials.html)**: Step-by-step guide covering all collection levels
+- **[Concepts](https://roastcoffea.readthedocs.io/en/latest/concepts.html)**: Understand what metrics mean and how they're calculated
+- **[Architecture](https://roastcoffea.readthedocs.io/en/latest/architecture.html)**: System design for developers
+- **[Advanced Usage](https://roastcoffea.readthedocs.io/en/latest/advanced.html)**: Custom backends and instrumentation
+- **[Metrics Reference](https://roastcoffea.readthedocs.io/en/latest/metrics_reference.html)**: Complete catalog of available metrics
+- **[API Reference](https://roastcoffea.readthedocs.io/en/latest/api/index.html)**: Full API documentation
+
 ## Installation
 
 ```bash
@@ -30,6 +42,7 @@ from coffea.nanoevents import NanoEventsFactory, NanoAODSchema
 from dask.distributed import Client, LocalCluster
 from roastcoffea import MetricsCollector
 
+
 # Define a simple processor
 class MyProcessor(processor.ProcessorABC):
     def process(self, events):
@@ -43,6 +56,7 @@ class MyProcessor(processor.ProcessorABC):
 
     def postprocess(self, accumulator):
         return accumulator
+
 
 # Define your fileset
 fileset = {
@@ -86,15 +100,14 @@ with LocalCluster(n_workers=4, threads_per_worker=2) as cluster:
         print(f"Event rate: {metrics['event_rate_wall_khz']:.1f} kHz")
 
         # Fine metrics (automatic with Dask Spans)
-        if metrics.get('cpu_percentage') is not None:
+        if metrics.get("cpu_percentage") is not None:
             print(f"CPU %: {metrics['cpu_percentage']:.1f}%")
             print(f"I/O %: {metrics['io_percentage']:.1f}%")
             print(f"Compression ratio: {metrics.get('compression_ratio', 'N/A')}")
 
         # Save measurement for later analysis
         collector.save_measurement(
-            output_dir="benchmarks/",
-            measurement_name="ttbar_analysis"
+            output_dir="benchmarks/", measurement_name="ttbar_analysis"
         )
 ```
 
@@ -253,39 +266,29 @@ from roastcoffea import (
 tracking_data = collector.get_metrics()["tracking_data"]
 
 # Worker count over time
-plot_worker_count_timeline(
-    tracking_data=tracking_data,
-    output_path="worker_count.png"
-)
+plot_worker_count_timeline(tracking_data=tracking_data, output_path="worker_count.png")
 
 # Memory utilization percentage over time
 plot_memory_utilization_timeline(
-    tracking_data=tracking_data,
-    output_path="memory_util.png"
+    tracking_data=tracking_data, output_path="memory_util.png"
 )
 
 # Worker occupancy (task saturation) over time
-plot_occupancy_timeline(
-    tracking_data=tracking_data,
-    output_path="occupancy.png"
-)
+plot_occupancy_timeline(tracking_data=tracking_data, output_path="occupancy.png")
 
 # Executing tasks per worker over time
 plot_executing_tasks_timeline(
-    tracking_data=tracking_data,
-    output_path="executing_tasks.png"
+    tracking_data=tracking_data, output_path="executing_tasks.png"
 )
 
 # Active tasks per worker over time
 plot_worker_activity_timeline(
-    tracking_data=tracking_data,
-    output_path="worker_activity.png"
+    tracking_data=tracking_data, output_path="worker_activity.png"
 )
 
 # Total active tasks across all workers
 plot_total_active_tasks_timeline(
-    tracking_data=tracking_data,
-    output_path="total_activity.png"
+    tracking_data=tracking_data, output_path="total_activity.png"
 )
 ```
 
@@ -300,16 +303,10 @@ from roastcoffea import (
 metrics = collector.get_metrics()
 
 # Efficiency metrics bar chart
-plot_efficiency_summary(
-    metrics=metrics,
-    output_path="efficiency.png"
-)
+plot_efficiency_summary(metrics=metrics, output_path="efficiency.png")
 
 # Resource utilization summary
-plot_resource_utilization(
-    metrics=metrics,
-    output_path="resources.png"
-)
+plot_resource_utilization(metrics=metrics, output_path="resources.png")
 ```
 
 #### Per-Task Fine Metrics (Dask Spans)
@@ -325,22 +322,13 @@ from roastcoffea import (
 span_metrics = collector.span_metrics
 
 # CPU vs I/O time per task
-plot_per_task_cpu_io(
-    span_metrics=span_metrics,
-    output_path="per_task_cpu_io.png"
-)
+plot_per_task_cpu_io(span_metrics=span_metrics, output_path="per_task_cpu_io.png")
 
 # Bytes read per task (if disk-read available)
-plot_per_task_bytes_read(
-    span_metrics=span_metrics,
-    output_path="per_task_bytes.png"
-)
+plot_per_task_bytes_read(span_metrics=span_metrics, output_path="per_task_bytes.png")
 
 # Compression & serialization overhead per task
-plot_per_task_overhead(
-    span_metrics=span_metrics,
-    output_path="per_task_overhead.png"
-)
+plot_per_task_overhead(span_metrics=span_metrics, output_path="per_task_overhead.png")
 ```
 
 #### Loading Saved Measurements

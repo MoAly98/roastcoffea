@@ -31,8 +31,8 @@ def track_time(processor_self: Any, section_name: str) -> Generator[None, None, 
     Yields:
         None
 
-    Usage:
-        ```python
+    Usage::
+
         from roastcoffea import track_metrics, track_time
 
         class MyProcessor(processor.ProcessorABC):
@@ -45,7 +45,6 @@ def track_time(processor_self: Any, section_name: str) -> Generator[None, None, 
                     selected = events[ak.num(jets) >= 2]
 
                 return {"sum": len(events)}
-        ```
 
     Note:
         Timing metrics are automatically attached to the current chunk
@@ -87,8 +86,8 @@ def track_memory(processor_self: Any, section_name: str) -> Generator[None, None
     Yields:
         None
 
-    Usage:
-        ```python
+    Usage::
+
         from roastcoffea import track_metrics, track_memory
 
         class MyProcessor(processor.ProcessorABC):
@@ -100,7 +99,6 @@ def track_memory(processor_self: Any, section_name: str) -> Generator[None, None
                     muons = events.Muon
 
                 return {"sum": len(events)}
-        ```
 
     Note:
         Requires psutil package. If not available, memory tracking

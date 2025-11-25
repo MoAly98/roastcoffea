@@ -52,6 +52,8 @@ docs = [
     "furo",
     "sphinx-autodoc-typehints",
     "myst-parser",
+    "sphinx-design",
+    "myst-nb",
 ]
 
 examples = [

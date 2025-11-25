@@ -1,0 +1,1354 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="./">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="next" title="Architecture" href="architecture.html"><link rel="prev" title="Core Concepts" href="concepts.html">
+        <link rel="canonical" href="https://roastcoffea.readthedocs.io/metrics_reference.html">
+
+    <!-- Generated with Sphinx 8.2.3 and Furo 2025.09.25 -->
+        <title>Performance Metrics Reference - </title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=580074bf" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=8dab3a3b" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=7988a563" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="index.html"><div class="brand"> </div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
+  
+  <span class="sidebar-brand-text"> </span>
+  
+</a><form class="sidebar-search-container" method="get" action="search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="concepts.html">Core Concepts</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Performance Metrics Reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="advanced.html">Advanced Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="api/index.html">API Reference</a><input aria-label="Toggle navigation of API Reference" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/_autosummary/roastcoffea.collector.html">roastcoffea.collector</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/_autosummary/roastcoffea.decorator.html">roastcoffea.decorator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/_autosummary/roastcoffea.instrumentation.html">roastcoffea.instrumentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/_autosummary/roastcoffea.backends.base.html">roastcoffea.backends.base</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/_autosummary/roastcoffea.backends.dask.html">roastcoffea.backends.dask</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/_autosummary/roastcoffea.aggregation.core.html">roastcoffea.aggregation.core</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/_autosummary/roastcoffea.aggregation.workflow.html">roastcoffea.aggregation.workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/_autosummary/roastcoffea.aggregation.chunk.html">roastcoffea.aggregation.chunk</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/_autosummary/roastcoffea.aggregation.efficiency.html">roastcoffea.aggregation.efficiency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/_autosummary/roastcoffea.aggregation.fine_metrics.html">roastcoffea.aggregation.fine_metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/_autosummary/roastcoffea.aggregation.backends.base.html">roastcoffea.aggregation.backends.base</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/_autosummary/roastcoffea.aggregation.backends.dask.html">roastcoffea.aggregation.backends.dask</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/_autosummary/roastcoffea.export.reporter.html">roastcoffea.export.reporter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/_autosummary/roastcoffea.export.measurements.html">roastcoffea.export.measurements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/_autosummary/roastcoffea.visualization.plots.workers.html">roastcoffea.visualization.plots.workers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/_autosummary/roastcoffea.visualization.plots.memory.html">roastcoffea.visualization.plots.memory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/_autosummary/roastcoffea.visualization.plots.cpu.html">roastcoffea.visualization.plots.cpu</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/_autosummary/roastcoffea.visualization.plots.throughput.html">roastcoffea.visualization.plots.throughput</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/_autosummary/roastcoffea.visualization.plots.scaling.html">roastcoffea.visualization.plots.scaling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/_autosummary/roastcoffea.utils.html">roastcoffea.utils</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="https://github.com/MoAly98/roastcoffea/blob/main/docs/metrics_reference.md?plain=true" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div><div class="edit-this-page">
+  <a class="muted-link" href="https://github.com/MoAly98/roastcoffea/edit/main/docs/metrics_reference.md" rel="edit" title="Edit this page">
+    <svg><use href="#svg-pencil"></use></svg>
+    <span class="visually-hidden">Edit this page</span>
+  </a>
+</div><div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="performance-metrics-reference">
+<h1>Performance Metrics Reference<a class="headerlink" href="#performance-metrics-reference" title="Link to this heading">¶</a></h1>
+<p>Comprehensive performance monitoring for Coffea-based HEP analysis workflows.</p>
+<hr class="docutils" />
+<section id="table-of-contents">
+<h2>Table of Contents<a class="headerlink" href="#table-of-contents" title="Link to this heading">¶</a></h2>
+<ol class="arabic simple">
+<li><p><a class="reference internal" href="#overview">Overview</a></p></li>
+<li><p><a class="reference internal" href="#workflow-level-metrics">Workflow-Level Metrics</a></p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#throughput-metrics">Throughput Metrics</a></p></li>
+<li><p><a class="reference internal" href="#data-volume-metrics">Data Volume Metrics</a></p></li>
+<li><p><a class="reference internal" href="#timing-metrics">Timing Metrics</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#worker-level-metrics">Worker-Level Metrics</a></p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#worker-count-metrics">Worker Count Metrics</a></p></li>
+<li><p><a class="reference internal" href="#memory-metrics">Memory Metrics</a></p></li>
+<li><p><a class="reference internal" href="#cpu-utilization-timeline">CPU Utilization Timeline</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#chunk-level-metrics">Chunk-Level Metrics</a></p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#per-chunk-metrics">Per-Chunk Metrics</a></p></li>
+<li><p><a class="reference internal" href="#chunk-statistics">Chunk Statistics</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#fine-performance-metrics">Fine Performance Metrics</a></p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#raw-activity-metrics-from-dask-spans">Raw Activity Metrics</a></p></li>
+<li><p><a class="reference internal" href="#derived-fine-metrics">Derived Fine Metrics</a></p></li>
+<li><p><a class="reference internal" href="#availability">Availability</a></p></li>
+<li><p><a class="reference internal" href="#robustness-metric-synchronization">Robustness: Metric Synchronization</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#internal-instrumentation-metrics">Internal Instrumentation Metrics</a></p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#section-timing">Section Timing</a></p></li>
+<li><p><a class="reference internal" href="#section-memory">Section Memory</a></p></li>
+<li><p><a class="reference internal" href="#custom-metrics">Custom Metrics</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#efficiency-metrics">Efficiency Metrics</a></p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#cpu-efficiency">CPU Efficiency</a></p></li>
+<li><p><a class="reference internal" href="#speedup-factor">Speedup Factor</a></p></li>
+<li><p><a class="reference internal" href="#io-overhead">I/O Overhead</a></p></li>
+<li><p><a class="reference internal" href="#scaling-efficiency">Scaling Efficiency</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#assumptions-limitations">Assumptions &amp; Limitations</a></p></li>
+<li><p><a class="reference internal" href="#metric-collection-methods">Metric Collection Methods</a></p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#timeline-sampling-worker-tracking">Timeline Sampling</a></p></li>
+<li><p><a class="reference internal" href="#point-in-time-measurement-chunk-tracking">Point-in-Time Measurement</a></p></li>
+<li><p><a class="reference internal" href="#cumulative-metrics-fine-performance">Cumulative Metrics</a></p></li>
+<li><p><a class="reference internal" href="#event-driven-coffea-report">Event-Driven</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#usage-patterns">Usage Patterns</a></p></li>
+<li><p><a class="reference internal" href="#glossary">Glossary</a></p></li>
+</ol>
+</section>
+<section id="overview">
+<span id="id1"></span><h2>Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
+<p>This document describes all performance metrics collected by the coffea-metrics package. Metrics are organized into categories based on their granularity and data source.</p>
+<p><strong>Data Sources</strong>:</p>
+<ul class="simple">
+<li><p><strong>Coffea Report</strong>: Built-in metrics from <code class="docutils literal notranslate"><span class="pre">coffea.processor.Runner</span></code></p></li>
+<li><p><strong>Wall Clock Timing</strong>: Python <code class="docutils literal notranslate"><span class="pre">time.perf_counter()</span></code></p></li>
+<li><p><strong>Worker Tracking</strong>: Scheduler-side periodic sampling (Dask)</p></li>
+<li><p><strong>Chunk Tracking</strong>: Decorator-based per-chunk measurements</p></li>
+<li><p><strong>Fine Metrics</strong>: Dask Spans API with activity breakdown</p></li>
+<li><p><strong>Instrumentation</strong>: User-defined sections and checkpoints</p></li>
+</ul>
+<hr class="docutils" />
+</section>
+<section id="workflow-level-metrics">
+<span id="id2"></span><h2>Workflow-Level Metrics<a class="headerlink" href="#workflow-level-metrics" title="Link to this heading">¶</a></h2>
+<p>These metrics describe the overall workflow execution from start to finish.</p>
+<section id="throughput-metrics">
+<span id="id3"></span><h3>Throughput Metrics<a class="headerlink" href="#throughput-metrics" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Metric</p></th>
+<th class="head"><p>Formula</p></th>
+<th class="head"><p>Units</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Data Rate</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(bytesread</span> <span class="pre">×</span> <span class="pre">8)</span> <span class="pre">/</span> <span class="pre">wall_time</span></code></p></td>
+<td><p>Gbps</p></td>
+<td><p>Network I/O throughput - compressed data read rate</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Data Rate</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bytesread</span> <span class="pre">/</span> <span class="pre">wall_time</span> <span class="pre">/</span> <span class="pre">10⁶</span></code></p></td>
+<td><p>MB/s</p></td>
+<td><p>Same as above in MB/s</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Event Rate (Wall Clock)</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">total_events</span> <span class="pre">/</span> <span class="pre">wall_time</span> <span class="pre">/</span> <span class="pre">1000</span></code></p></td>
+<td><p>kHz</p></td>
+<td><p>Real-world event processing rate with parallelism</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Event Rate (Aggregated)</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">total_events</span> <span class="pre">/</span> <span class="pre">total_cpu_time</span> <span class="pre">/</span> <span class="pre">1000</span></code></p></td>
+<td><p>kHz</p></td>
+<td><p>Events per CPU-second (sum of all CPU time)</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Event Rate (Core-Averaged)</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">total_events</span> <span class="pre">/</span> <span class="pre">(wall_time</span> <span class="pre">×</span> <span class="pre">total_cores)</span></code></p></td>
+<td><p>Hz/core</p></td>
+<td><p>Real-time per-core processing rate</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Data Sources</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">bytesread</span></code>: Coffea report</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">total_events</span></code>: Coffea report (<code class="docutils literal notranslate"><span class="pre">entries</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">wall_time</span></code>: <code class="docutils literal notranslate"><span class="pre">t_end</span> <span class="pre">-</span> <span class="pre">t_start</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">total_cpu_time</span></code>: Coffea report (<code class="docutils literal notranslate"><span class="pre">processtime</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">total_cores</span></code>: <code class="docutils literal notranslate"><span class="pre">time_avg_workers</span> <span class="pre">×</span> <span class="pre">cores_per_worker</span></code></p></li>
+</ul>
+</section>
+<section id="data-volume-metrics">
+<span id="id4"></span><h3>Data Volume Metrics<a class="headerlink" href="#data-volume-metrics" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Metric</p></th>
+<th class="head"><p>Source</p></th>
+<th class="head"><p>Units</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Total Bytes Read (Coffea)</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">coffea_report['bytesread']</span></code></p></td>
+<td><p>bytes</p></td>
+<td><p>Bytes reported by Coffea as read from files</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Memory Read (Dask Spans)</strong></p></td>
+<td><p>Dask Spans (<code class="docutils literal notranslate"><span class="pre">memory-read</span></code>)</p></td>
+<td><p>bytes</p></td>
+<td><p>Data read from worker memory (tracked by Dask)</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Disk Read (Dask Spans)</strong></p></td>
+<td><p>Dask Spans (<code class="docutils literal notranslate"><span class="pre">disk-read</span></code>)</p></td>
+<td><p>bytes</p></td>
+<td><p>Data read from disk due to memory spilling (tracked by Dask)</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Disk Write (Dask Spans)</strong></p></td>
+<td><p>Dask Spans (<code class="docutils literal notranslate"><span class="pre">disk-write</span></code>)</p></td>
+<td><p>bytes</p></td>
+<td><p>Data written to disk due to memory spilling (tracked by Dask)</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Total Events</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">coffea_report['entries']</span></code></p></td>
+<td><p>count</p></td>
+<td><p>Number of physics events processed</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Important Notes</strong>:</p>
+<ul class="simple">
+<li><p><strong>Coffea bytesread</strong>: Bytes reported by Coffea - exact meaning depends on file format and access method</p></li>
+<li><p><strong>Dask memory-read</strong>: Worker memory reads tracked by Dask - does NOT measure file I/O</p></li>
+<li><p><strong>Dask disk-read/write</strong>: Worker disk spillage tracked by Dask - does NOT measure file I/O</p></li>
+<li><p><strong>These metrics measure different things and cannot be directly compared</strong></p></li>
+</ul>
+</section>
+<section id="timing-metrics">
+<span id="id5"></span><h3>Timing Metrics<a class="headerlink" href="#timing-metrics" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Metric</p></th>
+<th class="head"><p>Formula</p></th>
+<th class="head"><p>Units</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Wall Time</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">t_end</span> <span class="pre">-</span> <span class="pre">t_start</span></code></p></td>
+<td><p>seconds</p></td>
+<td><p>Total elapsed time (includes startup, processing, shutdown)</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Total CPU Time</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">coffea_report['processtime']</span></code></p></td>
+<td><p>seconds</p></td>
+<td><p>Sum of CPU time across all chunks/workers</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Number of Chunks</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">coffea_report['chunks']</span></code></p></td>
+<td><p>count</p></td>
+<td><p>Number of work items processed by executor</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Avg CPU Time per Chunk</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">total_cpu_time</span> <span class="pre">/</span> <span class="pre">num_chunks</span></code></p></td>
+<td><p>seconds</p></td>
+<td><p>Average processing time per chunk</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Notes</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">total_cpu_time</span></code> includes both compute and I/O time (cannot separate without fine metrics)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">total_cpu_time</span></code> can exceed <code class="docutils literal notranslate"><span class="pre">wall_time</span></code> with parallelism (speedup factor)</p></li>
+</ul>
+<hr class="docutils" />
+</section>
+</section>
+<section id="worker-level-metrics">
+<span id="id6"></span><h2>Worker-Level Metrics<a class="headerlink" href="#worker-level-metrics" title="Link to this heading">¶</a></h2>
+<p>These metrics describe resource utilization across Dask workers over time.</p>
+<section id="worker-count-metrics">
+<span id="id7"></span><h3>Worker Count Metrics<a class="headerlink" href="#worker-count-metrics" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Metric</p></th>
+<th class="head"><p>Formula</p></th>
+<th class="head"><p>Units</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Time-Averaged Workers</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">∫</span> <span class="pre">worker_count(t)</span> <span class="pre">dt</span> <span class="pre">/</span> <span class="pre">total_time</span></code></p></td>
+<td><p>count</p></td>
+<td><p>Trapezoidal integration of worker count timeline</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Average Workers</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">mean(worker_counts)</span></code></p></td>
+<td><p>count</p></td>
+<td><p>Simple arithmetic mean of worker counts</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Peak Workers</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">max(worker_counts)</span></code></p></td>
+<td><p>count</p></td>
+<td><p>Maximum concurrent workers observed</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Total Cores</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">time_avg_workers</span> <span class="pre">×</span> <span class="pre">cores_per_worker</span></code></p></td>
+<td><p>count</p></td>
+<td><p>Time-averaged CPU cores available</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Data Source</strong>: Scheduler tracking samples worker count every <code class="docutils literal notranslate"><span class="pre">interval</span></code> seconds (default 1.0s)</p>
+<p><strong>Calculation Details</strong>:</p>
+<ul>
+<li><p><strong>Time-weighted average</strong>: Uses trapezoidal rule to account for variable worker counts</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>avg = Σ((count[i] + count[i+1]) / 2 × (t[i+1] - t[i])) / total_time
+</pre></div>
+</div>
+</li>
+<li><p>More accurate than simple mean when workers scale up/down during execution</p></li>
+</ul>
+</section>
+<section id="memory-metrics">
+<span id="id8"></span><h3>Memory Metrics<a class="headerlink" href="#memory-metrics" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Metric</p></th>
+<th class="head"><p>Aggregation</p></th>
+<th class="head"><p>Units</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Avg Memory per Worker</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">mean(all</span> <span class="pre">worker</span> <span class="pre">memory</span> <span class="pre">samples)</span></code></p></td>
+<td><p>GB</p></td>
+<td><p>Average memory usage across all workers and time</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Peak Memory per Worker</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">max(all</span> <span class="pre">worker</span> <span class="pre">memory</span> <span class="pre">samples)</span></code></p></td>
+<td><p>GB</p></td>
+<td><p>Maximum memory usage observed on any worker</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Memory Utilization %</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(worker_memory</span> <span class="pre">/</span> <span class="pre">memory_limit)</span> <span class="pre">×</span> <span class="pre">100</span></code></p></td>
+<td><p>%</p></td>
+<td><p>Memory pressure (timeline, avg, min, max)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Data Source</strong>: Scheduler tracking samples <code class="docutils literal notranslate"><span class="pre">worker_state.memory</span></code> every interval</p>
+<p><strong>Notes</strong>:</p>
+<ul class="simple">
+<li><p>Memory includes Python interpreter overhead, not just physics data</p></li>
+<li><p>Lazy arrays (awkward/dask arrays) build up memory during access</p></li>
+<li><p>High memory utilization (&gt;80%) indicates potential spilling or OOM risk</p></li>
+</ul>
+</section>
+<section id="cpu-utilization-timeline">
+<span id="id9"></span><h3>CPU Utilization Timeline<a class="headerlink" href="#cpu-utilization-timeline" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Metric</p></th>
+<th class="head"><p>Formula</p></th>
+<th class="head"><p>Units</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>CPU Utilization %</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(active_tasks</span> <span class="pre">/</span> <span class="pre">cores_per_worker)</span> <span class="pre">×</span> <span class="pre">100</span></code></p></td>
+<td><p>%</p></td>
+<td><p>Task scheduling efficiency</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Data Source</strong>: Scheduler tracking samples <code class="docutils literal notranslate"><span class="pre">worker_state.processing</span></code> (active tasks)</p>
+<p><strong>Notes</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">active_tasks</span></code> = number of currently executing tasks on worker</p></li>
+<li><p>Low CPU utilization indicates idle time (waiting for I/O, poor scheduling)</p></li>
+<li><p>This is a <strong>proxy</strong> for CPU usage; actual CPU % available via fine metrics</p></li>
+</ul>
+<hr class="docutils" />
+</section>
+</section>
+<section id="chunk-level-metrics">
+<span id="id10"></span><h2>Chunk-Level Metrics<a class="headerlink" href="#chunk-level-metrics" title="Link to this heading">¶</a></h2>
+<p>These metrics describe individual chunk processing collected via the <code class="docutils literal notranslate"><span class="pre">&#64;track_metrics</span></code> decorator.</p>
+<section id="per-chunk-metrics">
+<span id="id11"></span><h3>Per-Chunk Metrics<a class="headerlink" href="#per-chunk-metrics" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Metric</p></th>
+<th class="head"><p>Measurement</p></th>
+<th class="head"><p>Units</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Chunk ID</strong></p></td>
+<td><p>Sequential counter</p></td>
+<td><p>int</p></td>
+<td><p>Unique identifier for this chunk</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Event Count</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">len(events)</span></code></p></td>
+<td><p>count</p></td>
+<td><p>Number of events in this chunk</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Processing Time</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">t_end</span> <span class="pre">-</span> <span class="pre">t_start</span></code></p></td>
+<td><p>seconds</p></td>
+<td><p>Wall clock time for this chunk</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Memory Start</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">psutil.Process().memory_info().rss</span></code></p></td>
+<td><p>GB</p></td>
+<td><p>Process memory before processing</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Memory End</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">psutil.Process().memory_info().rss</span></code></p></td>
+<td><p>GB</p></td>
+<td><p>Process memory after processing</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Memory Delta</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">memory_end</span> <span class="pre">-</span> <span class="pre">memory_start</span></code></p></td>
+<td><p>GB</p></td>
+<td><p>Memory consumed by this chunk</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Dataset</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">events.metadata['dataset']</span></code></p></td>
+<td><p>string</p></td>
+<td><p>Source dataset name</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Filename</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">events.metadata['filename']</span></code></p></td>
+<td><p>string</p></td>
+<td><p>Source ROOT file name</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Data Source</strong>: <code class="docutils literal notranslate"><span class="pre">&#64;track_metrics</span></code> decorator wraps <code class="docutils literal notranslate"><span class="pre">processor.process()</span></code> method</p>
+<p><strong>Measurement Points</strong>:</p>
+<ul class="simple">
+<li><p><strong>Start</strong>: Beginning of <code class="docutils literal notranslate"><span class="pre">process()</span></code> execution (after coffea’s <code class="docutils literal notranslate"><span class="pre">from_root()</span></code> call)</p></li>
+<li><p><strong>End</strong>: After <code class="docutils literal notranslate"><span class="pre">process()</span></code> returns (before result serialization)</p></li>
+</ul>
+<p><strong>Important Notes</strong>:</p>
+<ul class="simple">
+<li><p><strong>I/O separation limitation</strong>: Cannot separate <code class="docutils literal notranslate"><span class="pre">from_root()</span></code> I/O time from compute time because ROOT reading happens inside coffea before our decorator executes</p></li>
+<li><p><strong>Memory includes lazy arrays</strong>: Awkward/dask arrays materialize during access, so memory_delta captures compute impact, not just inputs</p></li>
+<li><p><strong>Memory is cumulative</strong>: Python GC may not run immediately, so memory_delta can include previous chunks</p></li>
+</ul>
+</section>
+<section id="chunk-statistics">
+<span id="id12"></span><h3>Chunk Statistics<a class="headerlink" href="#chunk-statistics" title="Link to this heading">¶</a></h3>
+<p>From chunk-level data, we can derive:</p>
+<ul class="simple">
+<li><p><strong>Min/max/mean chunk time</strong>: Processing time distribution</p></li>
+<li><p><strong>Time per event</strong>: <code class="docutils literal notranslate"><span class="pre">chunk_time</span> <span class="pre">/</span> <span class="pre">event_count</span></code> variability</p></li>
+<li><p><strong>Memory per event</strong>: <code class="docutils literal notranslate"><span class="pre">memory_delta</span> <span class="pre">/</span> <span class="pre">event_count</span></code> variability</p></li>
+<li><p><strong>Dataset attribution</strong>: Which datasets are slowest/largest</p></li>
+</ul>
+<hr class="docutils" />
+</section>
+</section>
+<section id="fine-performance-metrics">
+<span id="id13"></span><h2>Fine Performance Metrics<a class="headerlink" href="#fine-performance-metrics" title="Link to this heading">¶</a></h2>
+<p>These metrics provide activity-level breakdown using Dask’s Spans API. Automatically collected when using <code class="docutils literal notranslate"><span class="pre">MetricsCollector</span></code> with Dask backend.</p>
+<section id="raw-activity-metrics-from-dask-spans">
+<span id="id14"></span><h3>Raw Activity Metrics (from Dask Spans)<a class="headerlink" href="#raw-activity-metrics-from-dask-spans" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Activity</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Units</p></th>
+<th class="head"><p>Exported Metric</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>thread-cpu</strong></p></td>
+<td><p>Pure CPU computation time</p></td>
+<td><p>seconds</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">cpu_time_seconds</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>thread-noncpu</strong></p></td>
+<td><p>Difference between wall clock time and CPU time (typically I/O time, GPU time, CPU contention, or GIL contention)</p></td>
+<td><p>seconds</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">io_time_seconds</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><strong>disk-read</strong></p></td>
+<td><p>Data read from disk due to memory spilling</p></td>
+<td><p>bytes</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">disk_read_bytes</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>disk-write</strong></p></td>
+<td><p>Data written to disk due to memory spilling</p></td>
+<td><p>bytes</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">disk_write_bytes</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><strong>compress</strong></p></td>
+<td><p>Data compression time</p></td>
+<td><p>seconds</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">compression_time_seconds</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>decompress</strong></p></td>
+<td><p>Data decompression time</p></td>
+<td><p>seconds</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">decompression_time_seconds</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><strong>serialize</strong></p></td>
+<td><p>Python object serialization</p></td>
+<td><p>seconds</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">serialization_time_seconds</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>deserialize</strong></p></td>
+<td><p>Python object deserialization</p></td>
+<td><p>seconds</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">deserialization_time_seconds</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Data Source</strong>: Dask automatically tracks these activities per task using <code class="docutils literal notranslate"><span class="pre">distributed.span</span></code></p>
+<p><strong>Collection Method</strong>:</p>
+<ol class="arabic simple">
+<li><p>MetricsCollector automatically creates span: <code class="docutils literal notranslate"><span class="pre">with</span> <span class="pre">span(&quot;coffea-processing&quot;)</span></code></p></li>
+<li><p>Dask tracks activities across all tasks within the span</p></li>
+<li><p>Extract <code class="docutils literal notranslate"><span class="pre">span.cumulative_worker_metrics</span></code> after completion</p></li>
+<li><p>Parse and aggregate into standardized metrics</p></li>
+</ol>
+</section>
+<section id="derived-fine-metrics">
+<span id="id15"></span><h3>Derived Fine Metrics<a class="headerlink" href="#derived-fine-metrics" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Metric</p></th>
+<th class="head"><p>Formula</p></th>
+<th class="head"><p>Units</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Processor CPU Time</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">cumulative_worker_metrics['thread-cpu']</span></code> (filtered)</p></td>
+<td><p>seconds</p></td>
+<td><p>Pure compute in processor</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Processor Non-CPU Time</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">cumulative_worker_metrics['thread-noncpu']</span></code> (filtered)</p></td>
+<td><p>seconds</p></td>
+<td><p>Difference between wall clock and CPU time in processor (typically I/O time, GPU time, CPU contention, or GIL contention)</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Processor CPU Percentage</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">processor_cpu</span> <span class="pre">/</span> <span class="pre">(processor_cpu</span> <span class="pre">+</span> <span class="pre">processor_noncpu)</span> <span class="pre">×</span> <span class="pre">100</span></code></p></td>
+<td><p>%</p></td>
+<td><p>Fraction of processor time spent computing</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Processor Non-CPU Percentage</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">processor_noncpu</span> <span class="pre">/</span> <span class="pre">(processor_cpu</span> <span class="pre">+</span> <span class="pre">processor_noncpu)</span> <span class="pre">×</span> <span class="pre">100</span></code></p></td>
+<td><p>%</p></td>
+<td><p>Fraction of processor time on non-CPU activities (typically I/O, GPU, CPU contention, GIL contention)</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Overhead CPU Time</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">cumulative_worker_metrics['thread-cpu']</span></code> (non-processor)</p></td>
+<td><p>seconds</p></td>
+<td><p>CPU time in Dask coordination overhead</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Overhead Non-CPU Time</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">cumulative_worker_metrics['thread-noncpu']</span></code> (non-processor)</p></td>
+<td><p>seconds</p></td>
+<td><p>Difference between wall clock and CPU time in Dask overhead</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Memory Read (Dask)</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">cumulative_worker_metrics['memory-read']</span></code></p></td>
+<td><p>bytes</p></td>
+<td><p>Data read from worker memory (tracked by Dask)</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Disk Read</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">cumulative_worker_metrics['disk-read']</span></code></p></td>
+<td><p>bytes</p></td>
+<td><p>Data read from disk due to memory spilling (tracked by Dask)</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Disk Write</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">cumulative_worker_metrics['disk-write']</span></code></p></td>
+<td><p>bytes</p></td>
+<td><p>Data written to disk due to memory spilling (tracked by Dask)</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Total Compression Overhead</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">compress</span> <span class="pre">+</span> <span class="pre">decompress</span></code></p></td>
+<td><p>seconds</p></td>
+<td><p>Time spent compressing/decompressing</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Total Serialization Overhead</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">serialize</span> <span class="pre">+</span> <span class="pre">deserialize</span></code></p></td>
+<td><p>seconds</p></td>
+<td><p>Time spent pickling/unpickling</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Key Features</strong>:</p>
+<ul class="simple">
+<li><p><strong>Processor separation</strong>: When <code class="docutils literal notranslate"><span class="pre">processor_instance</span></code> is provided, metrics are separated by processor work vs Dask overhead</p></li>
+<li><p><strong>CPU vs Non-CPU breakdown</strong>: Separates compute from waiting/I/O/GIL contention</p></li>
+<li><p><strong>Overhead visibility</strong>: Quantifies time spent on serialization and compression</p></li>
+<li><p><strong>Multiple byte metrics</strong>: Both Coffea’s bytesread and Dask’s memory-read/disk-read are reported separately</p></li>
+</ul>
+</section>
+<section id="availability">
+<span id="id16"></span><h3>Availability<a class="headerlink" href="#availability" title="Link to this heading">¶</a></h3>
+<p>Fine metrics are available when:</p>
+<ul class="simple">
+<li><p>Using Dask backend (<code class="docutils literal notranslate"><span class="pre">backend=&quot;dask&quot;</span></code>)</p></li>
+<li><p>Dask <code class="docutils literal notranslate"><span class="pre">distributed</span></code> package installed with Spans support</p></li>
+<li><p>Using <code class="docutils literal notranslate"><span class="pre">MetricsCollector</span></code> context manager (automatic)</p></li>
+</ul>
+</section>
+<section id="robustness-metric-synchronization">
+<span id="id17"></span><h3>Robustness: Metric Synchronization<a class="headerlink" href="#robustness-metric-synchronization" title="Link to this heading">¶</a></h3>
+<p><strong>Challenge</strong>: Worker metrics sync to scheduler via heartbeats (~1s interval). Tasks completing right after a heartbeat won’t have metrics available until the next heartbeat.</p>
+<p><strong>Solution</strong>: Automatic retry logic with exponential backoff:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Retry attempts:</span>
+<span class="c1"># 1. Immediate check (catches already-synced metrics)</span>
+<span class="c1"># 2. After 0.5s delay</span>
+<span class="c1"># 3. After 1.0s delay (total: 1.5s)</span>
+</pre></div>
+</div>
+<p><strong>Validation</strong>: Checks for actual execution metrics (<code class="docutils literal notranslate"><span class="pre">thread-cpu</span></code>, <code class="docutils literal notranslate"><span class="pre">thread-noncpu</span></code>), not just Dask overhead (lambda wrappers).</p>
+<p><strong>Result</strong>: Robust metric collection with no manual <code class="docutils literal notranslate"><span class="pre">time.sleep()</span></code> needed in user code.</p>
+<p><strong>Parameters</strong> (advanced users):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Customize retry behavior (not typically needed)</span>
+<span class="n">backend</span> <span class="o">=</span> <span class="n">DaskBackend</span><span class="p">(</span><span class="n">client</span><span class="p">)</span>
+<span class="n">metrics</span> <span class="o">=</span> <span class="n">backend</span><span class="o">.</span><span class="n">get_span_metrics</span><span class="p">(</span>
+    <span class="n">span_info</span><span class="p">,</span> <span class="n">max_retries</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">retry_delay</span><span class="o">=</span><span class="mf">0.3</span>  <span class="c1"># More retries  # Shorter initial delay</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<hr class="docutils" />
+</section>
+</section>
+<section id="internal-instrumentation-metrics">
+<span id="id18"></span><h2>Internal Instrumentation Metrics<a class="headerlink" href="#internal-instrumentation-metrics" title="Link to this heading">¶</a></h2>
+<p>These are <strong>opt-in</strong> metrics collected via user-placed instrumentation context managers.</p>
+<section id="section-timing">
+<span id="id19"></span><h3>Section Timing<a class="headerlink" href="#section-timing" title="Link to this heading">¶</a></h3>
+<p><strong>Context Manager</strong>: <code class="docutils literal notranslate"><span class="pre">track_section(processor,</span> <span class="pre">name)</span></code></p>
+<p><strong>Auto-computes</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">section_name</span></code>: User-provided label</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">time_delta</span></code>: <code class="docutils literal notranslate"><span class="pre">t_end</span> <span class="pre">-</span> <span class="pre">t_start</span></code> (seconds)</p></li>
+</ul>
+<p><strong>Use Case</strong>: Measure time spent in specific parts of <code class="docutils literal notranslate"><span class="pre">process()</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@track_metrics</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">events</span><span class="p">):</span>
+    <span class="k">with</span> <span class="n">track_section</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;jet_selection&quot;</span><span class="p">):</span>
+        <span class="n">jets</span> <span class="o">=</span> <span class="n">events</span><span class="o">.</span><span class="n">Jet</span><span class="p">[</span><span class="n">events</span><span class="o">.</span><span class="n">Jet</span><span class="o">.</span><span class="n">pt</span> <span class="o">&gt;</span> <span class="mi">30</span><span class="p">]</span>
+
+    <span class="k">with</span> <span class="n">track_section</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;histogram_filling&quot;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hist</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">jets</span><span class="o">.</span><span class="n">pt</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Storage</strong>: Appended to <code class="docutils literal notranslate"><span class="pre">chunk_metrics[i]['sections']</span></code></p>
+</section>
+<section id="section-memory">
+<span id="id20"></span><h3>Section Memory<a class="headerlink" href="#section-memory" title="Link to this heading">¶</a></h3>
+<p><strong>Context Manager</strong>: <code class="docutils literal notranslate"><span class="pre">track_memory(processor,</span> <span class="pre">name)</span></code></p>
+<p><strong>Auto-computes</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">section_name</span></code>: User-provided label</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">memory_start_gb</span></code>: Memory at entry</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">memory_end_gb</span></code>: Memory at exit</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">memory_delta_gb</span></code>: <code class="docutils literal notranslate"><span class="pre">memory_end</span> <span class="pre">-</span> <span class="pre">memory_start</span></code></p></li>
+</ul>
+<p><strong>Use Case</strong>: Measure memory consumed by specific operations:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">track_memory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;histogram_filling&quot;</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">hist</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">jets</span><span class="o">.</span><span class="n">pt</span><span class="p">)</span>  <span class="c1"># How much memory do histograms use?</span>
+</pre></div>
+</div>
+<p><strong>Storage</strong>: Appended to <code class="docutils literal notranslate"><span class="pre">chunk_metrics[i]['memory_sections']</span></code></p>
+</section>
+<section id="custom-metrics">
+<span id="id21"></span><h3>Custom Metrics<a class="headerlink" href="#custom-metrics" title="Link to this heading">¶</a></h3>
+<p><strong>Base Class</strong>: <code class="docutils literal notranslate"><span class="pre">BaseInstrumentationContext</span></code></p>
+<p>Users can create custom instrumentation contexts:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">MyCustomTracker</span><span class="p">(</span><span class="n">BaseInstrumentationContext</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
+        <span class="n">custom_value</span> <span class="o">=</span> <span class="n">compute_something</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">record_metric</span><span class="p">(</span><span class="s2">&quot;my_metric&quot;</span><span class="p">,</span> <span class="n">custom_value</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Storage</strong>: Stored in <code class="docutils literal notranslate"><span class="pre">chunk_metrics[i]['custom_metrics']</span></code></p>
+<hr class="docutils" />
+</section>
+</section>
+<section id="efficiency-metrics">
+<span id="id22"></span><h2>Efficiency Metrics<a class="headerlink" href="#efficiency-metrics" title="Link to this heading">¶</a></h2>
+<p>These are <strong>derived</strong> metrics calculated from other measurements.</p>
+<section id="cpu-efficiency">
+<span id="id23"></span><h3>CPU Efficiency<a class="headerlink" href="#cpu-efficiency" title="Link to this heading">¶</a></h3>
+<p><strong>Formula</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>cpu_efficiency = total_cpu_time / (wall_time × total_cores)
+</pre></div>
+</div>
+<p><strong>Units</strong>: Ratio (0.0 to 1.0), often expressed as %</p>
+<p><strong>Meaning</strong>: Fraction of available CPU resources actually doing useful work</p>
+<p><strong>Interpretation</strong>:</p>
+<ul class="simple">
+<li><p><strong>100%</strong>: Perfect utilization, all cores busy all the time</p></li>
+<li><p><strong>50%</strong>: Half of CPU time is idle (waiting for I/O, poor scheduling)</p></li>
+<li><p><strong>20%</strong>: Significant idle time, likely I/O bound</p></li>
+</ul>
+<p><strong>With Fine Metrics</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>cpu_efficiency = cpu_time (from thread-cpu) / (wall_time × total_cores)
+noncpu_overhead = noncpu_time (from thread-noncpu) / wall_time
+</pre></div>
+</div>
+</section>
+<section id="speedup-factor">
+<span id="id24"></span><h3>Speedup Factor<a class="headerlink" href="#speedup-factor" title="Link to this heading">¶</a></h3>
+<p><strong>Formula</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">speedup</span> <span class="o">=</span> <span class="n">total_cpu_time</span> <span class="o">/</span> <span class="n">wall_time</span>
+</pre></div>
+</div>
+<p><strong>Units</strong>: Ratio (&gt;= 1.0), expressed as “Nx”</p>
+<p><strong>Meaning</strong>: How much faster parallel execution is vs single-core</p>
+<p><strong>Interpretation</strong>:</p>
+<ul class="simple">
+<li><p><strong>1x</strong>: No speedup (serial execution or 100% I/O bound)</p></li>
+<li><p><strong>50x</strong>: Job took 1/50th the time with parallelism</p></li>
+<li><p><strong>Ideal</strong>: Should equal number of cores if compute-bound</p></li>
+</ul>
+<p><strong>Relationship to Efficiency</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>speedup = cpu_efficiency × total_cores
+</pre></div>
+</div>
+</section>
+<section id="i-o-overhead">
+<span id="io-overhead"></span><h3>I/O Overhead<a class="headerlink" href="#i-o-overhead" title="Link to this heading">¶</a></h3>
+<p><strong>Formula</strong> (requires fine metrics):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>io_overhead_pct = (noncpu_time / wall_time) × 100
+</pre></div>
+</div>
+<p><strong>Units</strong>: Percentage</p>
+<p><strong>Meaning</strong>: What fraction of wall time is spent on non-CPU activities (difference between wall clock time and CPU time)</p>
+<p><strong>Interpretation</strong>:</p>
+<ul class="simple">
+<li><p><strong>10%</strong>: Compute-bound, non-CPU activities not a bottleneck</p></li>
+<li><p><strong>50%</strong>: Half the time on non-CPU activities (typically I/O, but could include GPU time, CPU contention, or GIL contention)</p></li>
+<li><p><strong>80%+</strong>: Dominated by non-CPU activities</p></li>
+</ul>
+</section>
+<section id="scaling-efficiency">
+<span id="id25"></span><h3>Scaling Efficiency<a class="headerlink" href="#scaling-efficiency" title="Link to this heading">¶</a></h3>
+<p><strong>Measured via</strong>: Comparing throughput vs worker count</p>
+<p><strong>Ideal Scaling</strong>: <code class="docutils literal notranslate"><span class="pre">throughput</span> <span class="pre">∝</span> <span class="pre">workers</span></code> (linear)</p>
+<p><strong>Actual Scaling</strong>: Measured by running at different worker counts</p>
+<p><strong>Bottlenecks indicated by sub-linear scaling</strong>:</p>
+<ul class="simple">
+<li><p>Network bandwidth saturation</p></li>
+<li><p>Shared resource contention (e.g., XRootD server limits)</p></li>
+<li><p>Scheduler overhead</p></li>
+<li><p>Data skew (some workers starved)</p></li>
+</ul>
+<hr class="docutils" />
+</section>
+</section>
+<section id="assumptions-limitations">
+<span id="id26"></span><h2>Assumptions &amp; Limitations<a class="headerlink" href="#assumptions-limitations" title="Link to this heading">¶</a></h2>
+<section id="known-limitations">
+<h3>Known Limitations<a class="headerlink" href="#known-limitations" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p><strong>Byte Metrics from Different Sources</strong> ⚠️ Cannot Be Combined</p>
+<ul class="simple">
+<li><p><strong>Coffea bytesread</strong>: Bytes reported by Coffea as read from files - exact meaning depends on file format and access method</p></li>
+<li><p><strong>Dask memory-read</strong>: Data read from worker memory (tracked by Dask) - does NOT measure file I/O</p></li>
+<li><p><strong>Dask disk-read/write</strong>: Data read/written from disk due to memory spilling (tracked by Dask) - does NOT measure file I/O</p></li>
+<li><p><strong>Cannot calculate compression ratio</strong>: These metrics measure different things and cannot be directly compared</p></li>
+</ul>
+</li>
+<li><p><strong>I/O vs Compute Separation</strong></p>
+<ul class="simple">
+<li><p><strong>Available via</strong>: Dask Spans provides <code class="docutils literal notranslate"><span class="pre">thread-cpu</span></code> vs <code class="docutils literal notranslate"><span class="pre">thread-noncpu</span></code></p></li>
+<li><p><strong>Exported as</strong>: <code class="docutils literal notranslate"><span class="pre">processor_cpu_time_seconds</span></code>, <code class="docutils literal notranslate"><span class="pre">processor_noncpu_time_seconds</span></code>, etc.</p></li>
+<li><p><strong>thread-noncpu definition</strong>: Difference between wall clock time and CPU time spent by tasks while running on workers - typically I/O time, GPU time, CPU contention, or GIL contention</p></li>
+</ul>
+</li>
+<li><p><strong>Memory Measurement</strong></p>
+<ul class="simple">
+<li><p><strong>Level</strong>: Process-level RSS via <code class="docutils literal notranslate"><span class="pre">psutil</span></code>, not just physics data</p></li>
+<li><p><strong>Includes</strong>: Python interpreter, libraries, intermediate arrays</p></li>
+<li><p><strong>Lazy arrays</strong>: Memory builds up during array access (awkward/dask)</p></li>
+<li><p><strong>GC timing</strong>: Memory may not be freed immediately, delta includes garbage</p></li>
+</ul>
+</li>
+<li><p><strong>Chunk Measurement Boundaries</strong></p>
+<ul class="simple">
+<li><p><strong>Starts</strong>: After coffea’s <code class="docutils literal notranslate"><span class="pre">from_root()</span></code> completes</p></li>
+<li><p><strong>Ends</strong>: Before result serialization</p></li>
+<li><p><strong>Missing</strong>: Time to read ROOT file, time to serialize result</p></li>
+<li><p><strong>Solution</strong>: Use fine metrics for complete task timing</p></li>
+</ul>
+</li>
+<li><p><strong>Scheduler Overhead</strong></p>
+<ul class="simple">
+<li><p><strong>Sampling interval</strong>: Default 1.0s, may miss short-lived workers</p></li>
+<li><p><strong>Metrics overhead</strong>: Dask fine metrics have negligible overhead</p></li>
+<li><p><strong>Spans overhead</strong>: Cumulative metrics tracking is lightweight</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="assumptions">
+<h3>Assumptions<a class="headerlink" href="#assumptions" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p><strong>Cores per Worker</strong>: Assumes homogeneous workers (same core count)</p></li>
+<li><p><strong>Memory Limits</strong>: Assumes workers have <code class="docutils literal notranslate"><span class="pre">memory_limit</span></code> set (Dask default)</p></li>
+<li><p><strong>Network</strong>: Assumes primary I/O is network-based (XRootD, S3)</p></li>
+<li><p><strong>Timezones</strong>: All timestamps in UTC (from datetime.isoformat())</p></li>
+<li><p><strong>Dask Spans</strong>: Fine metrics require Dask <code class="docutils literal notranslate"><span class="pre">distributed</span></code> package with Spans support</p></li>
+</ol>
+<hr class="docutils" />
+</section>
+</section>
+<section id="metric-collection-methods">
+<span id="id27"></span><h2>Metric Collection Methods<a class="headerlink" href="#metric-collection-methods" title="Link to this heading">¶</a></h2>
+<section id="timeline-sampling-worker-tracking">
+<span id="id28"></span><h3>Timeline Sampling (Worker Tracking)<a class="headerlink" href="#timeline-sampling-worker-tracking" title="Link to this heading">¶</a></h3>
+<p><strong>Method</strong>: Async task on Dask scheduler samples worker state periodically</p>
+<p><strong>Interval</strong>: Configurable, default 1.0 second</p>
+<p><strong>Sampled Data</strong>:</p>
+<ul class="simple">
+<li><p>Worker count: <code class="docutils literal notranslate"><span class="pre">len(dask_scheduler.workers)</span></code></p></li>
+<li><p>Worker memory: <code class="docutils literal notranslate"><span class="pre">worker_state.memory</span></code> for each worker</p></li>
+<li><p>Memory limits: <code class="docutils literal notranslate"><span class="pre">worker_state.memory_limit</span></code></p></li>
+<li><p>Active tasks: <code class="docutils literal notranslate"><span class="pre">len(worker_state.processing)</span></code></p></li>
+<li><p>CPU cores: <code class="docutils literal notranslate"><span class="pre">worker_state.nthreads</span></code></p></li>
+</ul>
+<p><strong>Storage</strong>: Time-series data stored in JSON:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;worker_counts&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="s2">&quot;...&quot;</span><span class="p">,</span> <span class="s2">&quot;worker_count&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">},</span> <span class="o">...</span><span class="p">],</span>
+  <span class="s2">&quot;worker_memory&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;worker-id&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="s2">&quot;...&quot;</span><span class="p">,</span> <span class="s2">&quot;memory_bytes&quot;</span><span class="p">:</span> <span class="mi">123</span><span class="p">},</span> <span class="o">...</span><span class="p">]</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="point-in-time-measurement-chunk-tracking">
+<span id="id29"></span><h3>Point-in-Time Measurement (Chunk Tracking)<a class="headerlink" href="#point-in-time-measurement-chunk-tracking" title="Link to this heading">¶</a></h3>
+<p><strong>Method</strong>: Decorator wraps <code class="docutils literal notranslate"><span class="pre">process()</span></code> method, measures at entry/exit</p>
+<p><strong>Timing</strong>: <code class="docutils literal notranslate"><span class="pre">time.perf_counter()</span></code> for wall clock</p>
+<p><strong>Memory</strong>: <code class="docutils literal notranslate"><span class="pre">psutil.Process().memory_info().rss</span></code> for resident set size</p>
+<p><strong>Storage</strong>: List of dictionaries, one per chunk</p>
+</section>
+<section id="cumulative-metrics-fine-performance">
+<span id="id30"></span><h3>Cumulative Metrics (Fine Performance)<a class="headerlink" href="#cumulative-metrics-fine-performance" title="Link to this heading">¶</a></h3>
+<p><strong>Method</strong>: Dask Spans API accumulates activity metrics across all tasks</p>
+<p><strong>Collection</strong>:</p>
+<ol class="arabic simple">
+<li><p>Create span: <code class="docutils literal notranslate"><span class="pre">with</span> <span class="pre">span(&quot;name&quot;)</span> <span class="pre">as</span> <span class="pre">span_id:</span></code></p></li>
+<li><p>Dask automatically tracks activities per task</p></li>
+<li><p>Extract: <code class="docutils literal notranslate"><span class="pre">span.cumulative_worker_metrics</span></code> (dict)</p></li>
+</ol>
+<p><strong>Aggregation</strong>: Metrics are additive across tasks</p>
+<p><strong>Granularity</strong>: Per-task-prefix breakdown available</p>
+</section>
+<section id="event-driven-coffea-report">
+<span id="id31"></span><h3>Event-Driven (Coffea Report)<a class="headerlink" href="#event-driven-coffea-report" title="Link to this heading">¶</a></h3>
+<p><strong>Method</strong>: Coffea runner automatically collects these metrics</p>
+<p><strong>Data</strong>: Returned as dictionary from <code class="docutils literal notranslate"><span class="pre">runner.run()</span></code></p>
+<p><strong>Contents</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">bytesread</span></code>: Total bytes read</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">entries</span></code>: Total events processed</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">processtime</span></code>: Aggregated CPU time</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">chunks</span></code>: Number of work items</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">columns</span></code>: List of branches read</p></li>
+</ul>
+<hr class="docutils" />
+</section>
+</section>
+<section id="usage-patterns">
+<span id="id32"></span><h2>Usage Patterns<a class="headerlink" href="#usage-patterns" title="Link to this heading">¶</a></h2>
+<section id="minimal-workflow-level-only">
+<h3>Minimal - Workflow Level Only<a class="headerlink" href="#minimal-workflow-level-only" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">coffea_metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetricsCollector</span>
+
+<span class="k">with</span> <span class="n">MetricsCollector</span><span class="p">(</span><span class="n">executor</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;benchmarks&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">mc</span><span class="p">:</span>
+    <span class="n">output</span><span class="p">,</span> <span class="n">report</span> <span class="o">=</span> <span class="n">runner</span><span class="p">(</span><span class="n">fileset</span><span class="p">,</span> <span class="n">processor_instance</span><span class="p">)</span>
+    <span class="n">mc</span><span class="o">.</span><span class="n">set_coffea_report</span><span class="p">(</span><span class="n">report</span><span class="p">)</span>
+
+<span class="c1"># Get: throughput, event rates, timing, worker counts</span>
+</pre></div>
+</div>
+</section>
+<section id="standard-add-chunk-tracking">
+<h3>Standard - Add Chunk Tracking<a class="headerlink" href="#standard-add-chunk-tracking" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">coffea_metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetricsCollector</span><span class="p">,</span> <span class="n">track_metrics</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MyProcessor</span><span class="p">(</span><span class="n">processor</span><span class="o">.</span><span class="n">ProcessorABC</span><span class="p">):</span>
+    <span class="nd">@track_metrics</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">events</span><span class="p">):</span>
+        <span class="c1"># Normal processing</span>
+        <span class="k">return</span> <span class="n">result</span>
+
+
+<span class="k">with</span> <span class="n">MetricsCollector</span><span class="p">(</span><span class="n">executor</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">)</span> <span class="k">as</span> <span class="n">mc</span><span class="p">:</span>
+    <span class="n">output</span><span class="p">,</span> <span class="n">report</span> <span class="o">=</span> <span class="n">runner</span><span class="p">(</span><span class="n">fileset</span><span class="p">,</span> <span class="n">processor_instance</span><span class="p">)</span>
+    <span class="n">mc</span><span class="o">.</span><span class="n">set_coffea_report</span><span class="p">(</span><span class="n">report</span><span class="p">)</span>
+    <span class="n">mc</span><span class="o">.</span><span class="n">set_chunk_metrics</span><span class="p">(</span><span class="n">processor_instance</span><span class="o">.</span><span class="n">_chunk_metrics</span><span class="p">)</span>
+
+<span class="c1"># Get: + per-chunk timing/memory/attribution</span>
+</pre></div>
+</div>
+</section>
+<section id="advanced-internal-instrumentation">
+<h3>Advanced - Internal Instrumentation<a class="headerlink" href="#advanced-internal-instrumentation" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">coffea_metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">track_metrics</span><span class="p">,</span> <span class="n">track_section</span><span class="p">,</span> <span class="n">track_memory</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MyProcessor</span><span class="p">(</span><span class="n">processor</span><span class="o">.</span><span class="n">ProcessorABC</span><span class="p">):</span>
+    <span class="nd">@track_metrics</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">events</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">track_section</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;jet_selection&quot;</span><span class="p">):</span>
+            <span class="n">jets</span> <span class="o">=</span> <span class="n">events</span><span class="o">.</span><span class="n">Jet</span><span class="p">[</span><span class="n">events</span><span class="o">.</span><span class="n">Jet</span><span class="o">.</span><span class="n">pt</span> <span class="o">&gt;</span> <span class="mi">30</span><span class="p">]</span>
+
+        <span class="k">with</span> <span class="n">track_memory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;histogram_filling&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">hist</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">jets</span><span class="o">.</span><span class="n">pt</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">result</span>
+
+
+<span class="c1"># Get: + per-section timing/memory within chunks</span>
+</pre></div>
+</div>
+</section>
+<section id="complete-with-fine-metrics-dask-spans">
+<h3>Complete - With Fine Metrics (Dask Spans)<a class="headerlink" href="#complete-with-fine-metrics-dask-spans" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Automatic - fine metrics collected by default with Dask backend</span>
+<span class="k">with</span> <span class="n">MetricsCollector</span><span class="p">(</span><span class="n">client</span><span class="p">)</span> <span class="k">as</span> <span class="n">collector</span><span class="p">:</span>
+    <span class="n">output</span><span class="p">,</span> <span class="n">report</span> <span class="o">=</span> <span class="n">runner</span><span class="p">(</span><span class="n">fileset</span><span class="p">,</span> <span class="n">processor_instance</span><span class="p">)</span>
+    <span class="n">collector</span><span class="o">.</span><span class="n">set_coffea_report</span><span class="p">(</span><span class="n">report</span><span class="p">)</span>
+
+<span class="c1"># Print summary (includes fine metrics table if available)</span>
+<span class="n">collector</span><span class="o">.</span><span class="n">print_summary</span><span class="p">()</span>
+
+<span class="c1"># Access metrics directly</span>
+<span class="n">metrics</span> <span class="o">=</span> <span class="n">collector</span><span class="o">.</span><span class="n">get_metrics</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Processor CPU time: </span><span class="si">{</span><span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;processor_cpu_time_seconds&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Processor Non-CPU time: </span><span class="si">{</span><span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;processor_noncpu_time_seconds&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Processor CPU %: </span><span class="si">{</span><span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;processor_cpu_percentage&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Processor Non-CPU %: </span><span class="si">{</span><span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;processor_noncpu_percentage&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Bytes read (Coffea): </span><span class="si">{</span><span class="n">metrics</span><span class="p">[</span><span class="s1">&#39;total_bytes_read_coffea&#39;</span><span class="p">]</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mf">1e9</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> GB&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span>
+    <span class="sa">f</span><span class="s2">&quot;Memory read (Dask): </span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;total_bytes_memory_read_dask&#39;</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mf">1e9</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> GB&quot;</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Disk read: </span><span class="si">{</span><span class="n">metrics</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;disk_read_bytes&#39;</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mf">1e9</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> GB&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<hr class="docutils" />
+</section>
+</section>
+<section id="glossary">
+<span id="id33"></span><h2>Glossary<a class="headerlink" href="#glossary" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><strong>Chunk</strong>: A unit of work (file + entry range) processed by a single task</p></li>
+<li><p><strong>Wall Time</strong>: Real elapsed time (what a clock on the wall would show)</p></li>
+<li><p><strong>CPU Time</strong>: Time CPU was actively executing (excludes I/O waits)</p></li>
+<li><p><strong>Aggregated</strong>: Summed across all tasks/workers</p></li>
+<li><p><strong>Time-Weighted Average</strong>: Average accounting for duration at each value</p></li>
+<li><p><strong>Span</strong>: Dask concept for grouping related tasks and collecting metrics</p></li>
+<li><p><strong>Activity</strong>: Dask fine metrics category (cpu, I/O, compress, etc.)</p></li>
+<li><p><strong>Task Prefix</strong>: Dask task name prefix identifying task type</p></li>
+<li><p><strong>RSS</strong>: Resident Set Size - process memory actually in RAM</p></li>
+<li><p><strong>Spilling</strong>: Moving worker memory to disk when limit exceeded</p></li>
+</ul>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="architecture.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Architecture</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="concepts.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Core Concepts</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; {_dt.datetime.now().year}, Mohamed Aly
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            <div class="icons">
+              <a class="muted-link " href="https://github.com/MoAly98/roastcoffea" aria-label="GitHub">
+                <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path>
+                </svg>
+            </a>
+              
+            </div>
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Performance Metrics Reference</a><ul>
+<li><a class="reference internal" href="#table-of-contents">Table of Contents</a></li>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#workflow-level-metrics">Workflow-Level Metrics</a><ul>
+<li><a class="reference internal" href="#throughput-metrics">Throughput Metrics</a></li>
+<li><a class="reference internal" href="#data-volume-metrics">Data Volume Metrics</a></li>
+<li><a class="reference internal" href="#timing-metrics">Timing Metrics</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#worker-level-metrics">Worker-Level Metrics</a><ul>
+<li><a class="reference internal" href="#worker-count-metrics">Worker Count Metrics</a></li>
+<li><a class="reference internal" href="#memory-metrics">Memory Metrics</a></li>
+<li><a class="reference internal" href="#cpu-utilization-timeline">CPU Utilization Timeline</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#chunk-level-metrics">Chunk-Level Metrics</a><ul>
+<li><a class="reference internal" href="#per-chunk-metrics">Per-Chunk Metrics</a></li>
+<li><a class="reference internal" href="#chunk-statistics">Chunk Statistics</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#fine-performance-metrics">Fine Performance Metrics</a><ul>
+<li><a class="reference internal" href="#raw-activity-metrics-from-dask-spans">Raw Activity Metrics (from Dask Spans)</a></li>
+<li><a class="reference internal" href="#derived-fine-metrics">Derived Fine Metrics</a></li>
+<li><a class="reference internal" href="#availability">Availability</a></li>
+<li><a class="reference internal" href="#robustness-metric-synchronization">Robustness: Metric Synchronization</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#internal-instrumentation-metrics">Internal Instrumentation Metrics</a><ul>
+<li><a class="reference internal" href="#section-timing">Section Timing</a></li>
+<li><a class="reference internal" href="#section-memory">Section Memory</a></li>
+<li><a class="reference internal" href="#custom-metrics">Custom Metrics</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#efficiency-metrics">Efficiency Metrics</a><ul>
+<li><a class="reference internal" href="#cpu-efficiency">CPU Efficiency</a></li>
+<li><a class="reference internal" href="#speedup-factor">Speedup Factor</a></li>
+<li><a class="reference internal" href="#i-o-overhead">I/O Overhead</a></li>
+<li><a class="reference internal" href="#scaling-efficiency">Scaling Efficiency</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#assumptions-limitations">Assumptions &amp; Limitations</a><ul>
+<li><a class="reference internal" href="#known-limitations">Known Limitations</a></li>
+<li><a class="reference internal" href="#assumptions">Assumptions</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#metric-collection-methods">Metric Collection Methods</a><ul>
+<li><a class="reference internal" href="#timeline-sampling-worker-tracking">Timeline Sampling (Worker Tracking)</a></li>
+<li><a class="reference internal" href="#point-in-time-measurement-chunk-tracking">Point-in-Time Measurement (Chunk Tracking)</a></li>
+<li><a class="reference internal" href="#cumulative-metrics-fine-performance">Cumulative Metrics (Fine Performance)</a></li>
+<li><a class="reference internal" href="#event-driven-coffea-report">Event-Driven (Coffea Report)</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#usage-patterns">Usage Patterns</a><ul>
+<li><a class="reference internal" href="#minimal-workflow-level-only">Minimal - Workflow Level Only</a></li>
+<li><a class="reference internal" href="#standard-add-chunk-tracking">Standard - Add Chunk Tracking</a></li>
+<li><a class="reference internal" href="#advanced-internal-instrumentation">Advanced - Internal Instrumentation</a></li>
+<li><a class="reference internal" href="#complete-with-fine-metrics-dask-spans">Complete - With Fine Metrics (Dask Spans)</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#glossary">Glossary</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    </body>
+</html>

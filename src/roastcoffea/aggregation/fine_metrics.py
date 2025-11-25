@@ -9,7 +9,9 @@ from __future__ import annotations
 from typing import Any
 
 
-def parse_fine_metrics(cumulative_worker_metrics: dict[str, Any], processor_name: str | None = None) -> dict[str, Any]:
+def parse_fine_metrics(
+    cumulative_worker_metrics: dict[str, Any], processor_name: str | None = None
+) -> dict[str, Any]:
     """Parse Dask Spans cumulative_worker_metrics into fine metrics.
 
     Parameters
@@ -30,8 +32,8 @@ def parse_fine_metrics(cumulative_worker_metrics: dict[str, Any], processor_name
         Parsed fine metrics with keys:
         - processor_cpu_time_seconds: CPU time in processor
         - processor_noncpu_time_seconds: Non-CPU time in processor (waiting, GIL, etc)
-        - processor_cpu_percentage: CPU / (CPU + non-CPU) × 100 for processor
-        - processor_noncpu_percentage: Non-CPU / (CPU + non-CPU) × 100 for processor
+        - processor_cpu_percentage: CPU / (CPU + non-CPU) x 100 for processor
+        - processor_noncpu_percentage: Non-CPU / (CPU + non-CPU) x 100 for processor
         - overhead_cpu_time_seconds: CPU time in Dask overhead (if processor_name given)
         - overhead_noncpu_time_seconds: Non-CPU time in Dask overhead
         - disk_read_bytes: Bytes read from disk
@@ -63,7 +65,6 @@ def parse_fine_metrics(cumulative_worker_metrics: dict[str, Any], processor_name
 
         # Extract components from tuple key
         # Format: (context, task_prefix, activity, unit)
-        context = key[0] if len(key) > 0 else None
         task_prefix = key[1] if len(key) > 1 else None
         activity = key[2] if len(key) > 2 else None
         unit = key[3] if len(key) > 3 else None
@@ -98,8 +99,12 @@ def parse_fine_metrics(cumulative_worker_metrics: dict[str, Any], processor_name
 
     # Calculate percentages for processor
     processor_total = processor_cpu + processor_noncpu
-    processor_cpu_pct = (processor_cpu / processor_total * 100) if processor_total > 0 else 0.0
-    processor_noncpu_pct = (processor_noncpu / processor_total * 100) if processor_total > 0 else 0.0
+    processor_cpu_pct = (
+        (processor_cpu / processor_total * 100) if processor_total > 0 else 0.0
+    )
+    processor_noncpu_pct = (
+        (processor_noncpu / processor_total * 100) if processor_total > 0 else 0.0
+    )
 
     # Calculate overhead totals
     total_serialization_overhead = serialize_time + deserialize_time
