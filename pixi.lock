@@ -6143,7 +6143,7 @@ packages:
 - pypi: .
   name: roastcoffea
   version: 0.1.0
-  sha256: 0a1900a0d18580e09ff81fa9dcef7406e7468d82cdf18725b8089458235d19b8
+  sha256: 400eb52da0f6934993313f0c679ffe02833a416934c322d85a5ee95eb9e36b42
   requires_dist:
   - awkward>=2.0.0
   - bokeh>=3.0.0
@@ -6155,7 +6155,7 @@ packages:
   - psutil>=5.9.0
   - rich>=13.0.0
   - wadler-lindig>=0.1.7,<0.2
-  requires_python: '>=3.12'
+  requires_python: '>=3.12,<3.14'
   editable: true
 - pypi: https://files.pythonhosted.org/packages/53/97/d2cbbaa10c9b826af0e10fdf836e1bf344d9f0abb873ebc34d1f49642d3f/roman_numerals_py-3.1.0-py3-none-any.whl
   name: roman-numerals-py
