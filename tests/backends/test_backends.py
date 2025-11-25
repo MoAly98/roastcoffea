@@ -169,7 +169,6 @@ class TestDaskMetricsBackend:
         backend = DaskMetricsBackend(client=local_cluster)
         assert backend.supports_fine_metrics() is True
 
-    @pytest.mark.skip("Not implemented")
     def test_create_span_returns_span_id(self, local_cluster):
         """create_span returns a valid span identifier."""
         backend = DaskMetricsBackend(client=local_cluster)
