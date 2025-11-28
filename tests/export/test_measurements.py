@@ -266,6 +266,21 @@ class TestLoadMeasurement:
                 "worker_active_tasks": {
                     "worker1": [(t0_dt, 1), (t1_dt, 2)],
                 },
+                "worker_cores": {
+                    "worker1": [(t0_dt, 4), (t1_dt, 4)],
+                },
+                "worker_nbytes": {
+                    "worker1": [(t0_dt, 500_000), (t1_dt, 600_000)],
+                },
+                "worker_occupancy": {
+                    "worker1": [(t0_dt, 0.5), (t1_dt, 0.7)],
+                },
+                "worker_executing": {
+                    "worker1": [(t0_dt, 1), (t1_dt, 2)],
+                },
+                "worker_last_seen": {
+                    "worker1": [(t0_dt, 12345.0), (t1_dt, 12355.0)],
+                },
                 "cores_per_worker": 4,
             },
         }
@@ -290,3 +305,41 @@ class TestLoadMeasurement:
 
         assert len(tracking["worker_memory"]["worker1"]) == 2
         assert tracking["worker_memory"]["worker1"][0] == (t0_dt, 1_000_000)
+
+    def test_save_and_load_with_none_tracking_data(self, tmp_path):
+        """save and load handles None tracking_data gracefully."""
+        metrics_with_none_tracking = {
+            "wall_time": 100.0,
+            "tracking_data": None,
+        }
+
+        measurement_path = save_measurement(
+            metrics=metrics_with_none_tracking,
+            t0=0.0,
+            t1=100.0,
+            output_dir=tmp_path,
+            measurement_name="none_tracking_test",
+        )
+
+        loaded_metrics, _, _ = load_measurement(measurement_path)
+
+        # tracking_data should be None
+        assert loaded_metrics["tracking_data"] is None
+
+    def test_load_raises_on_invalid_timing_format(self, tmp_path):
+        """load_measurement raises ValueError for invalid timing format."""
+        measurement_path = tmp_path / "bad_timing"
+        measurement_path.mkdir()
+
+        # Create valid metrics file
+        metrics_file = measurement_path / "metrics.json"
+        with pathlib.Path(metrics_file).open("w", encoding="utf-8") as f:
+            json.dump({"wall_time": 100.0}, f)
+
+        # Create timing file with invalid format
+        timing_file = measurement_path / "start_end_time.txt"
+        with pathlib.Path(timing_file).open("w", encoding="utf-8") as f:
+            f.write("not_a_number,invalid")
+
+        with pytest.raises(ValueError, match="Invalid timing format"):
+            load_measurement(measurement_path)

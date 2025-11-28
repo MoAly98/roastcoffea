@@ -118,3 +118,30 @@ class TestParseFineMetrics:
         total = 100.0 + 20.0
         assert metrics["processor_cpu_percentage"] == pytest.approx(100.0 / total * 100)
         assert metrics["processor_noncpu_percentage"] == pytest.approx(20.0 / total * 100)
+
+    def test_parse_skips_invalid_keys(self):
+        """parse_fine_metrics skips invalid keys (line 64)."""
+        spans_data = {
+            ("execute", "process", "thread-cpu", "seconds"): 100.0,
+            "invalid_string_key": 50.0,  # Not a tuple
+            ("short",): 25.0,  # Tuple too short (len < 3)
+            ("a", "b"): 10.0,  # Tuple with len = 2 (< 3)
+        }
+
+        metrics = parse_fine_metrics(spans_data)
+
+        # Should only process the valid key
+        assert metrics["processor_cpu_time_seconds"] == 100.0
+
+    def test_parse_handles_memory_read_activity(self):
+        """parse_fine_metrics handles memory-read activity (line 90)."""
+        spans_data = {
+            ("execute", "process", "memory-read", "bytes"): 5_000_000_000,
+            ("execute", "process", "thread-cpu", "seconds"): 10.0,
+        }
+
+        metrics = parse_fine_metrics(spans_data)
+
+        # Should capture memory-read bytes
+        assert metrics["total_bytes_memory_read_dask"] == 5_000_000_000
+        assert metrics["processor_cpu_time_seconds"] == 10.0

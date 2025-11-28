@@ -223,6 +223,17 @@ class TestCalculateTimeAveragedWorkers:
         avg = calculate_time_averaged_workers({})
         assert avg == 0.0
 
+    def test_calculate_with_near_zero_time_span(self):
+        """Very small time span still calculates correctly."""
+        t0 = datetime.datetime(2025, 1, 1, 12, 0, 0, 0)
+        t1 = datetime.datetime(2025, 1, 1, 12, 0, 0, 1)  # 1 microsecond later
+
+        # Very small time difference (1 microsecond = 0.000001 seconds)
+        worker_counts = {t0: 5, t1: 7}
+        avg = calculate_time_averaged_workers(worker_counts)
+        # Trapezoidal: (5+7)/2 * 0.000001 / 0.000001 = 6.0
+        assert avg == pytest.approx(6.0)
+
 
 class TestCalculatePeakMemory:
     """Test peak memory calculation across workers."""
@@ -304,3 +315,17 @@ class TestCalculateAverageMemoryPerWorker:
         """Empty data returns 0."""
         avg = calculate_average_memory_per_worker({})
         assert avg == 0.0
+
+    def test_calculate_average_with_single_timeline_entry(self):
+        """Single timeline entry per worker uses that value."""
+        t0 = datetime.datetime(2025, 1, 1, 12, 0, 0)
+
+        # Worker with only 1 timeline entry
+        worker_memory = {
+            "worker1": [(t0, 1_000_000_000)],
+            "worker2": [(t0, 2_000_000_000)],
+        }
+
+        avg = calculate_average_memory_per_worker(worker_memory)
+        # Should average the single values: (1GB + 2GB) / 2 = 1.5GB
+        assert avg == pytest.approx(1_500_000_000)

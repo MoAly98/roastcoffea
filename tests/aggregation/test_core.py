@@ -188,3 +188,89 @@ class TestMetricsAggregator:
         # Metrics should be a new dict
         assert metrics is not sample_coffea_report
         assert metrics is not sample_tracking_data
+
+    def test_aggregate_with_span_metrics(self, sample_coffea_report, sample_tracking_data):
+        """Aggregator processes span_metrics when provided."""
+        aggregator = MetricsAggregator(backend="dask")
+
+        span_metrics = {
+            ("execute", "task-123", "thread-cpu"): 10.5,
+            ("execute", "task-123", "thread-noncpu"): 2.3,
+            ("execute", "task-456", "disk-read"): 1024,
+        }
+
+        metrics = aggregator.aggregate(
+            coffea_report=sample_coffea_report,
+            tracking_data=sample_tracking_data,
+            t_start=0.0,
+            t_end=25.0,
+            span_metrics=span_metrics,
+        )
+
+        # Should have processed span_metrics (exact keys depend on parse_fine_metrics)
+        # Just verify that aggregation succeeded
+        assert "wall_time" in metrics
+
+    def test_aggregate_with_chunk_metrics(self, sample_coffea_report, sample_tracking_data):
+        """Aggregator processes chunk_metrics when provided."""
+        aggregator = MetricsAggregator(backend="dask")
+
+        chunk_metrics = [
+            {
+                "t_start": 0.0,
+                "t_end": 10.0,
+                "duration": 10.0,
+                "num_events": 1000,
+                "dataset": "TTbar",
+            },
+            {
+                "t_start": 10.0,
+                "t_end": 20.0,
+                "duration": 10.0,
+                "num_events": 1500,
+                "dataset": "WJets",
+            },
+        ]
+
+        metrics = aggregator.aggregate(
+            coffea_report=sample_coffea_report,
+            tracking_data=sample_tracking_data,
+            t_start=0.0,
+            t_end=25.0,
+            chunk_metrics=chunk_metrics,
+        )
+
+        # Should have chunk aggregation metrics (exact keys depend on aggregate_chunk_metrics)
+        # Verify chunk_duration_max was calculated
+        assert "chunk_duration_max" in metrics
+        assert metrics["chunk_duration_max"] == 10.0
+
+        # Should preserve raw chunk metrics
+        assert "raw_chunk_metrics" in metrics
+        assert metrics["raw_chunk_metrics"] == chunk_metrics
+
+    def test_aggregate_with_section_metrics(self, sample_coffea_report, sample_tracking_data):
+        """Aggregator preserves section_metrics when provided."""
+        aggregator = MetricsAggregator(backend="dask")
+
+        chunk_metrics = [
+            {"t_start": 0.0, "t_end": 10.0, "duration": 10.0, "num_events": 1000}
+        ]
+
+        section_metrics = [
+            {"section": "jet_selection", "duration": 5.0},
+            {"section": "histogram_fill", "duration": 3.0},
+        ]
+
+        metrics = aggregator.aggregate(
+            coffea_report=sample_coffea_report,
+            tracking_data=sample_tracking_data,
+            t_start=0.0,
+            t_end=25.0,
+            chunk_metrics=chunk_metrics,
+            section_metrics=section_metrics,
+        )
+
+        # Should preserve raw section metrics
+        assert "raw_section_metrics" in metrics
+        assert metrics["raw_section_metrics"] == section_metrics

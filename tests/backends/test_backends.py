@@ -191,3 +191,105 @@ class TestDaskMetricsBackend:
         # Get span metrics
         metrics = backend.get_span_metrics(span)
         assert isinstance(metrics, dict)
+
+
+class TestDaskMetricsBackendEdgeCases:
+    """Test edge cases in DaskMetricsBackend."""
+
+    def test_get_span_metrics_with_missing_span_id(self, local_cluster):
+        """get_span_metrics handles span_info without 'id' key."""
+        backend = DaskMetricsBackend(client=local_cluster)
+
+        # Create span_info dict without 'id' key
+        span_info = {"name": "test_span"}
+
+        result = backend.get_span_metrics(span_info)
+
+        assert result == {}
+
+    def test_get_span_metrics_scheduler_function_no_spans_extension(self, local_cluster):
+        """_get_span_metrics handles missing spans extension on scheduler."""
+        from unittest.mock import MagicMock
+
+        backend = DaskMetricsBackend(client=local_cluster)
+
+        # Mock scheduler without spans extension
+        mock_scheduler = MagicMock()
+        mock_scheduler.extensions.get.return_value = None
+
+        # Mock run_on_scheduler to call our function with mock scheduler
+        original_run = backend.client.run_on_scheduler
+
+        def mock_run(func, **kwargs):
+            # Call the function directly with our mock scheduler
+            return func(mock_scheduler, **kwargs)
+
+        backend.client.run_on_scheduler = mock_run
+
+        try:
+            span_info = {"id": "test-span-123"}
+            result = backend.get_span_metrics(span_info, delay=0.01)
+
+            # Should return empty dict when spans extension missing
+            assert result == {}
+        finally:
+            backend.client.run_on_scheduler = original_run
+
+    def test_get_span_metrics_scheduler_function_span_not_found(self, local_cluster):
+        """_get_span_metrics handles span_id not found in spans."""
+        from unittest.mock import MagicMock
+
+        backend = DaskMetricsBackend(client=local_cluster)
+
+        # Mock scheduler with spans extension but span not found
+        mock_scheduler = MagicMock()
+        mock_spans_ext = MagicMock()
+        mock_spans_ext.spans.get.return_value = None  # Span not found
+        mock_scheduler.extensions.get.return_value = mock_spans_ext
+
+        # Mock run_on_scheduler
+        def mock_run(func, **kwargs):
+            return func(mock_scheduler, **kwargs)
+
+        backend.client.run_on_scheduler = mock_run
+
+        try:
+            span_info = {"id": "nonexistent-span"}
+            result = backend.get_span_metrics(span_info, delay=0.01)
+
+            # Should return empty dict when span not found
+            assert result == {}
+        finally:
+            # Restore
+            pass
+
+    def test_get_span_metrics_scheduler_function_success(self, local_cluster):
+        """_get_span_metrics successfully extracts metrics from span."""
+        from unittest.mock import MagicMock
+
+        backend = DaskMetricsBackend(client=local_cluster)
+
+        # Mock complete scheduler with span and metrics
+        mock_scheduler = MagicMock()
+        mock_span = MagicMock()
+        mock_span.cumulative_worker_metrics = {
+            "execute": {"cpu": 10.5, "memory": 1024}
+        }
+        mock_spans_ext = MagicMock()
+        mock_spans_ext.spans.get.return_value = mock_span
+        mock_scheduler.extensions.get.return_value = mock_spans_ext
+
+        # Mock run_on_scheduler
+        def mock_run(func, **kwargs):
+            return func(mock_scheduler, **kwargs)
+
+        backend.client.run_on_scheduler = mock_run
+
+        try:
+            span_info = {"id": "valid-span-id"}
+            result = backend.get_span_metrics(span_info, delay=0.01)
+
+            # Should return the metrics
+            assert result == {"execute": {"cpu": 10.5, "memory": 1024}}
+        finally:
+            pass

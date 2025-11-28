@@ -183,3 +183,30 @@ class TestAggregateWorkflowMetrics:
 
         assert metrics["num_chunks"] == 0
         assert metrics["avg_cpu_time_per_chunk"] == 0.0
+
+    def test_aggregate_skips_non_dict_dataset_entries(self):
+        """Skips non-dict entries in combined report (line 67)."""
+        coffea_report = {
+            "bytesread": 1000,
+            "entries": 100,
+            "processtime": 10.0,
+            "chunks": 10,
+        }
+
+        # Add non-dict entries to custom_metrics
+        custom_metrics = {
+            "dataset1": {"entries": 50, "performance_counters": {"num_requested_bytes": 500}},
+            "not_a_dict": "string_value",  # This should be skipped
+            123: {"entries": 25},  # Numeric key with dict value - should work
+        }
+
+        metrics = aggregate_workflow_metrics(
+            coffea_report=coffea_report,
+            t_start=0.0,
+            t_end=10.0,
+            custom_metrics=custom_metrics,
+        )
+
+        # Should process valid entries only (dataset1 + numeric key, skipping string value)
+        # 50 from dataset1 + 25 from 123 key = 75 total
+        assert metrics["total_events"] == 75

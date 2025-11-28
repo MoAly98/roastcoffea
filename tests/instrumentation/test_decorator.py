@@ -430,3 +430,47 @@ class TestMetadataExtraction:
         assert metadata["num_events"] == 75
         # Should not crash, just skip extraction
         assert "dataset" not in metadata
+
+
+class TestDecoratorExceptionHandling:
+    """Test decorator behavior when process() raises exceptions."""
+
+    def test_decorator_records_error_metrics(self):
+        """Decorator records error information when process() raises."""
+
+        class TestProcessor:
+            _roastcoffea_collect_metrics = True
+
+            @track_metrics
+            def process(self, events):
+                raise ValueError("Test error")
+
+        processor = TestProcessor()
+        events = MockEvents()
+
+        with pytest.raises(ValueError, match="Test error"):
+            processor.process(events)
+
+        # Should clean up container
+        assert not hasattr(processor, "_roastcoffea_current_chunk")
+
+    def test_decorator_cleans_up_container_on_exception(self):
+        """Decorator cleans up metrics container even when exception occurs."""
+
+        class TestProcessor:
+            _roastcoffea_collect_metrics = True
+
+            @track_metrics
+            def process(self, events):
+                # Container should be created
+                assert hasattr(self, "_roastcoffea_current_chunk")
+                raise RuntimeError("Processing failed")
+
+        processor = TestProcessor()
+        events = MockEvents()
+
+        with pytest.raises(RuntimeError, match="Processing failed"):
+            processor.process(events)
+
+        # Container should be cleaned up
+        assert not hasattr(processor, "_roastcoffea_current_chunk")

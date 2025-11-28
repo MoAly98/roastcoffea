@@ -198,3 +198,112 @@ class TestCombinedContextUsage:
         assert "step_1" in processor._roastcoffea_current_chunk["timing"]
         assert "step_2" in processor._roastcoffea_current_chunk["memory"]
         assert "step_3" in processor._roastcoffea_current_chunk["timing"]
+
+
+class TestEdgeCases:
+    """Test edge cases and error handling in context managers."""
+
+    def test_track_time_initializes_timing_dict(self):
+        """track_time() initializes timing dict if not present."""
+
+        class ProcessorWithoutTiming:
+            """Processor with chunk but no timing dict initialized."""
+
+            def __init__(self):
+                # Only initialize chunk container, not timing/memory dicts
+                self._roastcoffea_current_chunk = {}
+
+        processor = ProcessorWithoutTiming()
+
+        with track_time(processor, "test_op"):
+            pass
+
+        # Should have initialized timing dict
+        assert "timing" in processor._roastcoffea_current_chunk
+        assert "test_op" in processor._roastcoffea_current_chunk["timing"]
+
+    def test_track_memory_initializes_memory_dict(self):
+        """track_memory() initializes memory dict if not present."""
+
+        class ProcessorWithoutMemory:
+            """Processor with chunk but no memory dict initialized."""
+
+            def __init__(self):
+                # Only initialize chunk container, not timing/memory dicts
+                self._roastcoffea_current_chunk = {}
+
+        processor = ProcessorWithoutMemory()
+
+        with track_memory(processor, "test_op"):
+            pass
+
+        # Should have initialized memory dict
+        assert "memory" in processor._roastcoffea_current_chunk
+        assert "test_op" in processor._roastcoffea_current_chunk["memory"]
+
+    def test_track_memory_without_psutil(self):
+        """track_memory() gracefully handles missing psutil."""
+        import builtins
+        from unittest.mock import patch
+
+        processor = MockProcessor()
+
+        # Save original import
+        real_import = builtins.__import__
+
+        def mock_import(name, *args, **kwargs):
+            if name == "psutil":
+                raise ImportError("No module named 'psutil'")
+            return real_import(name, *args, **kwargs)
+
+        # Patch builtins.__import__ to make psutil import fail
+        with patch.object(builtins, "__import__", side_effect=mock_import):
+            with track_memory(processor, "test_without_psutil"):
+                data = [0] * 1000
+
+        # Should record 0.0 when psutil not available
+        assert "test_without_psutil" in processor._roastcoffea_current_chunk["memory"]
+        assert processor._roastcoffea_current_chunk["memory"]["test_without_psutil"] == 0.0
+
+    def test_track_memory_handles_measurement_exception(self):
+        """track_memory() handles exceptions during memory measurement."""
+        import builtins
+        from unittest.mock import MagicMock, patch
+
+        processor = MockProcessor()
+
+        # Mock psutil.Process to succeed first time, fail second time
+        call_count = [0]
+
+        class MockProcess:
+            def __init__(self):
+                call_count[0] += 1
+                if call_count[0] > 1:
+                    # Second call fails
+                    raise RuntimeError("Process failed")
+
+            def memory_info(self):
+                mock_info = MagicMock()
+                mock_info.rss = 100 * 1024 * 1024  # 100 MB
+                return mock_info
+
+        # Create a mock psutil module
+        mock_psutil = MagicMock()
+        mock_psutil.Process = MockProcess
+
+        # Save original import
+        real_import = builtins.__import__
+
+        def mock_import(name, *args, **kwargs):
+            if name == "psutil":
+                return mock_psutil
+            return real_import(name, *args, **kwargs)
+
+        # Patch builtins.__import__
+        with patch.object(builtins, "__import__", side_effect=mock_import):
+            with track_memory(processor, "test_exception"):
+                pass
+
+        # Should record 0.0 when measurement fails
+        assert "test_exception" in processor._roastcoffea_current_chunk["memory"]
+        assert processor._roastcoffea_current_chunk["memory"]["test_exception"] == 0.0

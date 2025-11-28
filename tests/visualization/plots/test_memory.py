@@ -127,3 +127,24 @@ class TestPlotMemoryUtilizationTimeline:
         """Raises ValueError when tracking_data is None."""
         with pytest.raises(ValueError, match=r"tracking_data cannot be None"):
             plot_memory_utilization_timeline(None)
+
+    def test_handles_empty_worker_utils_at_timestamp(self):
+        """Handles timestamps where no workers have utilization data (lines 91-93)."""
+        t0 = datetime.datetime(2025, 1, 1, 12, 0, 0)
+        t1 = datetime.datetime(2025, 1, 1, 12, 0, 1)
+        t2 = datetime.datetime(2025, 1, 1, 12, 0, 2)
+
+        # At t1, limit exists but no memory data for any worker
+        tracking_data = {
+            "worker_memory": {
+                "worker1": [(t0, 1_000_000_000), (t2, 2_000_000_000)],  # Data at t0 and t2, but NOT t1
+            },
+            "worker_memory_limit": {
+                "worker1": [(t0, 4_000_000_000), (t1, 4_000_000_000), (t2, 4_000_000_000)],  # Limit at all times including t1
+            },
+        }
+
+        # Should handle empty worker_utils at t1 by appending zeros
+        fig, ax = plot_memory_utilization_timeline(tracking_data)
+        assert fig is not None
+        assert ax is not None

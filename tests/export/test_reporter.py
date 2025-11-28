@@ -569,3 +569,89 @@ class TestFormatChunkMetricsTable:
 
         assert isinstance(table, Table)
         assert len(table.rows) > 5  # Should have many rows with all this data
+
+
+class TestFormatterEdgeCases:
+    """Test edge cases in formatter functions."""
+
+    def test_format_bytes_petabytes(self):
+        """Test _format_bytes with petabyte values (line 16)."""
+        from roastcoffea.export.reporter import _format_bytes
+
+        # Test with very large value that reaches PB
+        petabytes = 2.5 * 1024**5  # 2.5 PB in bytes
+        result = _format_bytes(petabytes)
+        assert "PB" in result
+        assert "2.50" in result
+
+    def test_format_timing_table_with_optional_coffea_bytes(self):
+        """Test format_timing_table with total_bytes_read_coffea (line 64)."""
+        from roastcoffea.export.reporter import format_timing_table
+
+        metrics = {
+            "wall_time": 100.0,
+            "total_cpu_time": 80.0,
+            "total_events": 1000,
+            "total_bytes_read_coffea": 5_000_000_000,  # Optional metric
+        }
+
+        table = format_timing_table(metrics)
+        assert isinstance(table, Table)
+        # Check that the Coffea bytes row was added
+        row_count = len(table.rows)
+        assert row_count > 0
+        # Verify table can be rendered (exercises all add_row calls)
+        from rich.console import Console
+        from io import StringIO
+        console = Console(file=StringIO())
+        console.print(table)
+
+    def test_format_timing_table_with_optional_dask_bytes(self):
+        """Test format_timing_table with total_bytes_memory_read_dask (line 72)."""
+        from roastcoffea.export.reporter import format_timing_table
+
+        metrics = {
+            "wall_time": 100.0,
+            "total_cpu_time": 80.0,
+            "total_events": 1000,
+            "total_bytes_memory_read_dask": 3_000_000_000,  # Optional metric
+        }
+
+        table = format_timing_table(metrics)
+        assert isinstance(table, Table)
+        # Check that the Dask bytes row was added
+        row_count = len(table.rows)
+        assert row_count > 0
+        # Verify table can be rendered (exercises all add_row calls)
+        from rich.console import Console
+        from io import StringIO
+        console = Console(file=StringIO())
+        console.print(table)
+
+    def test_format_fine_metrics_with_overhead_cpu(self):
+        """Test format_fine_metrics_table with overhead_cpu_time_seconds (line 279)."""
+        from roastcoffea.export.reporter import format_fine_metrics_table
+
+        metrics = {
+            "processor_cpu_time_seconds": 100.0,
+            "processor_noncpu_time_seconds": 20.0,
+            "overhead_cpu_time_seconds": 5.0,  # Optional metric
+            "overhead_noncpu_time_seconds": 0.0,
+        }
+
+        table = format_fine_metrics_table(metrics)
+        assert table is not None
+
+    def test_format_fine_metrics_with_overhead_noncpu(self):
+        """Test format_fine_metrics_table with overhead_noncpu_time_seconds (line 281)."""
+        from roastcoffea.export.reporter import format_fine_metrics_table
+
+        metrics = {
+            "processor_cpu_time_seconds": 100.0,
+            "processor_noncpu_time_seconds": 20.0,
+            "overhead_cpu_time_seconds": 0.0,
+            "overhead_noncpu_time_seconds": 2.0,  # Optional metric
+        }
+
+        table = format_fine_metrics_table(metrics)
+        assert table is not None
