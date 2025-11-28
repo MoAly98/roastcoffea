@@ -117,9 +117,6 @@ def calculate_time_averaged_workers(
 
     # Time-weighted average
     total_time = times[-1] - times[0]
-    if total_time == 0:
-        return worker_array[0]
-
     return sum(workers_times_time) / total_time
 
 
@@ -197,11 +194,8 @@ def calculate_average_memory_per_worker(
 
         # Time-weighted average for this worker
         total_time = times[-1] - times[0]
-        if total_time > 0:
-            worker_avg = sum(memory_times_time) / total_time
-            worker_averages.append(worker_avg)
-        else:
-            worker_averages.append(memory[0])
+        worker_avg = sum(memory_times_time) / total_time
+        worker_averages.append(worker_avg)
 
     # Average across all workers
     return float(np.mean(worker_averages)) if worker_averages else 0.0

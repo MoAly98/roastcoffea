@@ -13,6 +13,8 @@ import logging
 import time
 from typing import Any
 
+from distributed import span
+
 from roastcoffea.backends.base import AbstractMetricsBackend
 
 logger = logging.getLogger(__name__)
@@ -215,38 +217,22 @@ class DaskMetricsBackend(AbstractMetricsBackend):
 
         Returns
         -------
-        span_info : dict or None
-            Dictionary with 'context' (context manager) and 'id' (span ID), or None if unavailable
+        span_info : dict
+            Dictionary with 'context' (context manager) and 'name' (span name)
         """
-        try:
-            from distributed import span
+        span_cm = span(name)
+        # The span context manager returns the span_id when entered
+        # We need to return both the context manager and capture the ID
+        return {"context": span_cm, "name": name}
 
-            span_cm = span(name)
-            # The span context manager returns the span_id when entered
-            # We need to return both the context manager and capture the ID
-            return {"context": span_cm, "name": name}
-        except ImportError:
-            logger.warning(
-                "Dask Spans not available (distributed.span import failed). "
-                "Fine-grained metrics (CPU/I/O breakdown, compression ratio) will not be collected. "
-                "To enable, ensure you have a recent version of dask.distributed installed."
-            )
-            return None
-        except Exception as e:
-            logger.warning(
-                f"Failed to create Dask Span: {e}. "
-                "Fine-grained metrics will not be collected."
-            )
-            return None
-
-    def get_span_metrics(self, span_info: Any, delay: float = 0.5) -> dict[str, Any]:
+    def get_span_metrics(self, span_info: dict[str, Any], delay: float = 0.5) -> dict[str, Any]:
         """Extract metrics from a span from scheduler.
 
         Span metrics sync from workers to scheduler after a delay (default: 0.5s interval).
 
         Parameters
         ----------
-        span_info : dict or Any
+        span_info : dict
             Span info dict from create_span containing 'id' and 'name'
         delay : float, default 0.5
             Delay in seconds before extracting span metrics
@@ -254,41 +240,33 @@ class DaskMetricsBackend(AbstractMetricsBackend):
         Returns
         -------
         dict
-            cumulative_worker_metrics from span, or empty dict if unavailable
+            cumulative_worker_metrics from span, or empty dict if span_id not available
         """
-        if span_info is None:
+        # Get the span_id from the span_info
+        span_id = span_info.get("id")
+        if span_id is None:
+            logger.debug("No span_id available, cannot extract metrics")
             return {}
 
-        try:
-            # Get the span_id from the span_info
-            span_id = span_info.get("id")
-            if span_id is None:
-                logger.debug("No span_id available, cannot extract metrics")
+        # Access the Span object through the scheduler's spans extension
+        # Use run_on_scheduler to get the actual Span object
+        def _get_span_metrics(dask_scheduler, span_id):
+            """Get cumulative_worker_metrics from a span on the scheduler."""
+            spans_ext = dask_scheduler.extensions.get("spans")
+            if spans_ext is None:
                 return {}
 
-            # Access the Span object through the scheduler's spans extension
-            # Use run_on_scheduler to get the actual Span object
-            def _get_span_metrics(dask_scheduler, span_id):
-                """Get cumulative_worker_metrics from a span on the scheduler."""
-                spans_ext = dask_scheduler.extensions.get("spans")
-                if spans_ext is None:
-                    return {}
+            span_obj = spans_ext.spans.get(span_id)
+            if span_obj is None:
+                return {}
 
-                span_obj = spans_ext.spans.get(span_id)
-                if span_obj is None:
-                    return {}
+            # Return the cumulative_worker_metrics property
+            return span_obj.cumulative_worker_metrics
 
-                # Return the cumulative_worker_metrics property
-                return span_obj.cumulative_worker_metrics
-
-            # Retry logic to handle heartbeat synchronization delays
-            time.sleep(delay)
-            metrics = self.client.run_on_scheduler(_get_span_metrics, span_id=span_id)
-            return metrics if metrics else {}
-
-        except Exception as e:
-            logger.debug(f"Failed to extract span metrics: {e}")
-            return {}
+        # Retry logic to handle heartbeat synchronization delays
+        time.sleep(delay)
+        metrics = self.client.run_on_scheduler(_get_span_metrics, span_id=span_id)
+        return metrics if metrics else {}
 
     def supports_fine_metrics(self) -> bool:
         """Check if this backend supports fine-grained metrics.

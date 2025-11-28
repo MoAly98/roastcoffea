@@ -111,25 +111,12 @@ def track_metrics(func: Callable) -> Callable:
 
             return result
 
-        except Exception as e:
-            # Record failed chunk
-            t_end = time.time()
-            chunk_metrics = {
-                "t_start": t_start,
-                "t_end": t_end,
-                "duration": t_end - t_start,
-                "error": str(e),
-                **chunk_metadata,
-            }
-
+        except Exception:
             # Clean up container if it exists
             if hasattr(self, "_roastcoffea_current_chunk"):
                 delattr(self, "_roastcoffea_current_chunk")
 
-            # Try to inject error metrics
-            if isinstance(result, dict):
-                result["__roastcoffea_metrics__"] = [chunk_metrics]
-
+            # Re-raise the exception
             raise
 
     return wrapper
