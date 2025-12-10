@@ -15,6 +15,7 @@ from roastcoffea.visualization.plots.scaling import (
     plot_resource_utilization,
 )
 from roastcoffea.visualization.plots.throughput import (
+    plot_throughput_timeline,
     plot_total_active_tasks_timeline,
     plot_worker_activity_timeline,
 )
@@ -26,6 +27,7 @@ __all__ = [
     "plot_memory_utilization_timeline",
     "plot_occupancy_timeline",
     "plot_resource_utilization",
+    "plot_throughput_timeline",
     "plot_total_active_tasks_timeline",
     "plot_worker_activity_timeline",
     "plot_worker_count_timeline",
