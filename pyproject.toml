@@ -28,7 +28,7 @@ authors = [
 { name = "Mohamed Aly", email = "mohamed.aly@cern.ch" },
 ]
 dependencies = [
-    "coffea @ git+https://github.com/MoAly98/coffea.git@feat/fobj_in_procmeta",
+    "coffea@git+https://github.com/MoAly98/coffea.git@feat/fobj_in_procmeta",
     "dask[distributed]>=2024.0.0",
     "distributed>=2024.0.0",
     "rich>=13.0.0",
@@ -164,6 +164,7 @@ isort.required-imports = ["from __future__ import annotations"]
 [tool.pixi.workspace]
 channels = ["conda-forge"]
 platforms = ["osx-arm64", "linux-64"]
+preview = ["pixi-build"]
 
 [tool.pixi.pypi-dependencies]
 roastcoffea = { path = ".", editable = true }

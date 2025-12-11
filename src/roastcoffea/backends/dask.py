@@ -46,6 +46,7 @@ def _start_tracking_on_scheduler(dask_scheduler, interval: float = 1.0):
     dask_scheduler.worker_occupancy = {}
     dask_scheduler.worker_executing = {}
     dask_scheduler.worker_last_seen = {}
+    dask_scheduler.worker_cpu = {}
     dask_scheduler.track_count = True
 
     async def track_worker_metrics():
@@ -64,6 +65,9 @@ def _start_tracking_on_scheduler(dask_scheduler, interval: float = 1.0):
 
                 # Get memory limit
                 memory_limit = getattr(worker_state, "memory_limit", 0)
+
+                # Get CPU utilization percentage (0-100)
+                cpu_percent = worker_state.metrics.get("cpu", 0)
 
                 # Get cores (nthreads)
                 cores = worker_state.nthreads
@@ -102,6 +106,8 @@ def _start_tracking_on_scheduler(dask_scheduler, interval: float = 1.0):
                     dask_scheduler.worker_executing[worker_id] = []
                 if worker_id not in dask_scheduler.worker_last_seen:
                     dask_scheduler.worker_last_seen[worker_id] = []
+                if worker_id not in dask_scheduler.worker_cpu:
+                    dask_scheduler.worker_cpu[worker_id] = []
 
                 # Append timestamped data
                 dask_scheduler.worker_memory[worker_id].append(
@@ -124,6 +130,7 @@ def _start_tracking_on_scheduler(dask_scheduler, interval: float = 1.0):
                 dask_scheduler.worker_last_seen[worker_id].append(
                     (timestamp, last_seen)
                 )
+                dask_scheduler.worker_cpu[worker_id].append((timestamp, cpu_percent))
 
             # Sleep for interval
             await asyncio.sleep(interval)
@@ -161,6 +168,7 @@ def _stop_tracking_on_scheduler(dask_scheduler) -> dict:
         "worker_occupancy": getattr(dask_scheduler, "worker_occupancy", {}),
         "worker_executing": getattr(dask_scheduler, "worker_executing", {}),
         "worker_last_seen": getattr(dask_scheduler, "worker_last_seen", {}),
+        "worker_cpu": getattr(dask_scheduler, "worker_cpu", {}),
     }
 
 
