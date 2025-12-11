@@ -9,7 +9,7 @@ from typing import Any
 
 
 def _serialize_for_json(obj: Any) -> Any:
-    """Recursively convert datetime objects to ISO strings for JSON serialization.
+    """Recursively convert datetime objects and tuple keys to JSON-serializable format.
 
     Parameters
     ----------
@@ -23,16 +23,41 @@ def _serialize_for_json(obj: Any) -> Any:
     """
     if isinstance(obj, dict):
         return {
-            (k.isoformat() if isinstance(k, datetime) else k): _serialize_for_json(v)
+            _serialize_key(k): _serialize_for_json(v)
             for k, v in obj.items()
         }
     if isinstance(obj, list):
         return [_serialize_for_json(item) for item in obj]
     if isinstance(obj, tuple):
-        return tuple(_serialize_for_json(item) for item in obj)
+        # Convert tuples to lists for JSON (tuples in values, not keys)
+        return [_serialize_for_json(item) for item in obj]
     if isinstance(obj, datetime):
         return obj.isoformat()
     return obj
+
+
+def _serialize_key(key: Any) -> str:
+    """Convert dictionary keys to JSON-compatible strings.
+
+    Parameters
+    ----------
+    key : Any
+        Dictionary key (may be tuple, datetime, or primitive)
+
+    Returns
+    -------
+    str
+        String representation of key
+    """
+    if isinstance(key, datetime):
+        return key.isoformat()
+    if isinstance(key, tuple):
+        # Convert tuple keys to string representation
+        return str(key)
+    if isinstance(key, (str, int, float, bool)) or key is None:
+        return key
+    # Fallback: convert to string
+    return str(key)
 
 
 def _deserialize_tracking_data(
