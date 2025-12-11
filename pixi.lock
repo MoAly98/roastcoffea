@@ -126,6 +126,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/22/ff/6425bf5c20d79aa5b959d1ce9e65f599632345391381c9a104133fe0b171/matplotlib-3.10.7-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/af/33/ee4519fa02ed11a94aef9559552f3b17bb863f2ecfe1a35dc7f548cde231/matplotlib_inline-0.2.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b3/38/89ba8ad64ae25be8de66a6d463314cf1eb366222074cfda9ee839c56a4b4/mdurl-0.1.2-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/19/e6/35e28d41f24c8ad071385709a7cbb983344387a92900e7b8a9b70b5e5599/mplcursors-0.7-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/56/2e/65c5d36ca640f0f5c8f6909f26e642d58c59d01459e3abe294700c73e169/mplhep-0.4.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b0/6d/aed31732afe53a3c37d1172aef9e1a282106b47e5b0d06bd69b43b59380b/mplhep_data-0.0.5-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/5d/ba/459f18c16f2b3fc1a1ca871f72f07d70c07bf768ad0a507a698b8052ac58/msgpack-1.1.2-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
@@ -286,6 +287,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/bc/d0/b3d3338d467d3fc937f0bb7f256711395cae6f78e22cef0656159950adf0/matplotlib-3.10.7-cp313-cp313-macosx_11_0_arm64.whl
       - pypi: https://files.pythonhosted.org/packages/af/33/ee4519fa02ed11a94aef9559552f3b17bb863f2ecfe1a35dc7f548cde231/matplotlib_inline-0.2.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b3/38/89ba8ad64ae25be8de66a6d463314cf1eb366222074cfda9ee839c56a4b4/mdurl-0.1.2-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/19/e6/35e28d41f24c8ad071385709a7cbb983344387a92900e7b8a9b70b5e5599/mplcursors-0.7-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/56/2e/65c5d36ca640f0f5c8f6909f26e642d58c59d01459e3abe294700c73e169/mplhep-0.4.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b0/6d/aed31732afe53a3c37d1172aef9e1a282106b47e5b0d06bd69b43b59380b/mplhep_data-0.0.5-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/92/dc/c385f38f2c2433333345a82926c6bfa5ecfff3ef787201614317b58dd8be/msgpack-1.1.2-cp313-cp313-macosx_11_0_arm64.whl
@@ -507,6 +509,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/fb/86/dd6e5db36df29e76c7a7699123569a4a18c1623ce68d826ed96c62643cae/mdit_py_plugins-0.5.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b3/38/89ba8ad64ae25be8de66a6d463314cf1eb366222074cfda9ee839c56a4b4/mdurl-0.1.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/7a/f0/8282d9641415e9e33df173516226b404d367a0fc55e1a60424a152913abc/mistune-3.1.4-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/19/e6/35e28d41f24c8ad071385709a7cbb983344387a92900e7b8a9b70b5e5599/mplcursors-0.7-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/56/2e/65c5d36ca640f0f5c8f6909f26e642d58c59d01459e3abe294700c73e169/mplhep-0.4.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b0/6d/aed31732afe53a3c37d1172aef9e1a282106b47e5b0d06bd69b43b59380b/mplhep_data-0.0.5-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/5d/ba/459f18c16f2b3fc1a1ca871f72f07d70c07bf768ad0a507a698b8052ac58/msgpack-1.1.2-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
@@ -772,6 +775,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/fb/86/dd6e5db36df29e76c7a7699123569a4a18c1623ce68d826ed96c62643cae/mdit_py_plugins-0.5.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b3/38/89ba8ad64ae25be8de66a6d463314cf1eb366222074cfda9ee839c56a4b4/mdurl-0.1.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/7a/f0/8282d9641415e9e33df173516226b404d367a0fc55e1a60424a152913abc/mistune-3.1.4-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/19/e6/35e28d41f24c8ad071385709a7cbb983344387a92900e7b8a9b70b5e5599/mplcursors-0.7-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/56/2e/65c5d36ca640f0f5c8f6909f26e642d58c59d01459e3abe294700c73e169/mplhep-0.4.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b0/6d/aed31732afe53a3c37d1172aef9e1a282106b47e5b0d06bd69b43b59380b/mplhep_data-0.0.5-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/92/dc/c385f38f2c2433333345a82926c6bfa5ecfff3ef787201614317b58dd8be/msgpack-1.1.2-cp313-cp313-macosx_11_0_arm64.whl
@@ -1013,6 +1017,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/af/33/ee4519fa02ed11a94aef9559552f3b17bb863f2ecfe1a35dc7f548cde231/matplotlib_inline-0.2.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/fb/86/dd6e5db36df29e76c7a7699123569a4a18c1623ce68d826ed96c62643cae/mdit_py_plugins-0.5.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b3/38/89ba8ad64ae25be8de66a6d463314cf1eb366222074cfda9ee839c56a4b4/mdurl-0.1.2-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/19/e6/35e28d41f24c8ad071385709a7cbb983344387a92900e7b8a9b70b5e5599/mplcursors-0.7-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/56/2e/65c5d36ca640f0f5c8f6909f26e642d58c59d01459e3abe294700c73e169/mplhep-0.4.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b0/6d/aed31732afe53a3c37d1172aef9e1a282106b47e5b0d06bd69b43b59380b/mplhep_data-0.0.5-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/5d/ba/459f18c16f2b3fc1a1ca871f72f07d70c07bf768ad0a507a698b8052ac58/msgpack-1.1.2-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
@@ -1214,6 +1219,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/af/33/ee4519fa02ed11a94aef9559552f3b17bb863f2ecfe1a35dc7f548cde231/matplotlib_inline-0.2.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/fb/86/dd6e5db36df29e76c7a7699123569a4a18c1623ce68d826ed96c62643cae/mdit_py_plugins-0.5.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b3/38/89ba8ad64ae25be8de66a6d463314cf1eb366222074cfda9ee839c56a4b4/mdurl-0.1.2-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/19/e6/35e28d41f24c8ad071385709a7cbb983344387a92900e7b8a9b70b5e5599/mplcursors-0.7-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/56/2e/65c5d36ca640f0f5c8f6909f26e642d58c59d01459e3abe294700c73e169/mplhep-0.4.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b0/6d/aed31732afe53a3c37d1172aef9e1a282106b47e5b0d06bd69b43b59380b/mplhep_data-0.0.5-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/92/dc/c385f38f2c2433333345a82926c6bfa5ecfff3ef787201614317b58dd8be/msgpack-1.1.2-cp313-cp313-macosx_11_0_arm64.whl
@@ -1442,6 +1448,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/af/33/ee4519fa02ed11a94aef9559552f3b17bb863f2ecfe1a35dc7f548cde231/matplotlib_inline-0.2.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b3/38/89ba8ad64ae25be8de66a6d463314cf1eb366222074cfda9ee839c56a4b4/mdurl-0.1.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/7a/f0/8282d9641415e9e33df173516226b404d367a0fc55e1a60424a152913abc/mistune-3.1.4-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/19/e6/35e28d41f24c8ad071385709a7cbb983344387a92900e7b8a9b70b5e5599/mplcursors-0.7-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/56/2e/65c5d36ca640f0f5c8f6909f26e642d58c59d01459e3abe294700c73e169/mplhep-0.4.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b0/6d/aed31732afe53a3c37d1172aef9e1a282106b47e5b0d06bd69b43b59380b/mplhep_data-0.0.5-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/5d/ba/459f18c16f2b3fc1a1ca871f72f07d70c07bf768ad0a507a698b8052ac58/msgpack-1.1.2-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
@@ -1663,6 +1670,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/af/33/ee4519fa02ed11a94aef9559552f3b17bb863f2ecfe1a35dc7f548cde231/matplotlib_inline-0.2.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b3/38/89ba8ad64ae25be8de66a6d463314cf1eb366222074cfda9ee839c56a4b4/mdurl-0.1.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/7a/f0/8282d9641415e9e33df173516226b404d367a0fc55e1a60424a152913abc/mistune-3.1.4-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/19/e6/35e28d41f24c8ad071385709a7cbb983344387a92900e7b8a9b70b5e5599/mplcursors-0.7-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/56/2e/65c5d36ca640f0f5c8f6909f26e642d58c59d01459e3abe294700c73e169/mplhep-0.4.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b0/6d/aed31732afe53a3c37d1172aef9e1a282106b47e5b0d06bd69b43b59380b/mplhep_data-0.0.5-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/92/dc/c385f38f2c2433333345a82926c6bfa5ecfff3ef787201614317b58dd8be/msgpack-1.1.2-cp313-cp313-macosx_11_0_arm64.whl
@@ -1861,6 +1869,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/22/ff/6425bf5c20d79aa5b959d1ce9e65f599632345391381c9a104133fe0b171/matplotlib-3.10.7-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/af/33/ee4519fa02ed11a94aef9559552f3b17bb863f2ecfe1a35dc7f548cde231/matplotlib_inline-0.2.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b3/38/89ba8ad64ae25be8de66a6d463314cf1eb366222074cfda9ee839c56a4b4/mdurl-0.1.2-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/19/e6/35e28d41f24c8ad071385709a7cbb983344387a92900e7b8a9b70b5e5599/mplcursors-0.7-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/56/2e/65c5d36ca640f0f5c8f6909f26e642d58c59d01459e3abe294700c73e169/mplhep-0.4.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b0/6d/aed31732afe53a3c37d1172aef9e1a282106b47e5b0d06bd69b43b59380b/mplhep_data-0.0.5-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/5d/ba/459f18c16f2b3fc1a1ca871f72f07d70c07bf768ad0a507a698b8052ac58/msgpack-1.1.2-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
@@ -2027,6 +2036,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/bc/d0/b3d3338d467d3fc937f0bb7f256711395cae6f78e22cef0656159950adf0/matplotlib-3.10.7-cp313-cp313-macosx_11_0_arm64.whl
       - pypi: https://files.pythonhosted.org/packages/af/33/ee4519fa02ed11a94aef9559552f3b17bb863f2ecfe1a35dc7f548cde231/matplotlib_inline-0.2.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b3/38/89ba8ad64ae25be8de66a6d463314cf1eb366222074cfda9ee839c56a4b4/mdurl-0.1.2-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/19/e6/35e28d41f24c8ad071385709a7cbb983344387a92900e7b8a9b70b5e5599/mplcursors-0.7-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/56/2e/65c5d36ca640f0f5c8f6909f26e642d58c59d01459e3abe294700c73e169/mplhep-0.4.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/b0/6d/aed31732afe53a3c37d1172aef9e1a282106b47e5b0d06bd69b43b59380b/mplhep_data-0.0.5-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/92/dc/c385f38f2c2433333345a82926c6bfa5ecfff3ef787201614317b58dd8be/msgpack-1.1.2-cp313-cp313-macosx_11_0_arm64.whl
@@ -4837,6 +4847,18 @@ packages:
   requires_dist:
   - typing-extensions ; python_full_version < '3.11'
   requires_python: '>=3.8'
+- pypi: https://files.pythonhosted.org/packages/19/e6/35e28d41f24c8ad071385709a7cbb983344387a92900e7b8a9b70b5e5599/mplcursors-0.7-py3-none-any.whl
+  name: mplcursors
+  version: '0.7'
+  sha256: 140102df515e275f4df6c80c6dde4d22188c5fc30f38133444fa799a4716bd3f
+  requires_dist:
+  - matplotlib>=3.1,!=3.7.1,!=3.10.3
+  - importlib-metadata ; python_full_version < '3.8'
+  - pandas ; extra == 'docs'
+  - pydata-sphinx-theme!=0.10.1 ; extra == 'docs'
+  - sphinx ; extra == 'docs'
+  - sphinx-gallery>=0.16 ; extra == 'docs'
+  requires_python: '>=3.7'
 - pypi: https://files.pythonhosted.org/packages/56/2e/65c5d36ca640f0f5c8f6909f26e642d58c59d01459e3abe294700c73e169/mplhep-0.4.1-py3-none-any.whl
   name: mplhep
   version: 0.4.1
@@ -6165,7 +6187,7 @@ packages:
 - pypi: .
   name: roastcoffea
   version: 0.1.0
-  sha256: d50e0b9512ceecc0da9fc6bc2793e4dfad234958601e97a433ec41029166855c
+  sha256: 1a8361105f4ed0089c577dcea5d54579cbb9c60c88a916564e6cf5c0bedc9941
   requires_dist:
   - awkward>=2.0.0
   - bokeh>=3.0.0
@@ -6173,6 +6195,7 @@ packages:
   - dask[distributed]>=2024.0.0
   - distributed>=2024.0.0
   - matplotlib>=3.5.0
+  - mplcursors>=0.5.0
   - numpy>=1.20.0
   - psutil>=5.9.0
   - rich>=13.0.0

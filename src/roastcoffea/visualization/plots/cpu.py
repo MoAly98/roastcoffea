@@ -11,12 +11,15 @@ from typing import Any
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 
+from roastcoffea.visualization.utils import add_hover_tooltips
+
 
 def plot_occupancy_timeline(
     tracking_data: dict[str, Any] | None,
     output_path: Path | None = None,
     figsize: tuple[int, int] = (12, 6),
     title: str = "Worker Occupancy Over Time",
+    max_legend_entries: int = 5,
 ) -> tuple[plt.Figure, plt.Axes]:
     """Plot worker occupancy (task saturation) over time.
 
@@ -33,6 +36,10 @@ def plot_occupancy_timeline(
         Figure size
     title : str
         Plot title
+    max_legend_entries : int, optional
+        Maximum number of workers to show in legend. If worker count exceeds
+        this threshold, legend is hidden and hover tooltips are used instead.
+        Default is 5.
 
     Returns
     -------
@@ -57,18 +64,42 @@ def plot_occupancy_timeline(
     # Create plot
     fig, ax = plt.subplots(figsize=figsize)
 
+    # Track lines and labels for hover tooltips
+    lines = []
+    labels = []
+
     # Plot each worker's occupancy timeline
     for worker_id, timeline in worker_occupancy.items():
         if timeline:
             timestamps = [t for t, _ in timeline]
             occupancy_values = [val for _, val in timeline]
-            ax.plot(timestamps, occupancy_values, label=worker_id, alpha=0.7, linewidth=2)
+            (line,) = ax.plot(timestamps, occupancy_values, label=worker_id, alpha=0.7, linewidth=2)
+            lines.append(line)
+            labels.append(worker_id)
 
     ax.set_xlabel("Time")
     ax.set_ylabel("Occupancy (saturation)")
     ax.set_title(title)
     ax.grid(True, alpha=0.3)
-    ax.legend(loc="best", fontsize=8)
+
+    # Show legend only if worker count is below threshold
+    num_workers = len(worker_occupancy)
+    if num_workers <= max_legend_entries:
+        ax.legend(loc="upper left", bbox_to_anchor=(1.05, 1), fontsize=8)
+    else:
+        # Add text annotation showing worker count
+        ax.text(
+            0.02,
+            0.98,
+            f"Showing {num_workers} workers",
+            transform=ax.transAxes,
+            va="top",
+            fontsize=9,
+            bbox=dict(boxstyle="round,pad=0.5", facecolor="white", alpha=0.7),
+        )
+
+    # Add hover tooltips
+    add_hover_tooltips(lines, labels)
 
     # Format x-axis
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M:%S"))
@@ -87,6 +118,7 @@ def plot_executing_tasks_timeline(
     output_path: Path | None = None,
     figsize: tuple[int, int] = (12, 6),
     title: str = "Executing Tasks Per Worker Over Time",
+    max_legend_entries: int = 5,
 ) -> tuple[plt.Figure, plt.Axes]:
     """Plot number of executing tasks per worker over time.
 
@@ -102,6 +134,10 @@ def plot_executing_tasks_timeline(
         Figure size
     title : str
         Plot title
+    max_legend_entries : int, optional
+        Maximum number of workers to show in legend. If worker count exceeds
+        this threshold, legend is hidden and hover tooltips are used instead.
+        Default is 5.
 
     Returns
     -------
@@ -126,20 +162,42 @@ def plot_executing_tasks_timeline(
     # Create plot
     fig, ax = plt.subplots(figsize=figsize)
 
+    # Track lines and labels for hover tooltips
+    lines = []
+    labels = []
+
     # Plot each worker's executing task count timeline
     for worker_id, timeline in worker_executing.items():
         if timeline:
             timestamps = [t for t, _ in timeline]
             executing_counts = [val for _, val in timeline]
-            ax.plot(
-                timestamps, executing_counts, label=worker_id, alpha=0.7, linewidth=2
-            )
+            (line,) = ax.plot(timestamps, executing_counts, label=worker_id, alpha=0.7, linewidth=2)
+            lines.append(line)
+            labels.append(worker_id)
 
     ax.set_xlabel("Time")
     ax.set_ylabel("Number of Executing Tasks")
     ax.set_title(title)
     ax.grid(True, alpha=0.3)
-    ax.legend(loc="best", fontsize=8)
+
+    # Show legend only if worker count is below threshold
+    num_workers = len(worker_executing)
+    if num_workers <= max_legend_entries:
+        ax.legend(loc="upper left", bbox_to_anchor=(1.05, 1), fontsize=8)
+    else:
+        # Add text annotation showing worker count
+        ax.text(
+            0.02,
+            0.98,
+            f"Showing {num_workers} workers",
+            transform=ax.transAxes,
+            va="top",
+            fontsize=9,
+            bbox=dict(boxstyle="round,pad=0.5", facecolor="white", alpha=0.7),
+        )
+
+    # Add hover tooltips
+    add_hover_tooltips(lines, labels)
 
     # Format x-axis
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M:%S"))
