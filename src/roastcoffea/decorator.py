@@ -79,14 +79,27 @@ def track_metrics(func: Callable) -> Callable:
         # Extract chunk metadata from events
         chunk_metadata = _extract_chunk_metadata(events)
 
-        # Capture bytes from filesource at start
-        bytes_start = 0
+        # Extract file-level metadata (only once per file per worker)
+        file_metadata = _extract_file_metadata(self, events)
+
+        # Check if filehandle is available for byte tracking (once)
+        source = None
         try:
-            filesource = events.metadata.get("filesource")
-            if filesource and hasattr(filesource, "num_requested_bytes"):
-                bytes_start = filesource.num_requested_bytes
+            filehandle = events.metadata.get("filehandle")
+            if filehandle and hasattr(filehandle, "file"):
+                source = filehandle.file.source
+                if not hasattr(source, "num_requested_bytes"):
+                    source = None
         except Exception:
-            pass
+            source = None
+
+        # Capture bytes at start if filehandle available
+        bytes_start = 0
+        if source:
+            try:
+                bytes_start = source.num_requested_bytes
+            except Exception:
+                pass
 
         try:
             # Run the actual processor
@@ -97,14 +110,13 @@ def track_metrics(func: Callable) -> Callable:
             t_end = time.time()
             mem_after = get_process_memory()
 
-            # Capture bytes from filesource at end
+            # Capture bytes at end if filehandle available
             bytes_end = 0
-            try:
-                filesource = events.metadata.get("filesource")
-                if filesource and hasattr(filesource, "num_requested_bytes"):
-                    bytes_end = filesource.num_requested_bytes
-            except Exception:
-                pass
+            if source:
+                try:
+                    bytes_end = source.num_requested_bytes
+                except Exception:
+                    pass
 
             bytes_read = bytes_end - bytes_start
 
@@ -124,6 +136,10 @@ def track_metrics(func: Callable) -> Callable:
                 "memory": self._roastcoffea_current_chunk.get("memory", {}),
                 "bytes": self._roastcoffea_current_chunk.get("bytes", {}),
             }
+
+            # Include file-level metadata if extracted
+            if file_metadata:
+                chunk_metrics["file_metadata"] = file_metadata
 
             # Clean up container
             delattr(self, "_roastcoffea_current_chunk")
@@ -211,3 +227,83 @@ def _extract_chunk_metadata(events: Any) -> dict[str, Any]:
                                 metadata["entry_stop"] = stop
 
     return metadata
+
+
+def _extract_file_metadata(processor_self: Any, events: Any) -> dict[str, Any] | None:
+    """Extract file-level metadata (compression ratio, branch info).
+
+    This function extracts metadata that is constant for an entire file,
+    not chunk-specific. To avoid repeated extraction, it tracks which files
+    have already been processed on this worker using a set stored on the
+    processor instance.
+
+    Args:
+        processor_self: The processor instance (self)
+        events: Events object with metadata containing filehandle
+
+    Returns:
+        Dictionary with file-level metadata, or None if already extracted
+        or filehandle not available
+
+    Metadata includes:
+        - filename: Full path to the file
+        - compression_ratio: compressed_bytes / uncompressed_bytes
+        - total_branches: Number of branches in the tree
+        - branch_bytes: Dict mapping branch_name -> compressed_bytes
+        - total_tree_bytes: Total compressed bytes in tree
+    """
+    # Initialize tracking set on processor instance (persists across chunks)
+    if not hasattr(processor_self, "_roastcoffea_processed_files"):
+        processor_self._roastcoffea_processed_files = set()
+
+    try:
+        # Get filehandle and filename from metadata
+        metadata_obj = events.metadata
+        filehandle = metadata_obj.get("filehandle")
+        filename = metadata_obj.get("filename")
+
+        # Skip if no filehandle or filename
+        if not filehandle or not filename:
+            return None
+
+        # Skip if already extracted for this file on this worker
+        if filename in processor_self._roastcoffea_processed_files:
+            return None
+
+        # Get tree name (default to "Events")
+        tree_name = metadata_obj.get("treename", "Events")
+
+        # Access the tree
+        tree = filehandle[tree_name]
+
+        # Build per-branch byte mapping for data access analysis
+        branch_bytes = {}
+        for branch_name in tree.keys():
+            try:
+                branch_bytes[branch_name] = tree[branch_name].compressed_bytes
+            except Exception:
+                # Skip branches that don't have compressed_bytes attribute
+                pass
+
+        # Calculate compression ratio
+        compressed = tree.compressed_bytes
+        uncompressed = tree.uncompressed_bytes
+        compression_ratio = compressed / uncompressed if uncompressed > 0 else 0.0
+
+        # Assemble file metadata
+        file_metadata = {
+            "filename": filename,
+            "compression_ratio": compression_ratio,
+            "total_branches": len(tree.keys()),
+            "branch_bytes": branch_bytes,
+            "total_tree_bytes": compressed,
+        }
+
+        # Mark as processed on this worker
+        processor_self._roastcoffea_processed_files.add(filename)
+
+        return file_metadata
+
+    except Exception:
+        # If anything fails, just return None (file metadata is optional)
+        return None

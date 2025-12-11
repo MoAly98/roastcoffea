@@ -8,6 +8,7 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
+from roastcoffea.aggregation.branch_coverage import parse_accessed_branches
 from roastcoffea.collector import MetricsCollector
 
 
@@ -878,3 +879,72 @@ class TestMetricsCollectorWarnings:
             # Console.print should be called for chunk metrics
             console_instance = mock_console.return_value
             assert console_instance.print.call_count >= 2  # At least timing + chunk
+
+
+class TestParseAccessedBranches:
+    """Test parse_accessed_branches helper function."""
+
+    def test_extracts_data_columns(self):
+        """Extracts unique branch names from -data columns."""
+        columns = [
+            "Jet_pt-data",
+            "nJet-offsets",
+            "Muon_pt-data",
+            "nMuon-offsets",
+            "Electron_pt-data",
+        ]
+
+        result = parse_accessed_branches(columns)
+
+        assert result == {"Jet_pt", "Muon_pt", "Electron_pt"}
+
+    def test_ignores_offset_columns(self):
+        """Ignores -offsets columns (awkward metadata)."""
+        columns = ["nJet-offsets", "nMuon-offsets", "nElectron-offsets"]
+
+        result = parse_accessed_branches(columns)
+
+        assert result == set()
+
+    def test_handles_empty_list(self):
+        """Handles empty columns list."""
+        result = parse_accessed_branches([])
+
+        assert result == set()
+
+    def test_handles_mixed_columns(self):
+        """Handles mix of data and offset columns."""
+        columns = [
+            "Jet_pt-data",
+            "Jet_eta-data",
+            "nJet-offsets",
+            "MET_pt-data",
+        ]
+
+        result = parse_accessed_branches(columns)
+
+        assert result == {"Jet_pt", "Jet_eta", "MET_pt"}
+
+    def test_deduplicates_branches(self):
+        """Deduplicates branch names."""
+        columns = [
+            "Jet_pt-data",
+            "Jet_pt-data",  # Duplicate
+            "Muon_pt-data",
+        ]
+
+        result = parse_accessed_branches(columns)
+
+        assert result == {"Jet_pt", "Muon_pt"}
+
+    def test_handles_nested_branch_names(self):
+        """Handles nested branch names with underscores."""
+        columns = [
+            "SubJet_pt-data",
+            "FatJet_mass-data",
+            "GenPart_pdgId-data",
+        ]
+
+        result = parse_accessed_branches(columns)
+
+        assert result == {"SubJet_pt", "FatJet_mass", "GenPart_pdgId"}

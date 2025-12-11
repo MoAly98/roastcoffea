@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from roastcoffea.aggregation.backends import get_parser
+from roastcoffea.aggregation.branch_coverage import aggregate_branch_coverage
 from roastcoffea.aggregation.chunk import aggregate_chunk_metrics
 from roastcoffea.aggregation.chunks import build_chunk_info
 from roastcoffea.aggregation.efficiency import calculate_efficiency_metrics
@@ -110,6 +111,12 @@ class MetricsAggregator:
                 # Add to chunk_agg_metrics instead of modifying coffea_report
                 chunk_agg_metrics["chunk_info"] = chunk_info
 
+        # Aggregate branch coverage and data access metrics
+        branch_coverage_metrics = aggregate_branch_coverage(
+            chunk_metrics=chunk_metrics,
+            coffea_report=coffea_report,
+        )
+
         # Calculate efficiency metrics
         efficiency_metrics = calculate_efficiency_metrics(
             workflow_metrics=workflow_metrics,
@@ -123,6 +130,7 @@ class MetricsAggregator:
         combined_metrics.update(efficiency_metrics)
         combined_metrics.update(fine_metrics)
         combined_metrics.update(chunk_agg_metrics)
+        combined_metrics.update(branch_coverage_metrics)
 
         # Preserve raw tracking data for visualization
         combined_metrics["tracking_data"] = tracking_data

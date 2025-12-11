@@ -146,7 +146,7 @@ def track_memory(processor_self: Any, section_name: str) -> Generator[None, None
 def track_bytes(
     processor_self: Any, events: Any, section_name: str
 ) -> Generator[None, None, None]:
-    """Context manager to track bytes read from filesource for a named operation.
+    """Context manager to track bytes read from filehandle for a named operation.
 
     Measures the number of bytes read from the file source during a specific
     operation. Useful for identifying I/O-intensive operations and understanding
@@ -158,7 +158,7 @@ def track_bytes(
 
     Args:
         processor_self: The processor instance (self)
-        events: Events object with metadata containing filesource
+        events: Events object with metadata containing filehandle
         section_name: Name of the operation (e.g., "load_jets", "read_systematics")
 
     Yields:
@@ -180,39 +180,47 @@ def track_bytes(
                 return {"sum": len(events)}
 
     Note:
-        Requires the filesource to be available in events.metadata["filesource"]
-        with a num_requested_bytes attribute. This is available when using the
-        modified coffea version with file source exposure.
+        Requires the filehandle to be available in events.metadata["filehandle"]
+        with access to filehandle.file.source.num_requested_bytes. This is
+        available when using the modified coffea version with file handle exposure.
 
     Note:
         Byte metrics are automatically attached to the current chunk
         if used within a @track_metrics decorated function. If no collection
-        is active or no filesource is available, this context manager is a no-op.
+        is active or no filehandle is available, this context manager is a no-op.
     """
     if processor_self and hasattr(processor_self, "_roastcoffea_current_chunk"):
-        bytes_before = 0
+        # Check if filehandle is available for byte tracking (once)
+        source = None
         try:
-            filesource = events.metadata.get("filesource")
-            if filesource and hasattr(filesource, "num_requested_bytes"):
-                bytes_before = filesource.num_requested_bytes
+            filehandle = events.metadata.get("filehandle")
+            if filehandle and hasattr(filehandle, "file"):
+                source = filehandle.file.source
+                if not hasattr(source, "num_requested_bytes"):
+                    source = None
         except Exception:
-            bytes_before = None
+            source = None
+
+        # Capture bytes at start if filehandle available
+        bytes_before = 0
+        if source:
+            try:
+                bytes_before = source.num_requested_bytes
+            except Exception:
+                pass
 
         try:
             yield
         finally:
-            if bytes_before is not None:
-                bytes_after = 0
+            # Capture bytes at end if filehandle available
+            bytes_after = 0
+            if source:
                 try:
-                    filesource = events.metadata.get("filesource")
-                    if filesource and hasattr(filesource, "num_requested_bytes"):
-                        bytes_after = filesource.num_requested_bytes
+                    bytes_after = source.num_requested_bytes
                 except Exception:
                     pass
 
-                bytes_delta = bytes_after - bytes_before
-            else:
-                bytes_delta = 0
+            bytes_delta = bytes_after - bytes_before
 
             if "bytes" not in processor_self._roastcoffea_current_chunk:
                 processor_self._roastcoffea_current_chunk["bytes"] = {}
