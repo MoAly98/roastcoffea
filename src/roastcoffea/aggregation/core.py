@@ -107,8 +107,8 @@ class MetricsAggregator:
             # This transforms chunk metrics into the format expected by plot_throughput_timeline()
             chunk_info = build_chunk_info(chunk_metrics)
             if chunk_info:
-                # Inject into coffea_report so plotting functions can find it
-                coffea_report["chunk_info"] = chunk_info
+                # Add to chunk_agg_metrics instead of modifying coffea_report
+                chunk_agg_metrics["chunk_info"] = chunk_info
 
         # Calculate efficiency metrics
         efficiency_metrics = calculate_efficiency_metrics(

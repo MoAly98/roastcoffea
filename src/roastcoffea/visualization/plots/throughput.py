@@ -163,7 +163,7 @@ def plot_total_active_tasks_timeline(
 
 
 def plot_throughput_timeline(
-    coffea_report: dict[str, Any],
+    chunk_info: dict[tuple[str, int, int], tuple[float, float, int]],
     tracking_data: dict[str, Any] | None = None,
     output_path: Path | None = None,
     figsize: tuple[int, int] = (12, 6),
@@ -180,9 +180,9 @@ def plot_throughput_timeline(
 
     Parameters
     ----------
-    coffea_report : dict
-        Coffea report containing chunk_info with per-chunk timing data.
-        chunk_info format: {(filename, start, stop): (t0, t1, bytesread)}
+    chunk_info : dict
+        Per-chunk timing data from metrics.
+        Format: {(filename, start, stop): (t0, t1, bytesread)}
     tracking_data : dict, optional
         Worker tracking data with worker_counts for overlay plot
     output_path : Path, optional
@@ -200,12 +200,10 @@ def plot_throughput_timeline(
     Raises
     ------
     ValueError
-        If coffea_report is missing chunk_info data
+        If chunk_info is empty
     """
-    chunk_info = coffea_report.get("chunk_info", {})
-
     if not chunk_info:
-        msg = "No chunk_info found in coffea_report"
+        msg = "No chunk_info provided. Pass chunk_info parameter from metrics."
         raise ValueError(msg)
 
     # Extract per-chunk timing: starts, ends, bytes, runtimes
@@ -262,8 +260,7 @@ def plot_throughput_timeline(
     fig, ax1 = plt.subplots(figsize=figsize)
 
     # Plot throughput
-    ax1.plot(sample_times_dt, instantaneous_rates, linewidth=2, color="C1", label="Throughput")
-    ax1.fill_between(sample_times_dt, instantaneous_rates, alpha=0.3, color="C1")
+    ax1.fill_between(sample_times_dt, instantaneous_rates, alpha=0.5, color="C1", edgecolor="C1", linewidth=0.5)
     ax1.set_xlabel("Time")
     ax1.set_ylabel("Data Rate (Gbps)", color="C1")
     ax1.tick_params(axis="y", labelcolor="C1")
@@ -274,8 +271,8 @@ def plot_throughput_timeline(
     if tracking_data and "worker_counts" in tracking_data:
         worker_counts = tracking_data["worker_counts"]
         if worker_counts:
-            timestamps = [t for t, _ in worker_counts]
-            counts = [c for _, c in worker_counts]
+            timestamps = [t for t, _ in worker_counts.items()]
+            counts = [c for _, c in worker_counts.items()]
 
             ax2 = ax1.twinx()
             ax2.plot(timestamps, counts, linewidth=2, color="C0", label="Workers")
