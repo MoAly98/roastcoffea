@@ -19,8 +19,9 @@ def track_metrics(func: Callable) -> Callable:
     Automatically captures chunk-level metrics including:
     - Wall time (start, end, duration)
     - Memory usage (before/after)
+    - Bytes read from file source (if available)
     - Chunk metadata (dataset, file, entry range if available)
-    - Fine-grained timing/memory sections from context managers
+    - Fine-grained timing/memory/bytes sections from context managers
 
     The decorator works in distributed Dask mode by injecting metrics
     directly into the output dictionary as a list. Coffea's tree reduction
@@ -29,7 +30,7 @@ def track_metrics(func: Callable) -> Callable:
     Usage::
 
         from coffea import processor
-        from roastcoffea import track_metrics, track_time, track_memory
+        from roastcoffea import track_metrics, track_time, track_memory, track_bytes
 
         class MyProcessor(processor.ProcessorABC):
             @track_metrics
@@ -39,6 +40,9 @@ def track_metrics(func: Callable) -> Callable:
 
                 with track_memory(self, "histogram_filling"):
                     # ... fill histograms
+
+                with track_bytes(self, events, "muon_loading"):
+                    muons = events.Muon
 
                 return {"sum": len(events)}
 
@@ -65,6 +69,7 @@ def track_metrics(func: Callable) -> Callable:
         self._roastcoffea_current_chunk = {
             "timing": {},
             "memory": {},
+            "bytes": {},
         }
 
         # Capture start time and memory
@@ -73,6 +78,15 @@ def track_metrics(func: Callable) -> Callable:
 
         # Extract chunk metadata from events
         chunk_metadata = _extract_chunk_metadata(events)
+
+        # Capture bytes from filesource at start
+        bytes_start = 0
+        try:
+            filesource = events.metadata.get("filesource")
+            if filesource and hasattr(filesource, "num_requested_bytes"):
+                bytes_start = filesource.num_requested_bytes
+        except Exception:
+            pass
 
         try:
             # Run the actual processor
@@ -83,6 +97,17 @@ def track_metrics(func: Callable) -> Callable:
             t_end = time.time()
             mem_after = get_process_memory()
 
+            # Capture bytes from filesource at end
+            bytes_end = 0
+            try:
+                filesource = events.metadata.get("filesource")
+                if filesource and hasattr(filesource, "num_requested_bytes"):
+                    bytes_end = filesource.num_requested_bytes
+            except Exception:
+                pass
+
+            bytes_read = bytes_end - bytes_start
+
             # Assemble complete chunk metrics
             chunk_metrics = {
                 "t_start": t_start,
@@ -91,11 +116,13 @@ def track_metrics(func: Callable) -> Callable:
                 "mem_before_mb": mem_before,
                 "mem_after_mb": mem_after,
                 "mem_delta_mb": mem_after - mem_before,
+                "bytes_read": bytes_read,
                 "timestamp": time.time(),
                 **chunk_metadata,
                 # Include fine-grained sections
                 "timing": self._roastcoffea_current_chunk.get("timing", {}),
                 "memory": self._roastcoffea_current_chunk.get("memory", {}),
+                "bytes": self._roastcoffea_current_chunk.get("bytes", {}),
             }
 
             # Clean up container

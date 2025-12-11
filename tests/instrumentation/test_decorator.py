@@ -474,3 +474,148 @@ class TestDecoratorExceptionHandling:
 
         # Container should be cleaned up
         assert not hasattr(processor, "_roastcoffea_current_chunk")
+
+
+class TestByteTracking:
+    """Test byte tracking from filesource."""
+
+    def test_decorator_tracks_bytes_from_filesource(self):
+        """Decorator tracks bytes_read from filesource."""
+
+        class MockFileSource:
+            """Mock FSSpecSource from uproot."""
+
+            def __init__(self):
+                self._bytes = 1000  # Initial bytes
+
+            @property
+            def num_requested_bytes(self):
+                return self._bytes
+
+            def simulate_read(self, bytes_to_read):
+                """Simulate reading bytes."""
+                self._bytes += bytes_to_read
+
+        class TestProcessor:
+            _roastcoffea_collect_metrics = True
+
+            @track_metrics
+            def process(self, events):
+                # Simulate reading 500 bytes during processing
+                events.metadata["filesource"].simulate_read(500)
+                return {}
+
+        processor = TestProcessor()
+        filesource = MockFileSource()
+        events = MockEvents(metadata={"filesource": filesource})
+
+        result = processor.process(events)
+
+        chunk = result["__roastcoffea_metrics__"][0]
+        assert "bytes_read" in chunk
+        assert chunk["bytes_read"] == 500
+
+    def test_decorator_handles_missing_filesource(self):
+        """Decorator handles missing filesource gracefully."""
+
+        class TestProcessor:
+            _roastcoffea_collect_metrics = True
+
+            @track_metrics
+            def process(self, events):
+                return {}
+
+        processor = TestProcessor()
+        events = MockEvents(metadata={})  # No filesource
+
+        result = processor.process(events)
+
+        chunk = result["__roastcoffea_metrics__"][0]
+        assert "bytes_read" in chunk
+        assert chunk["bytes_read"] == 0
+
+    def test_decorator_handles_filesource_without_attribute(self):
+        """Decorator handles filesource without num_requested_bytes."""
+
+        class BrokenFileSource:
+            """File source without the required attribute."""
+
+            pass
+
+        class TestProcessor:
+            _roastcoffea_collect_metrics = True
+
+            @track_metrics
+            def process(self, events):
+                return {}
+
+        processor = TestProcessor()
+        events = MockEvents(metadata={"filesource": BrokenFileSource()})
+
+        result = processor.process(events)
+
+        chunk = result["__roastcoffea_metrics__"][0]
+        assert "bytes_read" in chunk
+        assert chunk["bytes_read"] == 0
+
+    def test_decorator_calculates_correct_byte_delta(self):
+        """Decorator correctly calculates byte delta."""
+
+        class MockFileSource:
+            """Mock FSSpecSource."""
+
+            def __init__(self, start_bytes):
+                self._bytes = start_bytes
+
+            @property
+            def num_requested_bytes(self):
+                return self._bytes
+
+            def add_bytes(self, delta):
+                self._bytes += delta
+
+        class TestProcessor:
+            _roastcoffea_collect_metrics = True
+
+            @track_metrics
+            def process(self, events):
+                # Start: 5000, read 2500 bytes during processing
+                events.metadata["filesource"].add_bytes(2500)
+                return {}
+
+        processor = TestProcessor()
+        filesource = MockFileSource(start_bytes=5000)
+        events = MockEvents(metadata={"filesource": filesource})
+
+        result = processor.process(events)
+
+        chunk = result["__roastcoffea_metrics__"][0]
+        assert chunk["bytes_read"] == 2500
+        # Filesource should now be at 7500
+        assert filesource.num_requested_bytes == 7500
+
+    def test_decorator_tracks_zero_bytes_when_no_reads(self):
+        """Decorator tracks zero bytes when no data is read."""
+
+        class MockFileSource:
+            """Mock FSSpecSource that doesn't change."""
+
+            @property
+            def num_requested_bytes(self):
+                return 1000  # Constant
+
+        class TestProcessor:
+            _roastcoffea_collect_metrics = True
+
+            @track_metrics
+            def process(self, events):
+                # No reads happen
+                return {}
+
+        processor = TestProcessor()
+        events = MockEvents(metadata={"filesource": MockFileSource()})
+
+        result = processor.process(events)
+
+        chunk = result["__roastcoffea_metrics__"][0]
+        assert chunk["bytes_read"] == 0

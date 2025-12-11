@@ -1,6 +1,6 @@
 """Instrumentation context managers for fine-grained tracking.
 
-Provides track_time() and track_memory() context managers for
+Provides track_time(), track_memory(), and track_bytes() context managers for
 detailed profiling within processor methods.
 """
 
@@ -137,6 +137,87 @@ def track_memory(processor_self: Any, section_name: str) -> Generator[None, None
                 processor_self._roastcoffea_current_chunk["memory"] = {}
 
             processor_self._roastcoffea_current_chunk["memory"][section_name] = delta_mb
+    else:
+        # No collection active, just yield
+        yield
+
+
+@contextmanager
+def track_bytes(
+    processor_self: Any, events: Any, section_name: str
+) -> Generator[None, None, None]:
+    """Context manager to track bytes read from filesource for a named operation.
+
+    Measures the number of bytes read from the file source during a specific
+    operation. Useful for identifying I/O-intensive operations and understanding
+    data access patterns.
+
+    Works in distributed Dask mode by writing directly to the processor
+    instance's metrics container, which is then injected into the output
+    by the @track_metrics decorator.
+
+    Args:
+        processor_self: The processor instance (self)
+        events: Events object with metadata containing filesource
+        section_name: Name of the operation (e.g., "load_jets", "read_systematics")
+
+    Yields:
+        None
+
+    Usage::
+
+        from roastcoffea import track_metrics, track_bytes
+
+        class MyProcessor(processor.ProcessorABC):
+            @track_metrics
+            def process(self, events):
+                with track_bytes(self, events, "jet_loading"):
+                    jets = events.Jet  # Lazy loading triggers file reads
+
+                with track_bytes(self, events, "muon_loading"):
+                    muons = events.Muon
+
+                return {"sum": len(events)}
+
+    Note:
+        Requires the filesource to be available in events.metadata["filesource"]
+        with a num_requested_bytes attribute. This is available when using the
+        modified coffea version with file source exposure.
+
+    Note:
+        Byte metrics are automatically attached to the current chunk
+        if used within a @track_metrics decorated function. If no collection
+        is active or no filesource is available, this context manager is a no-op.
+    """
+    if processor_self and hasattr(processor_self, "_roastcoffea_current_chunk"):
+        bytes_before = 0
+        try:
+            filesource = events.metadata.get("filesource")
+            if filesource and hasattr(filesource, "num_requested_bytes"):
+                bytes_before = filesource.num_requested_bytes
+        except Exception:
+            bytes_before = None
+
+        try:
+            yield
+        finally:
+            if bytes_before is not None:
+                bytes_after = 0
+                try:
+                    filesource = events.metadata.get("filesource")
+                    if filesource and hasattr(filesource, "num_requested_bytes"):
+                        bytes_after = filesource.num_requested_bytes
+                except Exception:
+                    pass
+
+                bytes_delta = bytes_after - bytes_before
+            else:
+                bytes_delta = 0
+
+            if "bytes" not in processor_self._roastcoffea_current_chunk:
+                processor_self._roastcoffea_current_chunk["bytes"] = {}
+
+            processor_self._roastcoffea_current_chunk["bytes"][section_name] = bytes_delta
     else:
         # No collection active, just yield
         yield

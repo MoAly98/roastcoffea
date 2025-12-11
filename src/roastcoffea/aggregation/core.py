@@ -6,6 +6,7 @@ from typing import Any
 
 from roastcoffea.aggregation.backends import get_parser
 from roastcoffea.aggregation.chunk import aggregate_chunk_metrics
+from roastcoffea.aggregation.chunks import build_chunk_info
 from roastcoffea.aggregation.efficiency import calculate_efficiency_metrics
 from roastcoffea.aggregation.fine_metrics import parse_fine_metrics
 from roastcoffea.aggregation.workflow import aggregate_workflow_metrics
@@ -101,6 +102,13 @@ class MetricsAggregator:
                 chunk_metrics=chunk_metrics,
                 section_metrics=section_metrics,
             )
+
+            # Build chunk_info for throughput plotting
+            # This transforms chunk metrics into the format expected by plot_throughput_timeline()
+            chunk_info = build_chunk_info(chunk_metrics)
+            if chunk_info:
+                # Inject into coffea_report so plotting functions can find it
+                coffea_report["chunk_info"] = chunk_info
 
         # Calculate efficiency metrics
         efficiency_metrics = calculate_efficiency_metrics(
