@@ -1,6 +1,8 @@
 # Performance Metrics Reference
 
-Comprehensive performance monitoring for Coffea-based HEP analysis workflows.
+**Version**: 1.0
+**Package**: coffea-metrics
+**Purpose**: Comprehensive performance monitoring for Coffea-based HEP analysis workflows
 
 ---
 
@@ -8,40 +10,16 @@ Comprehensive performance monitoring for Coffea-based HEP analysis workflows.
 
 1. [Overview](#overview)
 2. [Workflow-Level Metrics](#workflow-level-metrics)
-   - [Throughput Metrics](#throughput-metrics)
-   - [Data Volume Metrics](#data-volume-metrics)
-   - [Timing Metrics](#timing-metrics)
 3. [Worker-Level Metrics](#worker-level-metrics)
-   - [Worker Count Metrics](#worker-count-metrics)
-   - [Memory Metrics](#memory-metrics)
-   - [CPU Utilization Timeline](#cpu-utilization-timeline)
 4. [Chunk-Level Metrics](#chunk-level-metrics)
-   - [Per-Chunk Metrics](#per-chunk-metrics)
-   - [Chunk Statistics](#chunk-statistics)
 5. [Fine Performance Metrics](#fine-performance-metrics)
-   - [Raw Activity Metrics](#raw-activity-metrics-from-dask-spans)
-   - [Derived Fine Metrics](#derived-fine-metrics)
-   - [Availability](#availability)
-   - [Robustness: Metric Synchronization](#robustness-metric-synchronization)
 6. [Internal Instrumentation Metrics](#internal-instrumentation-metrics)
-   - [Section Timing](#section-timing)
-   - [Section Memory](#section-memory)
-   - [Custom Metrics](#custom-metrics)
 7. [Efficiency Metrics](#efficiency-metrics)
-   - [CPU Efficiency](#cpu-efficiency)
-   - [Speedup Factor](#speedup-factor)
-   - [I/O Overhead](#io-overhead)
-   - [Scaling Efficiency](#scaling-efficiency)
-8. [Assumptions & Limitations](#assumptions-limitations)
+8. [Assumptions & Limitations](#assumptions--limitations)
 9. [Metric Collection Methods](#metric-collection-methods)
-   - [Timeline Sampling](#timeline-sampling-worker-tracking)
-   - [Point-in-Time Measurement](#point-in-time-measurement-chunk-tracking)
-   - [Cumulative Metrics](#cumulative-metrics-fine-performance)
-   - [Event-Driven](#event-driven-coffea-report)
-10. [Usage Patterns](#usage-patterns)
-11. [Glossary](#glossary)
 
-(overview)=
+---
+
 ## Overview
 
 This document describes all performance metrics collected by the coffea-metrics package. Metrics are organized into categories based on their granularity and data source.
@@ -56,12 +34,10 @@ This document describes all performance metrics collected by the coffea-metrics 
 
 ---
 
-(workflow-level-metrics)=
 ## Workflow-Level Metrics
 
 These metrics describe the overall workflow execution from start to finish.
 
-(throughput-metrics)=
 ### Throughput Metrics
 
 | Metric | Formula | Units | Description |
@@ -79,24 +55,23 @@ These metrics describe the overall workflow execution from start to finish.
 - `total_cpu_time`: Coffea report (`processtime`)
 - `total_cores`: `time_avg_workers × cores_per_worker`
 
-(data-volume-metrics)=
 ### Data Volume Metrics
 
 | Metric | Source | Units | Description |
 |--------|--------|-------|-------------|
 | **Total Bytes Read (Coffea)** | `coffea_report['bytesread']` | bytes | Bytes reported by Coffea as read from files |
-| **Memory Read (Dask Spans)** | Dask Spans (`memory-read`) | bytes | Data read from worker memory (tracked by Dask) |
-| **Disk Read (Dask Spans)** | Dask Spans (`disk-read`) | bytes | Data read from disk due to memory spilling (tracked by Dask) |
-| **Disk Write (Dask Spans)** | Dask Spans (`disk-write`)| bytes | Data written to disk due to memory spilling (tracked by Dask) |
+| **Memory Read (Dask Spans)** | Dask Spans (`memory-read`) | bytes | In-memory data access tracked by Dask |
+| **Disk Read** | Dask Spans (`disk-read`) | bytes | Actual disk I/O tracked by Dask (when available) |
+| **Disk Write** | Dask Spans (`disk-write`)| bytes | Disk writes tracked by Dask (spills, etc.) |
 | **Total Events** | `coffea_report['entries']` | count | Number of physics events processed |
 
 **Important Notes**:
-- **Coffea bytesread**: Bytes reported by Coffea - exact meaning depends on file format and access method
-- **Dask memory-read**: Worker memory reads tracked by Dask - does NOT measure file I/O
-- **Dask disk-read/write**: Worker disk spillage tracked by Dask - does NOT measure file I/O
-- **These metrics measure different things and cannot be directly compared**
+- **Coffea bytesread**: What Coffea reports - typically compressed bytes for ROOT files, exact meaning depends on file format and access method
+- **Dask memory-read**: In-memory data access Dask observes - may be incomplete for ROOT files due to ROOT's internal I/O management
+- **Dask disk-read**: Physical disk I/O - may not be available for all file types/access methods
+- **These metrics measure different things and cannot be directly compared or used to calculate compression ratio**
+- **For ROOT files**: Coffea's bytesread is typically much larger than Dask's memory-read because ROOT handles decompression internally
 
-(timing-metrics)=
 ### Timing Metrics
 
 | Metric | Formula | Units | Description |
@@ -112,12 +87,10 @@ These metrics describe the overall workflow execution from start to finish.
 
 ---
 
-(worker-level-metrics)=
 ## Worker-Level Metrics
 
 These metrics describe resource utilization across Dask workers over time.
 
-(worker-count-metrics)=
 ### Worker Count Metrics
 
 | Metric | Formula | Units | Description |
@@ -136,7 +109,6 @@ These metrics describe resource utilization across Dask workers over time.
   ```
 - More accurate than simple mean when workers scale up/down during execution
 
-(memory-metrics)=
 ### Memory Metrics
 
 | Metric | Aggregation | Units | Description |
@@ -152,28 +124,26 @@ These metrics describe resource utilization across Dask workers over time.
 - Lazy arrays (awkward/dask arrays) build up memory during access
 - High memory utilization (>80%) indicates potential spilling or OOM risk
 
-(cpu-utilization-timeline)=
 ### CPU Utilization Timeline
 
 | Metric | Formula | Units | Description |
 |--------|---------|-------|-------------|
-| **CPU Utilization %** | `(active_tasks / cores_per_worker) × 100` | % | Task scheduling efficiency |
+| **CPU Utilization %** | `worker_state.metrics.get("cpu", 0)` | % | Actual CPU usage percentage (0-100%) per worker |
 
-**Data Source**: Scheduler tracking samples `worker_state.processing` (active tasks)
+**Data Source**: Scheduler tracking samples `worker_state.metrics['cpu']` every interval
 
 **Notes**:
-- `active_tasks` = number of currently executing tasks on worker
-- Low CPU utilization indicates idle time (waiting for I/O, poor scheduling)
-- This is a **proxy** for CPU usage; actual CPU % available via fine metrics
+- Reports actual CPU percentage per worker (0-100%)
+- Tracked over time to create CPU utilization timeline
+- Low CPU utilization indicates idle time (waiting for I/O, poor scheduling, GIL contention)
+- Complements fine metrics' `thread-cpu` breakdown for comprehensive CPU analysis
 
 ---
 
-(chunk-level-metrics)=
 ## Chunk-Level Metrics
 
 These metrics describe individual chunk processing collected via the `@track_metrics` decorator.
 
-(per-chunk-metrics)=
 ### Per-Chunk Metrics
 
 | Metric | Measurement | Units | Description |
@@ -198,7 +168,62 @@ These metrics describe individual chunk processing collected via the `@track_met
 - **Memory includes lazy arrays**: Awkward/dask arrays materialize during access, so memory_delta captures compute impact, not just inputs
 - **Memory is cumulative**: Python GC may not run immediately, so memory_delta can include previous chunks
 
-(chunk-statistics)=
+### File-Level Metadata
+
+**Status**: ✅ Implemented (v0.3+)
+
+File-level metadata is extracted once per file per worker to avoid redundant computation. Stored in chunk metrics but deduplicated during aggregation.
+
+| Metric | Source | Units | Description |
+|--------|--------|-------|-------------|
+| **Compression Ratio** | `tree.compressed_bytes / tree.uncompressed_bytes` | ratio | File compression efficiency |
+| **Total Branches** | `len(tree.keys())` | count | Number of branches in tree |
+| **Branch Bytes** | `tree[branch].compressed_bytes` | bytes | Compressed size per branch |
+| **Total Tree Bytes** | `tree.compressed_bytes` | bytes | Total compressed bytes in tree |
+
+**Data Source**: Extracted from `events.metadata['filehandle']` (requires coffea with filehandle API)
+
+**Deduplication**: Uses `processor._roastcoffea_processed_files` set to track which files have been processed on each worker
+
+**Notes**:
+- Extracted only once per file per worker (first chunk of each file)
+- Compression ratio is file-specific (varies by compression algorithm and physics content)
+- Branch bytes enable calculating percentage of file data actually read
+
+### Branch Read Metrics
+
+**Status**: ✅ Implemented (v0.3+)
+
+These metrics analyze which branches are accessed from ROOT files and quantify data access efficiency.
+
+| Metric | Formula | Units | Description |
+|--------|---------|-------|-------------|
+| **Total Branches Read** | `len(accessed_branches)` | count | Number of unique branches accessed globally |
+| **Branches Read %** | `(branches_read / total_branches) × 100` | % | Percentage of available branches actually used |
+| **Bytes Read** | `Σ branch_bytes[branch]` for accessed branches | bytes | Compressed bytes read from accessed branches |
+| **Bytes Read %** | `(bytes_read / total_tree_bytes) × 100` | % | Percentage of file data actually read |
+
+**Data Sources**:
+- `accessed_branches`: Parsed from `coffea_report['columns']` (only `-data` suffixed columns)
+- `total_branches`: From file-level metadata
+- `branch_bytes`: Per-branch compressed sizes from file-level metadata
+- `total_tree_bytes`: Total compressed tree size from file-level metadata
+
+**Calculation Details**:
+- **Branch parsing**: Only counts `-data` columns (actual branches), ignores `-offsets` (awkward metadata)
+  ```python
+  # Example: ['Jet_pt-data', 'nJet-offsets', 'Muon_pt-data'] → {'Jet_pt', 'Muon_pt'}
+  branches = {col[:-5] for col in columns if col.endswith("-data")}
+  ```
+- **Global tracking**: Currently coffea provides same branches for all files (not per-file)
+- **Per-file metrics**: Each file gets read percentages based on its own structure
+
+**Important Notes**:
+- Identifies unnecessary data reads (columns read but not used)
+- Helps optimize analysis code by revealing data access patterns
+- Compression ratio distribution shows file-level variability
+- Branch coverage is count-based; bytes read percentage is volume-based
+
 ### Chunk Statistics
 
 From chunk-level data, we can derive:
@@ -206,23 +231,25 @@ From chunk-level data, we can derive:
 - **Time per event**: `chunk_time / event_count` variability
 - **Memory per event**: `memory_delta / event_count` variability
 - **Dataset attribution**: Which datasets are slowest/largest
+- **Runtime distribution**: Histogram of chunk processing times
+- **Runtime vs events**: Correlation analysis for identifying outliers
 
 ---
 
-(fine-performance-metrics)=
 ## Fine Performance Metrics
+
+**Status**: ✅ Implemented (v0.2+)
 
 These metrics provide activity-level breakdown using Dask's Spans API. Automatically collected when using `MetricsCollector` with Dask backend.
 
-(raw-activity-metrics-from-dask-spans)=
 ### Raw Activity Metrics (from Dask Spans)
 
 | Activity | Description | Units | Exported Metric |
 |----------|-------------|-------|-----------------|
 | **thread-cpu** | Pure CPU computation time | seconds | `cpu_time_seconds` |
-| **thread-noncpu** | Difference between wall clock time and CPU time (typically I/O time, GPU time, CPU contention, or GIL contention) | seconds | `io_time_seconds` |
-| **disk-read** | Data read from disk due to memory spilling | bytes | `disk_read_bytes` |
-| **disk-write** | Data written to disk due to memory spilling | bytes | `disk_write_bytes` |
+| **thread-noncpu** | Non-CPU wall time (I/O, GIL contention) | seconds | `io_time_seconds` |
+| **disk-read** | Bytes read from disk (includes ROOT decompression) | bytes | `disk_read_bytes` |
+| **disk-write** | Bytes written to disk (spill operations) | bytes | `disk_write_bytes` |
 | **compress** | Data compression time | seconds | `compression_time_seconds` |
 | **decompress** | Data decompression time | seconds | `decompression_time_seconds` |
 | **serialize** | Python object serialization | seconds | `serialization_time_seconds` |
@@ -236,20 +263,19 @@ These metrics provide activity-level breakdown using Dask's Spans API. Automatic
 3. Extract `span.cumulative_worker_metrics` after completion
 4. Parse and aggregate into standardized metrics
 
-(derived-fine-metrics)=
 ### Derived Fine Metrics
 
 | Metric | Formula | Units | Description |
 |--------|---------|-------|-------------|
 | **Processor CPU Time** | `cumulative_worker_metrics['thread-cpu']` (filtered) | seconds | Pure compute in processor |
-| **Processor Non-CPU Time** | `cumulative_worker_metrics['thread-noncpu']` (filtered) | seconds | Difference between wall clock and CPU time in processor (typically I/O time, GPU time, CPU contention, or GIL contention) |
+| **Processor Non-CPU Time** | `cumulative_worker_metrics['thread-noncpu']` (filtered) | seconds | Non-CPU time in processor (I/O, waiting, GIL) |
 | **Processor CPU Percentage** | `processor_cpu / (processor_cpu + processor_noncpu) × 100` | % | Fraction of processor time spent computing |
-| **Processor Non-CPU Percentage** | `processor_noncpu / (processor_cpu + processor_noncpu) × 100` | % | Fraction of processor time on non-CPU activities (typically I/O, GPU, CPU contention, GIL contention) |
+| **Processor Non-CPU Percentage** | `processor_noncpu / (processor_cpu + processor_noncpu) × 100` | % | Fraction of processor time on I/O/waiting |
 | **Overhead CPU Time** | `cumulative_worker_metrics['thread-cpu']` (non-processor) | seconds | CPU time in Dask coordination overhead |
-| **Overhead Non-CPU Time** | `cumulative_worker_metrics['thread-noncpu']` (non-processor) | seconds | Difference between wall clock and CPU time in Dask overhead |
-| **Memory Read (Dask)** | `cumulative_worker_metrics['memory-read']` | bytes | Data read from worker memory (tracked by Dask) |
-| **Disk Read** | `cumulative_worker_metrics['disk-read']` | bytes | Data read from disk due to memory spilling (tracked by Dask) |
-| **Disk Write** | `cumulative_worker_metrics['disk-write']` | bytes | Data written to disk due to memory spilling (tracked by Dask) |
+| **Overhead Non-CPU Time** | `cumulative_worker_metrics['thread-noncpu']` (non-processor) | seconds | Non-CPU time in Dask overhead |
+| **Memory Read (Dask)** | `cumulative_worker_metrics['memory-read']` | bytes | In-memory data access tracked by Dask |
+| **Disk Read** | `cumulative_worker_metrics['disk-read']` | bytes | Actual disk I/O tracked by Dask |
+| **Disk Write** | `cumulative_worker_metrics['disk-write']` | bytes | Total data written (spills) |
 | **Total Compression Overhead** | `compress + decompress` | seconds | Time spent compressing/decompressing |
 | **Total Serialization Overhead** | `serialize + deserialize` | seconds | Time spent pickling/unpickling |
 
@@ -259,7 +285,6 @@ These metrics provide activity-level breakdown using Dask's Spans API. Automatic
 - **Overhead visibility**: Quantifies time spent on serialization and compression
 - **Multiple byte metrics**: Both Coffea's bytesread and Dask's memory-read/disk-read are reported separately
 
-(availability)=
 ### Availability
 
 Fine metrics are available when:
@@ -267,7 +292,6 @@ Fine metrics are available when:
 - Dask `distributed` package installed with Spans support
 - Using `MetricsCollector` context manager (automatic)
 
-(robustness-metric-synchronization)=
 ### Robustness: Metric Synchronization
 
 **Challenge**: Worker metrics sync to scheduler via heartbeats (~1s interval). Tasks completing right after a heartbeat won't have metrics available until the next heartbeat.
@@ -290,18 +314,18 @@ Fine metrics are available when:
 # Customize retry behavior (not typically needed)
 backend = DaskBackend(client)
 metrics = backend.get_span_metrics(
-    span_info, max_retries=5, retry_delay=0.3  # More retries  # Shorter initial delay
+    span_info,
+    max_retries=5,      # More retries
+    retry_delay=0.3     # Shorter initial delay
 )
 ```
 
 ---
 
-(internal-instrumentation-metrics)=
 ## Internal Instrumentation Metrics
 
 These are **opt-in** metrics collected via user-placed instrumentation context managers.
 
-(section-timing)=
 ### Section Timing
 
 **Context Manager**: `track_section(processor, name)`
@@ -323,7 +347,6 @@ def process(self, events):
 
 **Storage**: Appended to `chunk_metrics[i]['sections']`
 
-(section-memory)=
 ### Section Memory
 
 **Context Manager**: `track_memory(processor, name)`
@@ -342,7 +365,6 @@ with track_memory(self, "histogram_filling"):
 
 **Storage**: Appended to `chunk_metrics[i]['memory_sections']`
 
-(custom-metrics)=
 ### Custom Metrics
 
 **Base Class**: `BaseInstrumentationContext`
@@ -359,12 +381,10 @@ class MyCustomTracker(BaseInstrumentationContext):
 
 ---
 
-(efficiency-metrics)=
 ## Efficiency Metrics
 
 These are **derived** metrics calculated from other measurements.
 
-(cpu-efficiency)=
 ### CPU Efficiency
 
 **Formula**:
@@ -384,10 +404,9 @@ cpu_efficiency = total_cpu_time / (wall_time × total_cores)
 **With Fine Metrics**:
 ```
 cpu_efficiency = cpu_time (from thread-cpu) / (wall_time × total_cores)
-noncpu_overhead = noncpu_time (from thread-noncpu) / wall_time
+io_overhead = io_time (from thread-noncpu) / wall_time
 ```
 
-(speedup-factor)=
 ### Speedup Factor
 
 **Formula**:
@@ -409,24 +428,22 @@ speedup = total_cpu_time / wall_time
 speedup = cpu_efficiency × total_cores
 ```
 
-(io-overhead)=
 ### I/O Overhead
 
 **Formula** (requires fine metrics):
 ```
-io_overhead_pct = (noncpu_time / wall_time) × 100
+io_overhead_pct = (io_time / wall_time) × 100
 ```
 
 **Units**: Percentage
 
-**Meaning**: What fraction of wall time is spent on non-CPU activities (difference between wall clock time and CPU time)
+**Meaning**: What fraction of wall time is spent on I/O (not compute)
 
 **Interpretation**:
-- **10%**: Compute-bound, non-CPU activities not a bottleneck
-- **50%**: Half the time on non-CPU activities (typically I/O, but could include GPU time, CPU contention, or GIL contention)
-- **80%+**: Dominated by non-CPU activities
+- **10%**: Compute-bound, I/O not a bottleneck
+- **50%**: Half the time waiting for I/O
+- **80%+**: Severely I/O bound, need faster storage/network
 
-(scaling-efficiency)=
 ### Scaling Efficiency
 
 **Measured via**: Comparing throughput vs worker count
@@ -443,21 +460,23 @@ io_overhead_pct = (noncpu_time / wall_time) × 100
 
 ---
 
-(assumptions-limitations)=
 ## Assumptions & Limitations
 
 ### Known Limitations
 
 1. **Byte Metrics from Different Sources** ⚠️ Cannot Be Combined
-   - **Coffea bytesread**: Bytes reported by Coffea as read from files - exact meaning depends on file format and access method
-   - **Dask memory-read**: Data read from worker memory (tracked by Dask) - does NOT measure file I/O
-   - **Dask disk-read/write**: Data read/written from disk due to memory spilling (tracked by Dask) - does NOT measure file I/O
-   - **Cannot calculate compression ratio**: These metrics measure different things and cannot be directly compared
+   - **Coffea bytesread**: Reports what Coffea tracks - file format dependent
+   - **Dask memory-read**: In-memory access Dask observes - incomplete for ROOT files
+   - **Dask disk-read**: Physical disk I/O - may not be available for all access methods
+   - **Cannot derive compression ratio from these metrics**: These metrics measure different things and cannot be directly compared
+   - **For ROOT files**: Coffea bytesread >> Dask memory-read due to ROOT's internal I/O management
+   - **Actual compression ratio**: ✅ Available from file-level metadata (tree.compressed_bytes / tree.uncompressed_bytes)
 
-2. **I/O vs Compute Separation**
-   - **Available via**: Dask Spans provides `thread-cpu` vs `thread-noncpu`
+2. **I/O vs Compute Separation** ✅ Resolved
+   - **Current (v0.2+)**: Dask Spans provides `thread-cpu` vs `thread-noncpu`
    - **Exported as**: `processor_cpu_time_seconds`, `processor_noncpu_time_seconds`, etc.
-   - **thread-noncpu definition**: Difference between wall clock time and CPU time spent by tasks while running on workers - typically I/O time, GPU time, CPU contention, or GIL contention
+   - **Limitation**: `thread-noncpu` includes GPU time and GIL contention, not just disk I/O
+   - **Interpretation**: For HEP workflows, `thread-noncpu` is primarily I/O (ROOT reading)
 
 3. **Memory Measurement**
    - **Level**: Process-level RSS via `psutil`, not just physics data
@@ -476,6 +495,19 @@ io_overhead_pct = (noncpu_time / wall_time) × 100
    - **Metrics overhead**: Dask fine metrics have negligible overhead
    - **Spans overhead**: Cumulative metrics tracking is lightweight
 
+6. **Branch Read Tracking** ⚠️ Global, Not Per-File
+   - **Current**: Coffea reports global accessed branches (same for all files)
+   - **Per-file metrics**: Each file gets read percentages based on same global branch set
+   - **Limitation**: Cannot identify which branches were accessed from specific files
+   - **Future**: Per-file branch tracking planned when coffea support is added
+   - **Workaround**: Run separate analyses per dataset to isolate branch usage patterns
+
+7. **File-Level Metadata Extraction**
+   - **Requires**: Coffea with filehandle API exposure (`events.metadata['filehandle']`)
+   - **Deduplication**: First chunk of each file per worker extracts metadata
+   - **Memory**: Small overhead for tracking processed files set per worker
+   - **Availability**: Only for ROOT files accessed via uproot with filehandle support
+
 ### Assumptions
 
 1. **Cores per Worker**: Assumes homogeneous workers (same core count)
@@ -486,10 +518,8 @@ io_overhead_pct = (noncpu_time / wall_time) × 100
 
 ---
 
-(metric-collection-methods)=
 ## Metric Collection Methods
 
-(timeline-sampling-worker-tracking)=
 ### Timeline Sampling (Worker Tracking)
 
 **Method**: Async task on Dask scheduler samples worker state periodically
@@ -504,7 +534,7 @@ io_overhead_pct = (noncpu_time / wall_time) × 100
 - CPU cores: `worker_state.nthreads`
 
 **Storage**: Time-series data stored in JSON:
-```python
+```json
 {
   "worker_counts": [{"timestamp": "...", "worker_count": 10}, ...],
   "worker_memory": {
@@ -513,7 +543,6 @@ io_overhead_pct = (noncpu_time / wall_time) × 100
 }
 ```
 
-(point-in-time-measurement-chunk-tracking)=
 ### Point-in-Time Measurement (Chunk Tracking)
 
 **Method**: Decorator wraps `process()` method, measures at entry/exit
@@ -524,7 +553,6 @@ io_overhead_pct = (noncpu_time / wall_time) × 100
 
 **Storage**: List of dictionaries, one per chunk
 
-(cumulative-metrics-fine-performance)=
 ### Cumulative Metrics (Fine Performance)
 
 **Method**: Dask Spans API accumulates activity metrics across all tasks
@@ -538,7 +566,6 @@ io_overhead_pct = (noncpu_time / wall_time) × 100
 
 **Granularity**: Per-task-prefix breakdown available
 
-(event-driven-coffea-report)=
 ### Event-Driven (Coffea Report)
 
 **Method**: Coffea runner automatically collects these metrics
@@ -554,7 +581,6 @@ io_overhead_pct = (noncpu_time / wall_time) × 100
 
 ---
 
-(usage-patterns)=
 ## Usage Patterns
 
 ### Minimal - Workflow Level Only
@@ -574,13 +600,11 @@ with MetricsCollector(executor, output_dir="benchmarks") as mc:
 ```python
 from coffea_metrics import MetricsCollector, track_metrics
 
-
 class MyProcessor(processor.ProcessorABC):
     @track_metrics
     def process(self, events):
         # Normal processing
         return result
-
 
 with MetricsCollector(executor, output_dir) as mc:
     output, report = runner(fileset, processor_instance)
@@ -595,7 +619,6 @@ with MetricsCollector(executor, output_dir) as mc:
 ```python
 from coffea_metrics import track_metrics, track_section, track_memory
 
-
 class MyProcessor(processor.ProcessorABC):
     @track_metrics
     def process(self, events):
@@ -607,14 +630,13 @@ class MyProcessor(processor.ProcessorABC):
 
         return result
 
-
 # Get: + per-section timing/memory within chunks
 ```
 
 ### Complete - With Fine Metrics (Dask Spans)
 
 ```python
-# Automatic - fine metrics collected by default with Dask backend
+# Automatic - fine metrics collected by default with Dask backend (v0.2+)
 with MetricsCollector(client) as collector:
     output, report = runner(fileset, processor_instance)
     collector.set_coffea_report(report)
@@ -629,15 +651,38 @@ print(f"Processor Non-CPU time: {metrics['processor_noncpu_time_seconds']:.1f}s"
 print(f"Processor CPU %: {metrics['processor_cpu_percentage']:.1f}%")
 print(f"Processor Non-CPU %: {metrics['processor_noncpu_percentage']:.1f}%")
 print(f"Bytes read (Coffea): {metrics['total_bytes_read_coffea'] / 1e9:.2f} GB")
-print(
-    f"Memory read (Dask): {metrics.get('total_bytes_memory_read_dask', 0) / 1e9:.2f} GB"
-)
+print(f"Memory read (Dask): {metrics.get('total_bytes_memory_read_dask', 0) / 1e9:.2f} GB")
 print(f"Disk read: {metrics.get('disk_read_bytes', 0) / 1e9:.2f} GB")
 ```
 
 ---
 
-(glossary)=
+## Future Improvements
+
+### Planned Enhancements
+
+1. **Additional Worker Metrics**
+   - ✅ `worker_state.metrics['cpu']`: Real CPU % (implemented in v0.3+)
+   - `worker_state.metrics['spilled_bytes']`: Memory pressure indicator
+   - `worker_state.metrics['host_net_io']`: Network I/O rates
+   - `worker_state.metrics['host_disk_io']`: Disk I/O rates
+
+2. **Per-File Branch Tracking**
+   - Currently: Global branch list from coffea (same for all files)
+   - Planned: Per-file accessed branches for fine-grained analysis
+   - Enables: Identifying file-specific data access patterns
+
+3. **TaskVine Backend**
+   - Implement `TaskVineMetricsBackend`
+   - Map equivalent metrics to Dask's model
+
+4. **Prometheus Integration**
+   - Export metrics to Prometheus
+   - Enable long-term monitoring and alerting
+   - See: https://distributed.dask.org/en/latest/prometheus.html
+
+---
+
 ## Glossary
 
 - **Chunk**: A unit of work (file + entry range) processed by a single task
@@ -650,3 +695,13 @@ print(f"Disk read: {metrics.get('disk_read_bytes', 0) / 1e9:.2f} GB")
 - **Task Prefix**: Dask task name prefix identifying task type
 - **RSS**: Resident Set Size - process memory actually in RAM
 - **Spilling**: Moving worker memory to disk when limit exceeded
+
+---
+
+**Document Version**: 1.1
+**Last Updated**: 2025-12-12
+**Maintained By**: roastcoffea project
+
+**Changelog**:
+- v1.1 (2025-12-12): Added CPU utilization tracking, compression ratio tracking, branch read metrics, file-level metadata extraction
+- v1.0 (2025-11-07): Initial documentation

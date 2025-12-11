@@ -4,12 +4,14 @@ Performance monitoring and metrics collection for Coffea-based HEP analysis work
 
 ## Features
 
-- Automatic worker tracking (Dask worker counts, memory, resource utilization)
-- Comprehensive metrics (throughput, event rates, compression ratios, efficiency)
-- Rich terminal output with formatted tables
-- Matplotlib visualizations (worker timelines, memory utilization)
-- Save and load benchmark measurements
-- Simple context manager API
+- **Automatic worker tracking** - Dask worker counts, memory, CPU utilization
+- **Comprehensive metrics** - Throughput, event rates, efficiency, resource usage
+- **I/O analysis** - File compression ratios, branch access patterns, data read percentages
+- **Chunk-level monitoring** - Per-chunk timing, memory, runtime distributions
+- **Rich visualizations** - 17 built-in Matplotlib plots for performance analysis
+- **Terminal output** - Formatted tables with color-coded metrics
+- **Measurement persistence** - Save and load benchmarks for comparison
+- **Simple API** - Context manager for clean integration
 
 ## Documentation
 

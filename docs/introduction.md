@@ -36,11 +36,17 @@ roastcoffea provides progressively detailed metrics:
 - **Timing**: Wall time, CPU time, I/O time breakdown
 - **Efficiency**: Core utilization, speedup factors, parallelism metrics
 - **Activity**: CPU vs non-CPU time, disk I/O, compression overhead
+- **I/O Analysis**: File compression ratios, branch access patterns, data read percentages
+- **Chunk Performance**: Runtime distributions, event processing correlations
 
 ### Visualization & Export
 
 - Rich terminal tables with formatted output
-- Matplotlib visualizations (timelines, utilization plots)
+- 17 built-in Matplotlib plots including:
+  - Resource timelines (workers, memory, CPU utilization, data rates)
+  - Efficiency metrics (CPU efficiency, task distribution)
+  - I/O analysis (compression ratios, data access patterns)
+  - Chunk-level performance (runtime distributions, event correlations)
 - Save/load measurements for comparison
 - JSON export for custom analysis
 
@@ -48,11 +54,12 @@ roastcoffea provides progressively detailed metrics:
 
 roastcoffea collects metrics from multiple sources:
 
-1. **Coffea Report** - Built-in metrics from `coffea.processor.Runner`
+1. **Coffea Report** - Built-in metrics from `coffea.processor.Runner` (throughput, events, columns)
 2. **Wall Clock Timing** - Elapsed time measurement
-3. **Worker Tracking** - Periodic scheduler sampling for resource data
-4. **Dask Spans** - Fine-grained activity breakdown (CPU, I/O, disk, memory)
-5. **Instrumentation** - User-defined section tracking
+3. **Worker Tracking** - Periodic scheduler sampling for resource data (CPU, memory, worker counts)
+4. **Chunk Decorator** - Per-chunk timing, memory, and file-level metadata extraction
+5. **Dask Spans** - Fine-grained activity breakdown (CPU, I/O, disk, memory)
+6. **Instrumentation** - User-defined section tracking
 
 These are aggregated into a unified metrics dictionary, providing both high-level summaries and detailed breakdowns.
 
