@@ -81,7 +81,7 @@ def plot_per_task_cpu_io(
         io = activities.get("thread-noncpu", 0.0)
 
         if cpu > 0 or io > 0:
-            task_names.append(task_prefix[-8:])  # Last 8 chars of task ID
+            task_names.append(task_prefix)
             cpu_times.append(cpu)
             io_times.append(io)
 
@@ -150,7 +150,7 @@ def plot_per_task_bytes_read(
         disk_read = activities.get("disk-read", 0)
 
         if disk_read > 0:
-            task_names.append(task_prefix[-8:])  # Last 8 chars of task ID
+            task_names.append(task_prefix)
             bytes_read.append(disk_read / 1e9)  # Convert to GB
 
     if not task_names:
@@ -221,7 +221,7 @@ def plot_per_task_overhead(
         deserialize = activities.get("deserialize", 0.0)
 
         if any([compress, decompress, serialize, deserialize]):
-            task_names.append(task_prefix[-8:])  # Last 8 chars of task ID
+            task_names.append(task_prefix)
             compress_times.append(compress)
             decompress_times.append(decompress)
             serialize_times.append(serialize)
