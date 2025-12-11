@@ -122,7 +122,12 @@ class MetricsCollector:
         # This allows @track_metrics decorator to inject metrics into output
         if self.processor_instance is not None:
             self.processor_instance._roastcoffea_collect_metrics = True
-            logger.debug("Enabled chunk metrics collection on processor instance")
+
+            # Also set as class attribute to survive cloudpickle serialization
+            # When Dask serializes the processor, the class attribute ensures
+            # all worker copies have metrics collection enabled
+            self.processor_instance.__class__._roastcoffea_collect_metrics = True
+            logger.debug("Enabled chunk metrics collection on processor instance and class")
 
         if self.track_workers:
             self.metrics_backend.start_tracking(interval=self.worker_tracking_interval)
@@ -148,10 +153,13 @@ class MetricsCollector:
         """Exit context manager - stop tracking and aggregate metrics."""
         self.t_end = time.perf_counter()
 
-        # Disable metrics collection on processor instance
+        # Disable metrics collection on processor instance and class
         if self.processor_instance is not None:
             self.processor_instance._roastcoffea_collect_metrics = False
-            logger.debug("Disabled chunk metrics collection on processor instance")
+            # Clean up class attribute
+            if hasattr(self.processor_instance.__class__, "_roastcoffea_collect_metrics"):
+                delattr(self.processor_instance.__class__, "_roastcoffea_collect_metrics")
+            logger.debug("Disabled chunk metrics collection on processor instance and class")
 
         # Exit span context and extract metrics
         if self.span_info is not None:
