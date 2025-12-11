@@ -31,9 +31,18 @@ from roastcoffea.collector import MetricsCollector
 from roastcoffea.decorator import track_metrics
 from roastcoffea.export.measurements import load_measurement
 from roastcoffea.instrumentation import track_bytes, track_memory, track_time
+from roastcoffea.visualization.plots.chunks import (
+    plot_runtime_distribution,
+    plot_runtime_vs_events,
+)
 from roastcoffea.visualization.plots.cpu import (
+    plot_cpu_utilization_timeline,
     plot_executing_tasks_timeline,
     plot_occupancy_timeline,
+)
+from roastcoffea.visualization.plots.io import (
+    plot_compression_ratio_distribution,
+    plot_data_access_percentage,
 )
 from roastcoffea.visualization.plots.memory import plot_memory_utilization_timeline
 from roastcoffea.visualization.plots.per_task import (
@@ -65,6 +74,7 @@ __all__ = [
     # Worker timeline plots
     "plot_worker_count_timeline",
     "plot_memory_utilization_timeline",
+    "plot_cpu_utilization_timeline",
     "plot_occupancy_timeline",
     "plot_executing_tasks_timeline",
     "plot_worker_activity_timeline",
@@ -76,4 +86,10 @@ __all__ = [
     "plot_per_task_cpu_io",
     "plot_per_task_bytes_read",
     "plot_per_task_overhead",
+    # I/O analysis plots
+    "plot_compression_ratio_distribution",
+    "plot_data_access_percentage",
+    # Chunk-level plots
+    "plot_runtime_distribution",
+    "plot_runtime_vs_events",
 ]
