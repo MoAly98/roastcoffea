@@ -15,7 +15,7 @@ class TestSaveMeasurement:
 
     def test_save_creates_directory(self, tmp_path):
         """save_measurement creates measurement directory."""
-        metrics = {"wall_time": 100.0, "throughput": 50.0}
+        metrics = {"elapsed_time_seconds": 100.0, "throughput": 50.0}
 
         measurement_path = save_measurement(
             metrics=metrics,
@@ -31,7 +31,7 @@ class TestSaveMeasurement:
 
     def test_save_creates_timestamped_directory_if_no_name(self, tmp_path):
         """save_measurement creates timestamped directory if name not provided."""
-        metrics = {"wall_time": 100.0}
+        metrics = {"elapsed_time_seconds": 100.0}
 
         measurement_path = save_measurement(
             metrics=metrics,
@@ -48,7 +48,7 @@ class TestSaveMeasurement:
     def test_save_creates_metrics_file(self, tmp_path):
         """save_measurement creates metrics JSON file."""
         metrics = {
-            "wall_time": 100.0,
+            "elapsed_time_seconds": 100.0,
             "throughput_gbps": 1.5,
             "events_processed": 1_000_000,
         }
@@ -67,13 +67,13 @@ class TestSaveMeasurement:
         with pathlib.Path(metrics_file).open(encoding="utf-8") as f:
             saved_metrics = json.load(f)
 
-        assert saved_metrics["wall_time"] == 100.0
+        assert saved_metrics["elapsed_time_seconds"] == 100.0
         assert saved_metrics["throughput_gbps"] == 1.5
         assert saved_metrics["events_processed"] == 1_000_000
 
     def test_save_creates_timing_file(self, tmp_path):
         """save_measurement creates timing file with t0, t1."""
-        metrics = {"wall_time": 50.0}
+        metrics = {"elapsed_time_seconds": 50.0}
 
         measurement_path = save_measurement(
             metrics=metrics,
@@ -93,7 +93,7 @@ class TestSaveMeasurement:
 
     def test_save_creates_metadata_file(self, tmp_path):
         """save_measurement creates metadata file."""
-        metrics = {"wall_time": 100.0}
+        metrics = {"elapsed_time_seconds": 100.0}
 
         measurement_path = save_measurement(
             metrics=metrics,
@@ -110,13 +110,13 @@ class TestSaveMeasurement:
             metadata = json.load(f)
 
         assert "timestamp" in metadata
-        assert "wall_time" in metadata
-        assert metadata["wall_time"] == 100.0
+        assert "elapsed_time_seconds" in metadata
+        assert metadata["elapsed_time_seconds"] == 100.0
         assert "format" in metadata
 
     def test_save_with_config(self, tmp_path):
         """save_measurement optionally saves config."""
-        metrics = {"wall_time": 100.0}
+        metrics = {"elapsed_time_seconds": 100.0}
         config = {"dataset": "TTbar", "year": "2018", "analysis": "dihiggs"}
 
         measurement_path = save_measurement(
@@ -138,7 +138,7 @@ class TestSaveMeasurement:
 
     def test_save_without_config(self, tmp_path):
         """save_measurement works without config."""
-        metrics = {"wall_time": 100.0}
+        metrics = {"elapsed_time_seconds": 100.0}
 
         measurement_path = save_measurement(
             metrics=metrics,
@@ -157,7 +157,7 @@ class TestLoadMeasurement:
 
     def test_load_reads_metrics(self, tmp_path):
         """load_measurement reads saved metrics."""
-        metrics = {"wall_time": 100.0, "throughput": 50.0}
+        metrics = {"elapsed_time_seconds": 100.0, "throughput": 50.0}
 
         measurement_path = save_measurement(
             metrics=metrics,
@@ -169,7 +169,7 @@ class TestLoadMeasurement:
 
         loaded_metrics, t0, t1 = load_measurement(measurement_path)
 
-        assert loaded_metrics["wall_time"] == 100.0
+        assert loaded_metrics["elapsed_time_seconds"] == 100.0
         assert loaded_metrics["throughput"] == 50.0
         assert t0 == 0.0
         assert t1 == 100.0
@@ -215,7 +215,7 @@ class TestLoadMeasurement:
         # Create metrics file but no timing file
         metrics_file = measurement_path / "metrics.json"
         with pathlib.Path(metrics_file).open("w", encoding="utf-8") as f:
-            json.dump({"wall_time": 100.0}, f)
+            json.dump({"elapsed_time_seconds": 100.0}, f)
 
         with pytest.raises(FileNotFoundError):
             load_measurement(measurement_path)
@@ -223,7 +223,7 @@ class TestLoadMeasurement:
     def test_save_and_load_roundtrip(self, tmp_path):
         """Roundtrip save and load preserves data."""
         original_metrics = {
-            "wall_time": 100.0,
+            "elapsed_time_seconds": 100.0,
             "throughput_gbps": 1.5,
             "events_processed": 1_000_000,
             "core_efficiency": 0.85,
@@ -251,7 +251,7 @@ class TestLoadMeasurement:
         t1_dt = datetime.datetime(2025, 1, 1, 12, 0, 10)
 
         metrics_with_tracking = {
-            "wall_time": 100.0,
+            "elapsed_time_seconds": 100.0,
             "tracking_data": {
                 "worker_counts": {
                     t0_dt: 2,
@@ -309,7 +309,7 @@ class TestLoadMeasurement:
     def test_save_and_load_with_none_tracking_data(self, tmp_path):
         """save and load handles None tracking_data gracefully."""
         metrics_with_none_tracking = {
-            "wall_time": 100.0,
+            "elapsed_time_seconds": 100.0,
             "tracking_data": None,
         }
 
@@ -334,7 +334,7 @@ class TestLoadMeasurement:
         # Create valid metrics file
         metrics_file = measurement_path / "metrics.json"
         with pathlib.Path(metrics_file).open("w", encoding="utf-8") as f:
-            json.dump({"wall_time": 100.0}, f)
+            json.dump({"elapsed_time_seconds": 100.0}, f)
 
         # Create timing file with invalid format
         timing_file = measurement_path / "start_end_time.txt"

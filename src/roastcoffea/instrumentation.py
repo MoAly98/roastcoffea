@@ -8,13 +8,13 @@ from __future__ import annotations
 
 import time
 from contextlib import contextmanager
-from typing import Any, Generator
+from typing import Generator
 
 from roastcoffea.utils import get_process_memory
 
 
 @contextmanager
-def track_time(processor_self: Any, section_name: str) -> Generator[None, None, None]:
+def track_time(processor_self: "coffea.processor.ProcessorABC", section_name: str) -> Generator[None, None, None]:
     """Context manager to track timing for a named operation.
 
     Measures wall time for a specific operation within processor.process().
@@ -69,7 +69,7 @@ def track_time(processor_self: Any, section_name: str) -> Generator[None, None, 
 
 
 @contextmanager
-def track_memory(processor_self: Any, section_name: str) -> Generator[None, None, None]:
+def track_memory(processor_self: "coffea.processor.ProcessorABC", section_name: str) -> Generator[None, None, None]:
     """Context manager to track memory usage for a named operation.
 
     Measures memory delta (before/after) for a specific operation.
@@ -144,7 +144,7 @@ def track_memory(processor_self: Any, section_name: str) -> Generator[None, None
 
 @contextmanager
 def track_bytes(
-    processor_self: Any, events: Any, section_name: str
+    processor_self: "coffea.processor.ProcessorABC", events: "awkward.Array", section_name: str
 ) -> Generator[None, None, None]:
     """Context manager to track bytes read from filehandle for a named operation.
 

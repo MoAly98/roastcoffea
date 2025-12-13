@@ -207,7 +207,7 @@ def save_measurement(
     # Save measurement metadata
     metadata = {
         "timestamp": datetime.now().isoformat(),
-        "wall_time": t1 - t0,
+        "elapsed_time_seconds": t1 - t0,
         "format": "roastcoffea_measurement_v1",
     }
     with Path(measurement_path / "metadata.json").open("w", encoding="utf-8") as f:

@@ -53,13 +53,15 @@ def format_throughput_table(metrics: dict[str, Any]) -> Table:
     table.add_column("Value", style="magenta")
 
     # Data rate
+    data_rate_gbps = metrics.get('data_rate_gbps', 0)
+    data_rate_mbps = (data_rate_gbps * 1000) / 8  # Convert Gbps to MB/s
     table.add_row(
         "Data Rate",
-        f"{metrics.get('overall_rate_gbps', 0):.2f} Gbps ({metrics.get('overall_rate_mbps', 0):.1f} MB/s)",
+        f"{data_rate_gbps:.2f} Gbps ({data_rate_mbps:.1f} MB/s)",
     )
 
     # Data volume from Coffea
-    bytes_coffea = metrics.get("total_bytes_read_coffea", 0)
+    bytes_coffea = metrics.get("total_bytes_read", 0)
     if bytes_coffea:
         table.add_row(
             "Total Bytes Read (Coffea)",
@@ -67,7 +69,7 @@ def format_throughput_table(metrics: dict[str, Any]) -> Table:
         )
 
     # Data volume from Dask Spans (if available)
-    bytes_dask = metrics.get("total_bytes_memory_read_dask", 0)
+    bytes_dask = metrics.get("total_bytes_memory_read", 0)
     if bytes_dask:
         table.add_row(
             "Memory Read (Dask Spans)",
@@ -101,22 +103,22 @@ def format_event_processing_table(metrics: dict[str, Any]) -> Table:
     table.add_row("Total Events", f"{total_events:,}")
 
     # Event rates
-    wall_khz = metrics.get("event_rate_wall_khz", 0)
-    table.add_row("Event Rate (Wall Clock)", f"{wall_khz:.1f} kHz")
+    elapsed_khz = metrics.get("event_rate_elapsed_khz", 0)
+    table.add_row("Event Rate (Elapsed Time)", f"{elapsed_khz:.1f} kHz")
 
-    agg_khz = metrics.get("event_rate_agg_khz", 0)
-    table.add_row("Event Rate (Aggregated)", f"{agg_khz:.1f} kHz")
+    cpu_total_khz = metrics.get("event_rate_cpu_total_khz", 0)
+    table.add_row("Event Rate (Total CPU)", f"{cpu_total_khz:.1f} kHz")
 
     # Core-averaged rate (may be None if no worker data)
-    core_hz = metrics.get("event_rate_core_hz")
-    if core_hz is not None:
-        table.add_row("Event Rate (Core-Averaged)", f"{core_hz:.1f} Hz/core")
+    core_khz = metrics.get("event_rate_core_khz")
+    if core_khz is not None:
+        table.add_row("Event Rate (Core-Averaged)", f"{core_khz:.1f} kHz/core")
     else:
         table.add_row("Event Rate (Core-Averaged)", "[dim]N/A (no worker data)[/dim]")
 
     # Efficiency ratio
-    if wall_khz and agg_khz:
-        efficiency_ratio = wall_khz / agg_khz
+    if elapsed_khz and cpu_total_khz:
+        efficiency_ratio = elapsed_khz / cpu_total_khz
         table.add_row("Efficiency Ratio", f"{efficiency_ratio:.1%}")
 
     return table
@@ -214,9 +216,9 @@ def format_timing_table(metrics: dict[str, Any]) -> Table:
     table.add_column("Metric", style="cyan", no_wrap=True)
     table.add_column("Value", style="magenta")
 
-    # Wall time
-    wall_time = metrics.get("wall_time", 0)
-    table.add_row("Wall Time", _format_time(wall_time))
+    # Elapsed time
+    elapsed_time = metrics.get("elapsed_time_seconds", 0)
+    table.add_row("Elapsed Time", _format_time(elapsed_time))
 
     # CPU time
     cpu_time = metrics.get("total_cpu_time", 0)
@@ -245,13 +247,13 @@ def format_fine_metrics_table(metrics: dict[str, Any]) -> Table | None:
     Table or None
         Rich table if fine metrics available, None otherwise
     """
-    # Check if any fine metrics are available (new names)
+    # Check if any fine metrics are available
     processor_cpu = metrics.get("processor_cpu_time_seconds")
-    processor_noncpu = metrics.get("processor_noncpu_time_seconds")
+    processor_io_wait = metrics.get("processor_io_wait_time_seconds")
     overhead_cpu = metrics.get("overhead_cpu_time_seconds")
-    overhead_noncpu = metrics.get("overhead_noncpu_time_seconds")
+    overhead_io_wait = metrics.get("overhead_io_wait_time_seconds")
 
-    if processor_cpu is None and processor_noncpu is None:
+    if processor_cpu is None and processor_io_wait is None:
         return None
 
     table = Table(
@@ -262,23 +264,23 @@ def format_fine_metrics_table(metrics: dict[str, Any]) -> Table | None:
     table.add_column("Metric", style="cyan", no_wrap=True)
     table.add_column("Value", style="magenta")
 
-    # Processor CPU vs non-CPU breakdown
+    # Processor CPU vs I/O wait breakdown
     if processor_cpu is not None:
         table.add_row("Processor CPU Time", _format_time(processor_cpu))
-    if processor_noncpu is not None:
-        table.add_row("Processor Non-CPU Time", _format_time(processor_noncpu))
+    if processor_io_wait is not None:
+        table.add_row("Processor I/O & Waiting Time", _format_time(processor_io_wait))
 
-    processor_cpu_pct = metrics.get("processor_cpu_percentage")
-    processor_noncpu_pct = metrics.get("processor_noncpu_percentage")
-    if processor_cpu_pct is not None and processor_noncpu_pct is not None:
+    processor_cpu_pct = metrics.get("processor_cpu_percent")
+    processor_io_wait_pct = metrics.get("processor_io_wait_percent")
+    if processor_cpu_pct is not None and processor_io_wait_pct is not None:
         table.add_row("  CPU %", f"{processor_cpu_pct:.1f}%")
-        table.add_row("  Non-CPU %", f"{processor_noncpu_pct:.1f}%")
+        table.add_row("  I/O & Wait %", f"{processor_io_wait_pct:.1f}%")
 
     # Dask overhead (if separated)
     if overhead_cpu is not None and overhead_cpu > 0:
         table.add_row("Dask Overhead CPU Time", _format_time(overhead_cpu))
-    if overhead_noncpu is not None and overhead_noncpu > 0:
-        table.add_row("Dask Overhead Non-CPU Time", _format_time(overhead_noncpu))
+    if overhead_io_wait is not None and overhead_io_wait > 0:
+        table.add_row("Dask Overhead I/O & Waiting Time", _format_time(overhead_io_wait))
 
     # Disk I/O
     disk_read = metrics.get("disk_read_bytes")

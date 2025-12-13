@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import pytest
 
-from roastcoffea.aggregation.chunks import build_chunk_info
+from roastcoffea.aggregation.chunk import build_chunk_info
 from roastcoffea.aggregation.core import MetricsAggregator
 from roastcoffea.decorator import track_metrics
 from roastcoffea.instrumentation import track_bytes
@@ -20,8 +20,8 @@ from roastcoffea.instrumentation import track_bytes
 class MockFileSource:
     """Mock FSSpecSource from uproot.
 
-    Simulates the file source object that's available in
-    events.metadata["filesource"] with the coffea branch.
+    Simulates the file source object that's available as
+    filehandle.file.source.num_requested_bytes
     """
 
     def __init__(self, start_bytes=1000):
@@ -36,17 +36,32 @@ class MockFileSource:
         self._bytes += bytes_to_read
 
 
+class MockFile:
+    """Mock file object containing source."""
+
+    def __init__(self, source):
+        self.source = source
+
+
+class MockFileHandle:
+    """Mock filehandle object as expected by decorator."""
+
+    def __init__(self, source):
+        self.file = MockFile(source)
+
+
 class MockEvents:
-    """Mock events object with filesource in metadata."""
+    """Mock events object with filehandle in metadata."""
 
     def __init__(self, num_events=100, filename="data.root", start=0, stop=100):
+        source = MockFileSource(start_bytes=5000)
         self.metadata = {
             "dataset": "test_dataset",
             "filename": filename,
             "entrystart": start,
             "entrystop": stop,
             "uuid": "test-uuid",
-            "filesource": MockFileSource(start_bytes=5000),
+            "filehandle": MockFileHandle(source),
         }
         self._num_events = num_events
 
@@ -66,14 +81,14 @@ class TestByteTrackingIntegration:
             @track_metrics
             def process(self, events):
                 # Simulate reading data during processing
-                events.metadata["filesource"].simulate_read(2500)
+                events.metadata["filehandle"].file.source.simulate_read(2500)
 
                 # Use track_bytes for fine-grained tracking
                 with track_bytes(self, events, "jet_loading"):
-                    events.metadata["filesource"].simulate_read(1000)
+                    events.metadata["filehandle"].file.source.simulate_read(1000)
 
                 with track_bytes(self, events, "muon_loading"):
-                    events.metadata["filesource"].simulate_read(500)
+                    events.metadata["filehandle"].file.source.simulate_read(500)
 
                 return {"sum": len(events)}
 
@@ -117,7 +132,7 @@ class TestByteTrackingIntegration:
 
             @track_metrics
             def process(self, events):
-                events.metadata["filesource"].simulate_read(3000)
+                events.metadata["filehandle"].file.source.simulate_read(3000)
                 return {"sum": len(events)}
 
         processor = TestProcessor()

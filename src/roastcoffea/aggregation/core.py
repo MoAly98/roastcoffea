@@ -6,8 +6,7 @@ from typing import Any
 
 from roastcoffea.aggregation.backends import get_parser
 from roastcoffea.aggregation.branch_coverage import aggregate_branch_coverage
-from roastcoffea.aggregation.chunk import aggregate_chunk_metrics
-from roastcoffea.aggregation.chunks import build_chunk_info
+from roastcoffea.aggregation.chunk import aggregate_chunk_metrics, build_chunk_info
 from roastcoffea.aggregation.efficiency import calculate_efficiency_metrics
 from roastcoffea.aggregation.fine_metrics import parse_fine_metrics
 from roastcoffea.aggregation.workflow import aggregate_workflow_metrics

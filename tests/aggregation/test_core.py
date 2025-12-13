@@ -63,10 +63,10 @@ class TestMetricsAggregator:
         )
 
         # Should have workflow metrics
-        assert "wall_time" in metrics
+        assert "elapsed_time_seconds" in metrics
         assert "total_cpu_time" in metrics
-        assert "overall_rate_gbps" in metrics
-        assert "event_rate_wall_khz" in metrics
+        assert "data_rate_gbps" in metrics
+        assert "event_rate_elapsed_khz" in metrics
 
         # Should have worker metrics
         assert "avg_workers" in metrics
@@ -77,7 +77,7 @@ class TestMetricsAggregator:
         # Should have efficiency metrics
         assert "core_efficiency" in metrics
         assert "speedup_factor" in metrics
-        assert "event_rate_core_hz" in metrics
+        assert "event_rate_core_khz" in metrics
 
     def test_aggregate_with_dask_backend(
         self, sample_coffea_report, sample_tracking_data
@@ -112,8 +112,8 @@ class TestMetricsAggregator:
         )
 
         # Should have workflow metrics
-        assert "wall_time" in metrics
-        assert "overall_rate_gbps" in metrics
+        assert "elapsed_time_seconds" in metrics
+        assert "data_rate_gbps" in metrics
 
         # tracking_data should be None
         assert metrics["tracking_data"] is None
@@ -209,7 +209,7 @@ class TestMetricsAggregator:
 
         # Should have processed span_metrics (exact keys depend on parse_fine_metrics)
         # Just verify that aggregation succeeded
-        assert "wall_time" in metrics
+        assert "elapsed_time_seconds" in metrics
 
     def test_aggregate_with_chunk_metrics(self, sample_coffea_report, sample_tracking_data):
         """Aggregator processes chunk_metrics when provided."""

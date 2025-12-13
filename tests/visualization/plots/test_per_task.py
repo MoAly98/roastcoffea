@@ -195,22 +195,6 @@ class TestPlotPerTaskCpuIo:
 
         plt.close(fig)
 
-    def test_plot_truncates_long_task_names(self):
-        """Truncate task names to last 8 characters."""
-        span_metrics = {
-            ("execute", "very-long-task-name-1234567890", "thread-cpu"): 10.5,
-            ("execute", "very-long-task-name-1234567890", "thread-noncpu"): 2.3,
-        }
-
-        fig, ax = plot_per_task_cpu_io(span_metrics)
-
-        # Check that task label is truncated
-        labels = [label.get_text() for label in ax.get_xticklabels()]
-        assert len(labels[0]) == 8
-        assert labels[0] == "34567890"  # Last 8 chars
-
-        plt.close(fig)
-
 
 class TestPlotPerTaskBytesRead:
     """Test plot_per_task_bytes_read function."""

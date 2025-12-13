@@ -27,6 +27,20 @@ class MockFileSource:
         self._bytes += bytes_to_read
 
 
+class MockFile:
+    """Mock file object containing source."""
+
+    def __init__(self, source):
+        self.source = source
+
+
+class MockFileHandle:
+    """Mock filehandle object as expected by decorator."""
+
+    def __init__(self, source):
+        self.file = MockFile(source)
+
+
 class TestTrackBytesContextManager:
     """Test track_bytes() context manager."""
 
@@ -39,7 +53,8 @@ class TestTrackBytesContextManager:
 
         processor = TestProcessor()
         filesource = MockFileSource(start_bytes=5000)
-        events = MockEvents(metadata={"filesource": filesource})
+        filehandle = MockFileHandle(filesource)
+        events = MockEvents(metadata={"filehandle": filehandle})
 
         with track_bytes(processor, events, "test_operation"):
             # Simulate reading 2500 bytes
@@ -137,7 +152,8 @@ class TestTrackBytesContextManager:
 
         processor = TestProcessor()
         filesource = MockFileSource(start_bytes=1000)
-        events = MockEvents(metadata={"filesource": filesource})
+        filehandle = MockFileHandle(filesource)
+        events = MockEvents(metadata={"filehandle": filehandle})
 
         with track_bytes(processor, events, "test_operation"):
             filesource.simulate_read(300)
@@ -155,7 +171,8 @@ class TestTrackBytesContextManager:
 
         processor = TestProcessor()
         filesource = MockFileSource(start_bytes=1000)
-        events = MockEvents(metadata={"filesource": filesource})
+        filehandle = MockFileHandle(filesource)
+        events = MockEvents(metadata={"filehandle": filehandle})
 
         with track_bytes(processor, events, "section_1"):
             filesource.simulate_read(200)

@@ -42,7 +42,7 @@ class MetricsCollector:
         Enable worker tracking (default: True)
     worker_tracking_interval : float, optional
         Sampling interval in seconds (default: 1.0)
-    processor_instance : ProcessorABC, optional
+    processor_instance : coffea.processor.ProcessorABC, optional
         Coffea processor instance. If provided, fine metrics will separate
         processor work from Dask overhead. Without this, all activities
         (including Dask internals) are aggregated together.
@@ -65,18 +65,18 @@ class MetricsCollector:
     ...     collector.set_coffea_report(report)
     >>>
     >>> metrics = collector.metrics
-    >>> print(f"Throughput: {metrics['overall_rate_gbps']:.2f} Gbps")
+    >>> print(f"Throughput: {metrics['data_rate_gbps']:.2f} Gbps")
     >>> print(f"Processor CPU: {metrics['processor_cpu_time_seconds']:.2f}s")
     >>> print(f"Dask overhead: {metrics['overhead_cpu_time_seconds']:.2f}s")
     """
 
     def __init__(
         self,
-        client: Any,
+        client: "distributed.Client",
         backend: str = "dask",
         track_workers: bool = True,
         worker_tracking_interval: float = 1.0,
-        processor_instance: Any = None,
+        processor_instance: "coffea.processor.ProcessorABC | None" = None,
     ) -> None:
         """Initialize MetricsCollector."""
         self.client = client

@@ -13,7 +13,7 @@ class TestCalculateEfficiencyMetrics:
     def test_calculate_core_efficiency(self):
         """Calculates core efficiency from CPU time and available cores."""
         workflow_metrics = {
-            "wall_time": 100.0,  # 100 seconds
+            "elapsed_time_seconds": 100.0,  # 100 seconds
             "total_cpu_time": 400.0,  # 400 seconds of CPU work
         }
 
@@ -34,7 +34,7 @@ class TestCalculateEfficiencyMetrics:
     def test_calculate_speedup_factor(self):
         """Calculates speedup factor (parallelization effectiveness)."""
         workflow_metrics = {
-            "wall_time": 50.0,
+            "elapsed_time_seconds": 50.0,
             "total_cpu_time": 200.0,
         }
 
@@ -52,7 +52,7 @@ class TestCalculateEfficiencyMetrics:
     def test_calculate_event_rate_per_core(self):
         """Calculates per-core event processing rate."""
         workflow_metrics = {
-            "wall_time": 100.0,
+            "elapsed_time_seconds": 100.0,
             "total_cpu_time": 400.0,
             "total_events": 1_000_000,
         }
@@ -64,16 +64,16 @@ class TestCalculateEfficiencyMetrics:
 
         efficiency = calculate_efficiency_metrics(workflow_metrics, worker_metrics)
 
-        assert "event_rate_core_hz" in efficiency
+        assert "event_rate_core_khz" in efficiency
 
-        # Events per core = total events / (cores * wall time)
-        # = 1_000_000 / (8 * 100) = 1_000_000 / 800 = 1250 Hz
-        assert efficiency["event_rate_core_hz"] == pytest.approx(1250.0)
+        # Events per core = total events / (cores * elapsed time)
+        # = 1_000_000 / (8 * 100) = 1_000_000 / 800 = 1250 Hz = 1.25 kHz
+        assert efficiency["event_rate_core_khz"] == pytest.approx(1.25)
 
     def test_handles_missing_total_cores(self):
         """Handles missing total_cores gracefully."""
         workflow_metrics = {
-            "wall_time": 100.0,
+            "elapsed_time_seconds": 100.0,
             "total_cpu_time": 400.0,
             "total_events": 1_000_000,
         }
@@ -87,7 +87,7 @@ class TestCalculateEfficiencyMetrics:
 
         # Core-dependent metrics should be None
         assert efficiency["core_efficiency"] is None
-        assert efficiency["event_rate_core_hz"] is None
+        assert efficiency["event_rate_core_khz"] is None
 
         # Speedup should still work (doesn't need cores)
         assert efficiency["speedup_factor"] == pytest.approx(4.0)
@@ -95,7 +95,7 @@ class TestCalculateEfficiencyMetrics:
     def test_handles_zero_wall_time(self):
         """Handles zero wall time gracefully."""
         workflow_metrics = {
-            "wall_time": 0.0,
+            "elapsed_time_seconds": 0.0,
             "total_cpu_time": 100.0,
             "total_events": 1000,
         }
@@ -109,13 +109,13 @@ class TestCalculateEfficiencyMetrics:
 
         # Should not crash, return 0 or None for rates
         assert efficiency["core_efficiency"] == 0.0
-        assert efficiency["event_rate_core_hz"] == 0.0
+        assert efficiency["event_rate_core_khz"] == 0.0
         assert efficiency["speedup_factor"] == 0.0
 
     def test_handles_zero_cpu_time(self):
         """Handles zero CPU time gracefully."""
         workflow_metrics = {
-            "wall_time": 100.0,
+            "elapsed_time_seconds": 100.0,
             "total_cpu_time": 0.0,
             "total_events": 0,
         }
@@ -135,7 +135,7 @@ class TestCalculateEfficiencyMetrics:
         """Test realistic high-efficiency scenario."""
         # CPU-bound workload with good parallelization
         workflow_metrics = {
-            "wall_time": 60.0,
+            "elapsed_time_seconds": 60.0,
             "total_cpu_time": 450.0,  # 450 / 60 = 7.5x speedup
             "total_events": 5_000_000,
         }
@@ -151,14 +151,14 @@ class TestCalculateEfficiencyMetrics:
         assert efficiency["core_efficiency"] == pytest.approx(0.9375)
         assert efficiency["speedup_factor"] == pytest.approx(7.5)
 
-        # 5M events / (8 cores * 60 sec) = ~10.4k Hz per core
-        assert efficiency["event_rate_core_hz"] == pytest.approx(10416.67, rel=1e-2)
+        # 5M events / (8 cores * 60 sec) = ~10416.67 Hz per core = ~10.42 kHz
+        assert efficiency["event_rate_core_khz"] == pytest.approx(10.42, rel=1e-2)
 
     def test_realistic_low_efficiency_scenario(self):
         """Test realistic low-efficiency scenario (I/O bound)."""
         # I/O-bound workload with poor parallelization
         workflow_metrics = {
-            "wall_time": 100.0,
+            "elapsed_time_seconds": 100.0,
             "total_cpu_time": 150.0,  # 150 / 100 = 1.5x speedup (I/O bound)
             "total_events": 1_000_000,
         }

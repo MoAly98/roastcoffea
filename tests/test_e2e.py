@@ -94,14 +94,14 @@ def test_metrics_collector_e2e_basic(dask_cluster, test_fileset, tmp_path):
     metrics = collector.get_metrics()
 
     # Verify core metrics are present
-    assert "wall_time" in metrics
+    assert "elapsed_time_seconds" in metrics
     assert "total_events" in metrics
-    assert "overall_rate_gbps" in metrics
+    assert "data_rate_gbps" in metrics
     assert "avg_workers" in metrics
     assert "peak_workers" in metrics
 
     # Verify values are reasonable
-    assert metrics["wall_time"] > 0
+    assert metrics["elapsed_time_seconds"] > 0
     assert metrics["total_events"] > 0
     assert metrics["avg_workers"] >= 1
     assert metrics["peak_workers"] >= 1
@@ -214,9 +214,9 @@ def test_metrics_collector_e2e_no_worker_tracking(dask_cluster, test_fileset):
     assert metrics.get("total_cores") is None
 
     # But workflow metrics should still be present
-    assert "wall_time" in metrics
+    assert "elapsed_time_seconds" in metrics
     assert "total_events" in metrics
-    assert "overall_rate_gbps" in metrics
+    assert "data_rate_gbps" in metrics
 
 
 class ChunkTrackingProcessor(processor.ProcessorABC):
@@ -279,7 +279,7 @@ def test_metrics_collector_e2e_with_chunk_tracking(dask_cluster, test_fileset):
     # Basic metrics should be present
     assert "num_chunks" in metrics
     assert metrics["num_chunks"] > 0
-    assert "wall_time" in metrics
+    assert "elapsed_time_seconds" in metrics
     assert "total_events" in metrics
 
     # Verify chunk-level metrics were collected

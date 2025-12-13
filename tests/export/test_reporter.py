@@ -20,8 +20,8 @@ class TestFormatThroughputTable:
     def test_returns_rich_table(self):
         """format_throughput_table returns Rich Table object."""
         metrics = {
-            "overall_rate_gbps": 1.5,
-            "overall_rate_mbps": 187.5,
+            "data_rate_gbps": 1.5,
+            "data_rate_mbps": 187.5,
             "compression_ratio": 2.5,
             "total_bytes_compressed": 5_000_000_000,
             "total_bytes_uncompressed": 12_500_000_000,
@@ -35,8 +35,8 @@ class TestFormatThroughputTable:
     def test_table_has_correct_columns(self):
         """Throughput table has Metric and Value columns."""
         metrics = {
-            "overall_rate_gbps": 1.5,
-            "overall_rate_mbps": 187.5,
+            "data_rate_gbps": 1.5,
+            "data_rate_mbps": 187.5,
             "compression_ratio": 2.5,
         }
 
@@ -48,8 +48,8 @@ class TestFormatThroughputTable:
     def test_table_includes_data_rate(self):
         """Throughput table includes data rate in Gbps and MB/s."""
         metrics = {
-            "overall_rate_gbps": 1.5,
-            "overall_rate_mbps": 187.5,
+            "data_rate_gbps": 1.5,
+            "data_rate_mbps": 187.5,
             "compression_ratio": 2.5,
         }
 
@@ -61,8 +61,8 @@ class TestFormatThroughputTable:
     def test_handles_missing_optional_fields(self):
         """Throughput table handles missing optional fields gracefully."""
         metrics = {
-            "overall_rate_gbps": 1.5,
-            "overall_rate_mbps": 187.5,
+            "data_rate_gbps": 1.5,
+            "data_rate_mbps": 187.5,
         }
 
         # Should not crash
@@ -77,9 +77,9 @@ class TestFormatEventProcessingTable:
         """format_event_processing_table returns Rich Table."""
         metrics = {
             "total_events": 1_000_000,
-            "event_rate_wall_khz": 20.0,
-            "event_rate_agg_khz": 10.0,
-            "event_rate_core_hz": 1250.0,
+            "event_rate_elapsed_khz": 20.0,
+            "event_rate_cpu_total_khz": 10.0,
+            "event_rate_core_khz": 1250.0,
         }
 
         table = format_event_processing_table(metrics)
@@ -91,9 +91,9 @@ class TestFormatEventProcessingTable:
         """Event processing table includes all event rates."""
         metrics = {
             "total_events": 1_000_000,
-            "event_rate_wall_khz": 20.0,
-            "event_rate_agg_khz": 10.0,
-            "event_rate_core_hz": 1250.0,
+            "event_rate_elapsed_khz": 20.0,
+            "event_rate_cpu_total_khz": 10.0,
+            "event_rate_core_khz": 1250.0,
         }
 
         table = format_event_processing_table(metrics)
@@ -104,9 +104,9 @@ class TestFormatEventProcessingTable:
         """Event processing table handles missing per-core rate (no worker data)."""
         metrics = {
             "total_events": 1_000_000,
-            "event_rate_wall_khz": 20.0,
-            "event_rate_agg_khz": 10.0,
-            "event_rate_core_hz": None,  # No worker tracking
+            "event_rate_elapsed_khz": 20.0,
+            "event_rate_cpu_total_khz": 10.0,
+            "event_rate_core_khz": None,  # No worker tracking
         }
 
         # Should not crash
@@ -170,7 +170,7 @@ class TestFormatTimingTable:
     def test_returns_rich_table(self):
         """format_timing_table returns Rich Table."""
         metrics = {
-            "wall_time": 100.0,
+            "elapsed_time_seconds": 100.0,
             "total_cpu_time": 400.0,
             "num_chunks": 50,
             "avg_cpu_time_per_chunk": 8.0,
@@ -184,7 +184,7 @@ class TestFormatTimingTable:
     def test_table_includes_timing_metrics(self):
         """Timing table includes wall time, CPU time, and chunk metrics."""
         metrics = {
-            "wall_time": 100.0,
+            "elapsed_time_seconds": 100.0,
             "total_cpu_time": 400.0,
             "num_chunks": 50,
             "avg_cpu_time_per_chunk": 8.0,
@@ -197,7 +197,7 @@ class TestFormatTimingTable:
     def test_handles_zero_chunks(self):
         """Timing table handles zero chunks gracefully."""
         metrics = {
-            "wall_time": 100.0,
+            "elapsed_time_seconds": 100.0,
             "total_cpu_time": 400.0,
             "num_chunks": 0,
             "avg_cpu_time_per_chunk": 0.0,
@@ -210,7 +210,7 @@ class TestFormatTimingTable:
     def test_formats_time_human_readable(self):
         """Timing table formats times in human-readable format."""
         metrics = {
-            "wall_time": 3723.0,  # 1h 2m 3s
+            "elapsed_time_seconds": 3723.0,  # 1h 2m 3s
             "total_cpu_time": 45.2,  # 45.2s
             "num_chunks": 10,
             "avg_cpu_time_per_chunk": 4.52,
@@ -230,9 +230,9 @@ class TestFormatFineMetricsTable:
         """format_fine_metrics_table returns Rich Table when metrics available."""
         metrics = {
             "processor_cpu_time_seconds": 100.0,
-            "processor_noncpu_time_seconds": 50.0,
-            "processor_cpu_percentage": 66.67,
-            "processor_noncpu_percentage": 33.33,
+            "processor_io_wait_time_seconds": 50.0,
+            "processor_cpu_percent": 66.67,
+            "processor_io_wait_percent": 33.33,
             "disk_read_bytes": 10_000_000_000,
             "disk_write_bytes": 500_000_000,
             "compression_time_seconds": 1.0,
@@ -251,8 +251,8 @@ class TestFormatFineMetricsTable:
     def test_returns_none_when_no_data_available(self):
         """format_fine_metrics_table returns None when no fine metrics available."""
         metrics = {
-            "overall_rate_gbps": 1.5,
-            "wall_time": 100.0,
+            "data_rate_gbps": 1.5,
+            "elapsed_time_seconds": 100.0,
         }
 
         table = format_fine_metrics_table(metrics)
@@ -263,9 +263,9 @@ class TestFormatFineMetricsTable:
         """Fine metrics table includes CPU and non-CPU time breakdown."""
         metrics = {
             "processor_cpu_time_seconds": 100.0,
-            "processor_noncpu_time_seconds": 50.0,
-            "processor_cpu_percentage": 66.67,
-            "processor_noncpu_percentage": 33.33,
+            "processor_io_wait_time_seconds": 50.0,
+            "processor_cpu_percent": 66.67,
+            "processor_io_wait_percent": 33.33,
         }
 
         table = format_fine_metrics_table(metrics)
@@ -276,9 +276,9 @@ class TestFormatFineMetricsTable:
         """Fine metrics table includes disk I/O if non-zero."""
         metrics = {
             "processor_cpu_time_seconds": 100.0,
-            "processor_noncpu_time_seconds": 50.0,
-            "processor_cpu_percentage": 66.67,
-            "processor_noncpu_percentage": 33.33,
+            "processor_io_wait_time_seconds": 50.0,
+            "processor_cpu_percent": 66.67,
+            "processor_io_wait_percent": 33.33,
             "disk_read_bytes": 10_000_000_000,
             "disk_write_bytes": 500_000_000,
         }
@@ -292,9 +292,9 @@ class TestFormatFineMetricsTable:
         """Fine metrics table includes compression overhead if non-zero."""
         metrics = {
             "processor_cpu_time_seconds": 100.0,
-            "processor_noncpu_time_seconds": 50.0,
-            "processor_cpu_percentage": 66.67,
-            "processor_noncpu_percentage": 33.33,
+            "processor_io_wait_time_seconds": 50.0,
+            "processor_cpu_percent": 66.67,
+            "processor_io_wait_percent": 33.33,
             "compression_time_seconds": 1.0,
             "decompression_time_seconds": 5.0,
             "total_compression_overhead_seconds": 6.0,
@@ -309,9 +309,9 @@ class TestFormatFineMetricsTable:
         """Fine metrics table includes serialization overhead if non-zero."""
         metrics = {
             "processor_cpu_time_seconds": 100.0,
-            "processor_noncpu_time_seconds": 50.0,
-            "processor_cpu_percentage": 66.67,
-            "processor_noncpu_percentage": 33.33,
+            "processor_io_wait_time_seconds": 50.0,
+            "processor_cpu_percent": 66.67,
+            "processor_io_wait_percent": 33.33,
             "serialization_time_seconds": 2.0,
             "deserialization_time_seconds": 3.0,
             "total_serialization_overhead_seconds": 5.0,
@@ -326,9 +326,9 @@ class TestFormatFineMetricsTable:
         """Fine metrics table omits disk I/O if zero or None."""
         metrics = {
             "processor_cpu_time_seconds": 100.0,
-            "processor_noncpu_time_seconds": 50.0,
-            "processor_cpu_percentage": 66.67,
-            "processor_noncpu_percentage": 33.33,
+            "processor_io_wait_time_seconds": 50.0,
+            "processor_cpu_percent": 66.67,
+            "processor_io_wait_percent": 33.33,
             "disk_read_bytes": 0,
             "disk_write_bytes": None,
         }
@@ -342,9 +342,9 @@ class TestFormatFineMetricsTable:
         """Fine metrics table omits compression if zero."""
         metrics = {
             "processor_cpu_time_seconds": 100.0,
-            "processor_noncpu_time_seconds": 50.0,
-            "processor_cpu_percentage": 66.67,
-            "processor_noncpu_percentage": 33.33,
+            "processor_io_wait_time_seconds": 50.0,
+            "processor_cpu_percent": 66.67,
+            "processor_io_wait_percent": 33.33,
             "total_compression_overhead_seconds": 0.0,
         }
 
@@ -357,9 +357,9 @@ class TestFormatFineMetricsTable:
         """Fine metrics table omits serialization if zero."""
         metrics = {
             "processor_cpu_time_seconds": 100.0,
-            "processor_noncpu_time_seconds": 50.0,
-            "processor_cpu_percentage": 66.67,
-            "processor_noncpu_percentage": 33.33,
+            "processor_io_wait_time_seconds": 50.0,
+            "processor_cpu_percent": 66.67,
+            "processor_io_wait_percent": 33.33,
             "total_serialization_overhead_seconds": 0.0,
         }
 
@@ -589,10 +589,10 @@ class TestFormatterEdgeCases:
         from roastcoffea.export.reporter import format_timing_table
 
         metrics = {
-            "wall_time": 100.0,
+            "elapsed_time_seconds": 100.0,
             "total_cpu_time": 80.0,
             "total_events": 1000,
-            "total_bytes_read_coffea": 5_000_000_000,  # Optional metric
+            "total_bytes_read": 5_000_000_000,  # Optional metric
         }
 
         table = format_timing_table(metrics)
@@ -611,10 +611,10 @@ class TestFormatterEdgeCases:
         from roastcoffea.export.reporter import format_timing_table
 
         metrics = {
-            "wall_time": 100.0,
+            "elapsed_time_seconds": 100.0,
             "total_cpu_time": 80.0,
             "total_events": 1000,
-            "total_bytes_memory_read_dask": 3_000_000_000,  # Optional metric
+            "total_bytes_memory_read": 3_000_000_000,  # Optional metric
         }
 
         table = format_timing_table(metrics)
@@ -634,9 +634,9 @@ class TestFormatterEdgeCases:
 
         metrics = {
             "processor_cpu_time_seconds": 100.0,
-            "processor_noncpu_time_seconds": 20.0,
+            "processor_io_wait_time_seconds": 20.0,
             "overhead_cpu_time_seconds": 5.0,  # Optional metric
-            "overhead_noncpu_time_seconds": 0.0,
+            "overhead_io_wait_time_seconds": 0.0,
         }
 
         table = format_fine_metrics_table(metrics)
@@ -648,9 +648,9 @@ class TestFormatterEdgeCases:
 
         metrics = {
             "processor_cpu_time_seconds": 100.0,
-            "processor_noncpu_time_seconds": 20.0,
+            "processor_io_wait_time_seconds": 20.0,
             "overhead_cpu_time_seconds": 0.0,
-            "overhead_noncpu_time_seconds": 2.0,  # Optional metric
+            "overhead_io_wait_time_seconds": 2.0,  # Optional metric
         }
 
         table = format_fine_metrics_table(metrics)

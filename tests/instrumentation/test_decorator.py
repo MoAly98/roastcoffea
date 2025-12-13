@@ -496,18 +496,27 @@ class TestByteTracking:
                 """Simulate reading bytes."""
                 self._bytes += bytes_to_read
 
+        class MockFile:
+            def __init__(self, source):
+                self.source = source
+
+        class MockFileHandle:
+            def __init__(self, source):
+                self.file = MockFile(source)
+
         class TestProcessor:
             _roastcoffea_collect_metrics = True
 
             @track_metrics
             def process(self, events):
                 # Simulate reading 500 bytes during processing
-                events.metadata["filesource"].simulate_read(500)
+                events.metadata["filehandle"].file.source.simulate_read(500)
                 return {}
 
         processor = TestProcessor()
         filesource = MockFileSource()
-        events = MockEvents(metadata={"filesource": filesource})
+        filehandle = MockFileHandle(filesource)
+        events = MockEvents(metadata={"filehandle": filehandle})
 
         result = processor.process(events)
 
@@ -574,18 +583,27 @@ class TestByteTracking:
             def add_bytes(self, delta):
                 self._bytes += delta
 
+        class MockFile:
+            def __init__(self, source):
+                self.source = source
+
+        class MockFileHandle:
+            def __init__(self, source):
+                self.file = MockFile(source)
+
         class TestProcessor:
             _roastcoffea_collect_metrics = True
 
             @track_metrics
             def process(self, events):
                 # Start: 5000, read 2500 bytes during processing
-                events.metadata["filesource"].add_bytes(2500)
+                events.metadata["filehandle"].file.source.add_bytes(2500)
                 return {}
 
         processor = TestProcessor()
         filesource = MockFileSource(start_bytes=5000)
-        events = MockEvents(metadata={"filesource": filesource})
+        filehandle = MockFileHandle(filesource)
+        events = MockEvents(metadata={"filehandle": filehandle})
 
         result = processor.process(events)
 

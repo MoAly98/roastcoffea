@@ -11,13 +11,6 @@ import pytest
 class TestStubFiles:
     """Test that stub files are importable and properly documented."""
 
-    def test_aggregation_chunks_stub_is_importable(self):
-        """aggregation/chunks.py is importable."""
-        import roastcoffea.aggregation.chunks
-
-        assert roastcoffea.aggregation.chunks.__doc__ is not None
-        assert "Chunk-level metrics aggregation" in roastcoffea.aggregation.chunks.__doc__
-
     def test_export_tables_stub_is_importable(self):
         """export/tables.py is importable."""
         import roastcoffea.export.tables
@@ -39,13 +32,6 @@ class TestStubFiles:
         assert roastcoffea.reporter.__doc__ is not None
         assert "Rich table formatters" in roastcoffea.reporter.__doc__
 
-    def test_visualization_plots_chunks_stub_is_importable(self):
-        """visualization/plots/chunks.py is importable."""
-        import roastcoffea.visualization.plots.chunks
-
-        assert roastcoffea.visualization.plots.chunks.__doc__ is not None
-        assert "Chunk-level performance plots" in roastcoffea.visualization.plots.chunks.__doc__
-
     def test_visualization_dashboards_main_stub_is_importable(self):
         """visualization/dashboards/main.py is importable."""
         import roastcoffea.visualization.dashboards.main
@@ -57,19 +43,15 @@ class TestStubFiles:
         """Stub files should not define any functions or classes."""
         import inspect
 
-        import roastcoffea.aggregation.chunks
         import roastcoffea.export.tables
         import roastcoffea.measurements
         import roastcoffea.reporter
         import roastcoffea.visualization.dashboards.main
-        import roastcoffea.visualization.plots.chunks
 
         stub_modules = [
-            roastcoffea.aggregation.chunks,
             roastcoffea.export.tables,
             roastcoffea.measurements,
             roastcoffea.reporter,
-            roastcoffea.visualization.plots.chunks,
             roastcoffea.visualization.dashboards.main,
         ]
 

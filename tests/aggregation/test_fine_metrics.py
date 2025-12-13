@@ -37,19 +37,19 @@ class TestParseFineMetrics:
         assert metrics["processor_cpu_time_seconds"] == 100.0
 
     def test_parse_extracts_noncpu_time(self, sample_spans_data):
-        """Extracts non-CPU time from thread-noncpu."""
+        """Extracts I/O wait time from thread-noncpu."""
         metrics = parse_fine_metrics(sample_spans_data)
 
-        assert metrics["processor_noncpu_time_seconds"] == 50.0
+        assert metrics["processor_io_wait_time_seconds"] == 50.0
 
     def test_parse_calculates_percentages(self, sample_spans_data):
-        """Calculates CPU and non-CPU percentages."""
+        """Calculates CPU and I/O wait percentages."""
         metrics = parse_fine_metrics(sample_spans_data)
 
         # 100 / (100 + 50) = 66.67%
-        assert metrics["processor_cpu_percentage"] == pytest.approx(66.67, rel=0.01)
+        assert metrics["processor_cpu_percent"] == pytest.approx(66.67, rel=0.01)
         # 50 / (100 + 50) = 33.33%
-        assert metrics["processor_noncpu_percentage"] == pytest.approx(33.33, rel=0.01)
+        assert metrics["processor_io_wait_percent"] == pytest.approx(33.33, rel=0.01)
 
     def test_parse_extracts_disk_io(self, sample_spans_data):
         """Extracts disk I/O bytes."""
@@ -79,9 +79,9 @@ class TestParseFineMetrics:
         metrics = parse_fine_metrics({})
 
         assert metrics["processor_cpu_time_seconds"] == 0.0
-        assert metrics["processor_noncpu_time_seconds"] == 0.0
-        assert metrics["processor_cpu_percentage"] == 0.0
-        assert metrics["processor_noncpu_percentage"] == 0.0
+        assert metrics["processor_io_wait_time_seconds"] == 0.0
+        assert metrics["processor_cpu_percent"] == 0.0
+        assert metrics["processor_io_wait_percent"] == 0.0
         assert metrics["disk_read_bytes"] == 0
         assert metrics["disk_write_bytes"] == 0
 
@@ -92,8 +92,8 @@ class TestParseFineMetrics:
             ("execute", "task", "thread-noncpu", "seconds"): 0.0,
         })
 
-        assert metrics["processor_cpu_percentage"] == 0.0
-        assert metrics["processor_noncpu_percentage"] == 0.0
+        assert metrics["processor_cpu_percent"] == 0.0
+        assert metrics["processor_io_wait_percent"] == 0.0
 
     def test_separates_processor_from_overhead(self):
         """Separates processor metrics from Dask overhead when processor_name given."""
@@ -110,14 +110,14 @@ class TestParseFineMetrics:
 
         # Processor metrics
         assert metrics["processor_cpu_time_seconds"] == 100.0
-        assert metrics["processor_noncpu_time_seconds"] == 20.0
+        assert metrics["processor_io_wait_time_seconds"] == 20.0
         # Overhead metrics
         assert metrics["overhead_cpu_time_seconds"] == 5.0
-        assert metrics["overhead_noncpu_time_seconds"] == 2.0
+        assert metrics["overhead_io_wait_time_seconds"] == 2.0
         # Percentages only for processor
         total = 100.0 + 20.0
-        assert metrics["processor_cpu_percentage"] == pytest.approx(100.0 / total * 100)
-        assert metrics["processor_noncpu_percentage"] == pytest.approx(20.0 / total * 100)
+        assert metrics["processor_cpu_percent"] == pytest.approx(100.0 / total * 100)
+        assert metrics["processor_io_wait_percent"] == pytest.approx(20.0 / total * 100)
 
     def test_parse_skips_invalid_keys(self):
         """parse_fine_metrics skips invalid keys (line 64)."""
@@ -143,5 +143,5 @@ class TestParseFineMetrics:
         metrics = parse_fine_metrics(spans_data)
 
         # Should capture memory-read bytes
-        assert metrics["total_bytes_memory_read_dask"] == 5_000_000_000
+        assert metrics["total_bytes_memory_read"] == 5_000_000_000
         assert metrics["processor_cpu_time_seconds"] == 10.0

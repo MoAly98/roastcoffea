@@ -323,7 +323,7 @@ class TestMetricsCollectorContextManager:
 
             mock_aggregator = Mock()
             mock_aggregator_class.return_value = mock_aggregator
-            mock_aggregator.aggregate.return_value = {"wall_time": 10.0}
+            mock_aggregator.aggregate.return_value = {"elapsed_time_seconds": 10.0}
 
             collector = MetricsCollector(client=mock_client, track_workers=False)
             collector.set_coffea_report({"bytesread": 1000})
@@ -333,7 +333,7 @@ class TestMetricsCollectorContextManager:
 
             # Should call aggregate
             mock_aggregator.aggregate.assert_called_once()
-            assert collector.metrics == {"wall_time": 10.0}
+            assert collector.metrics == {"elapsed_time_seconds": 10.0}
 
     def test_exit_skips_aggregation_without_coffea_report(self):
         """__exit__ skips aggregation when coffea_report not set."""
@@ -504,7 +504,7 @@ class TestMetricsCollectorMethods:
 
             mock_aggregator = Mock()
             mock_aggregator_class.return_value = mock_aggregator
-            mock_aggregator.aggregate.return_value = {"wall_time": 10.0}
+            mock_aggregator.aggregate.return_value = {"elapsed_time_seconds": 10.0}
 
             collector = MetricsCollector(client=mock_client, track_workers=False)
 
@@ -519,7 +519,7 @@ class TestMetricsCollectorMethods:
 
             metrics = collector.get_metrics()
 
-            assert metrics == {"wall_time": 10.0}
+            assert metrics == {"elapsed_time_seconds": 10.0}
             mock_aggregator.aggregate.assert_called()
 
     def test_get_metrics_returns_cached(self):
@@ -535,7 +535,7 @@ class TestMetricsCollectorMethods:
 
             mock_aggregator = Mock()
             mock_aggregator_class.return_value = mock_aggregator
-            mock_aggregator.aggregate.return_value = {"wall_time": 10.0}
+            mock_aggregator.aggregate.return_value = {"elapsed_time_seconds": 10.0}
 
             collector = MetricsCollector(client=mock_client, track_workers=False)
             collector.set_coffea_report({"bytesread": 1000})
@@ -601,7 +601,7 @@ class TestMetricsCollectorMethods:
 
             mock_aggregator = Mock()
             mock_aggregator_class.return_value = mock_aggregator
-            mock_aggregator.aggregate.return_value = {"wall_time": 10.0}
+            mock_aggregator.aggregate.return_value = {"elapsed_time_seconds": 10.0}
 
             mock_save.return_value = tmp_path / "measurement_123"
 
@@ -648,7 +648,7 @@ class TestMetricsCollectorMethods:
             mock_aggregator = Mock()
             mock_aggregator_class.return_value = mock_aggregator
             mock_aggregator.aggregate.return_value = {
-                "wall_time": 10.0,
+                "elapsed_time_seconds": 10.0,
                 "total_events": 1000,
             }
 
@@ -684,7 +684,7 @@ class TestMetricsCollectorWarnings:
 
             mock_aggregator = Mock()
             mock_aggregator_class.return_value = mock_aggregator
-            mock_aggregator.aggregate.return_value = {"wall_time": 10.0}
+            mock_aggregator.aggregate.return_value = {"elapsed_time_seconds": 10.0}
 
             collector = MetricsCollector(
                 client=mock_client,
@@ -750,7 +750,7 @@ class TestMetricsCollectorWarnings:
 
             mock_aggregator = Mock()
             mock_aggregator_class.return_value = mock_aggregator
-            mock_aggregator.aggregate.return_value = {"wall_time": 10.0}
+            mock_aggregator.aggregate.return_value = {"elapsed_time_seconds": 10.0}
 
             collector = MetricsCollector(client=mock_client, track_workers=False)
             collector.set_coffea_report({"bytesread": 1000})
@@ -829,7 +829,7 @@ class TestMetricsCollectorWarnings:
 
             mock_aggregator = Mock()
             mock_aggregator_class.return_value = mock_aggregator
-            mock_aggregator.aggregate.return_value = {"wall_time": 10.0}
+            mock_aggregator.aggregate.return_value = {"elapsed_time_seconds": 10.0}
 
             # Mock fine metrics table
             mock_fine_table.return_value = Mock()  # Return non-None table
@@ -863,7 +863,7 @@ class TestMetricsCollectorWarnings:
 
             mock_aggregator = Mock()
             mock_aggregator_class.return_value = mock_aggregator
-            mock_aggregator.aggregate.return_value = {"wall_time": 10.0}
+            mock_aggregator.aggregate.return_value = {"elapsed_time_seconds": 10.0}
 
             # Mock chunk metrics table
             mock_chunk_table.return_value = Mock()  # Return non-None table

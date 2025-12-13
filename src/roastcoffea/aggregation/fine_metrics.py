@@ -31,11 +31,11 @@ def parse_fine_metrics(
     dict
         Parsed fine metrics with keys:
         - processor_cpu_time_seconds: CPU time in processor
-        - processor_noncpu_time_seconds: Non-CPU time in processor (waiting, GIL, etc)
-        - processor_cpu_percentage: CPU / (CPU + non-CPU) x 100 for processor
-        - processor_noncpu_percentage: Non-CPU / (CPU + non-CPU) x 100 for processor
+        - processor_io_wait_time_seconds: I/O and waiting time in processor (I/O, GIL, blocking)
+        - processor_cpu_percent: CPU / (CPU + I/O wait) x 100 for processor
+        - processor_io_wait_percent: I/O wait / (CPU + I/O wait) x 100 for processor
         - overhead_cpu_time_seconds: CPU time in Dask overhead (if processor_name given)
-        - overhead_noncpu_time_seconds: Non-CPU time in Dask overhead
+        - overhead_io_wait_time_seconds: I/O and waiting time in Dask overhead
         - disk_read_bytes: Bytes read from disk
         - disk_write_bytes: Bytes written to disk
         - decompression_time_seconds: Time spent decompressing
@@ -48,9 +48,9 @@ def parse_fine_metrics(
     # Aggregate metrics by activity type
     # Metrics have keys like: ('execute', task_prefix, activity, unit)
     processor_cpu = 0.0
-    processor_noncpu = 0.0
+    processor_io_wait = 0.0
     overhead_cpu = 0.0
-    overhead_noncpu = 0.0
+    overhead_io_wait = 0.0
     disk_read = 0
     disk_write = 0
     memory_read = 0
@@ -79,9 +79,9 @@ def parse_fine_metrics(
                 overhead_cpu += value
         elif activity == "thread-noncpu":
             if is_processor:
-                processor_noncpu += value
+                processor_io_wait += value
             else:
-                overhead_noncpu += value
+                overhead_io_wait += value
         elif activity == "disk-read" and unit == "bytes":
             disk_read += value
         elif activity == "disk-write" and unit == "bytes":
@@ -98,12 +98,12 @@ def parse_fine_metrics(
             serialize_time += value
 
     # Calculate percentages for processor
-    processor_total = processor_cpu + processor_noncpu
+    processor_total = processor_cpu + processor_io_wait
     processor_cpu_pct = (
         (processor_cpu / processor_total * 100) if processor_total > 0 else 0.0
     )
-    processor_noncpu_pct = (
-        (processor_noncpu / processor_total * 100) if processor_total > 0 else 0.0
+    processor_io_wait_pct = (
+        (processor_io_wait / processor_total * 100) if processor_total > 0 else 0.0
     )
 
     # Calculate overhead totals
@@ -113,14 +113,14 @@ def parse_fine_metrics(
     return {
         # Processor time breakdown
         "processor_cpu_time_seconds": processor_cpu,
-        "processor_noncpu_time_seconds": processor_noncpu,
-        "processor_cpu_percentage": processor_cpu_pct,
-        "processor_noncpu_percentage": processor_noncpu_pct,
+        "processor_io_wait_time_seconds": processor_io_wait,
+        "processor_cpu_percent": processor_cpu_pct,
+        "processor_io_wait_percent": processor_io_wait_pct,
         # Dask overhead (only populated if processor_name given)
         "overhead_cpu_time_seconds": overhead_cpu,
-        "overhead_noncpu_time_seconds": overhead_noncpu,
+        "overhead_io_wait_time_seconds": overhead_io_wait,
         # Data volume from Dask Spans
-        "total_bytes_memory_read_dask": memory_read,  # In-memory data access tracked by Dask
+        "total_bytes_memory_read": memory_read,  # In-memory data access tracked by Dask
         "disk_read_bytes": disk_read,
         "disk_write_bytes": disk_write,
         # Compression overhead

@@ -20,7 +20,7 @@ class TestPlotEfficiencySummary:
         return {
             "core_efficiency": 0.75,
             "speedup_factor": 3.5,
-            "wall_time": 100.0,
+            "elapsed_time_seconds": 100.0,
             "total_cpu_time": 350.0,
         }
 
@@ -97,7 +97,7 @@ class TestPlotEfficiencySummary:
             ValueError,
             match="No efficiency metrics available",
         ):
-            plot_efficiency_summary({"wall_time": 100})
+            plot_efficiency_summary({"elapsed_time_seconds": 100})
 
 
 class TestPlotResourceUtilization:
@@ -176,4 +176,4 @@ class TestPlotResourceUtilization:
             ValueError,
             match="No resource metrics available",
         ):
-            plot_resource_utilization({"wall_time": 100})
+            plot_resource_utilization({"elapsed_time_seconds": 100})

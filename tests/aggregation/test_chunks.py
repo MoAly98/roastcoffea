@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from roastcoffea.aggregation.chunks import build_chunk_info
+from roastcoffea.aggregation.chunk import build_chunk_info
 
 
 class TestBuildChunkInfo:
