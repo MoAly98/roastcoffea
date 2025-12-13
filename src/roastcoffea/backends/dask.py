@@ -48,6 +48,7 @@ def _start_tracking_on_scheduler(dask_scheduler, interval: float = 1.0):
     dask_scheduler.worker_last_seen = {}
     dask_scheduler.worker_cpu = {}
     dask_scheduler.track_count = True
+    import warnings
 
     async def track_worker_metrics():
         """Async task to track worker metrics."""

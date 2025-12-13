@@ -27,7 +27,7 @@ def calculate_efficiency_metrics(
     dict
         Efficiency metrics
     """
-    wall_time = workflow_metrics.get("wall_time", 0)
+    elapsed_time_seconds = workflow_metrics.get("elapsed_time_seconds", 0)
     total_cpu_time = workflow_metrics.get("total_cpu_time", 0)
     total_events = workflow_metrics.get("total_events", 0)
     total_cores = worker_metrics.get("total_cores")
@@ -35,8 +35,8 @@ def calculate_efficiency_metrics(
     # Calculate core efficiency
     core_efficiency = None
     if total_cores is not None:
-        if wall_time > 0:
-            total_available_time = total_cores * wall_time
+        if elapsed_time_seconds > 0:
+            total_available_time = total_cores * elapsed_time_seconds
             core_efficiency = (
                 total_cpu_time / total_available_time
                 if total_available_time > 0
@@ -46,18 +46,22 @@ def calculate_efficiency_metrics(
             core_efficiency = 0.0
 
     # Calculate speedup factor
-    speedup_factor = total_cpu_time / wall_time if wall_time > 0 else 0.0
+    speedup_factor = (
+        total_cpu_time / elapsed_time_seconds if elapsed_time_seconds > 0 else 0.0
+    )
 
-    # Calculate event rate per core
-    event_rate_core_hz = None
+    # Calculate event rate per core (in kHz for consistency)
+    event_rate_core_khz = None
     if total_cores is not None:
-        if wall_time > 0:
-            event_rate_core_hz = total_events / (wall_time * total_cores)
+        if elapsed_time_seconds > 0:
+            event_rate_core_khz = (
+                total_events / (elapsed_time_seconds * total_cores)
+            ) / 1000
         else:
-            event_rate_core_hz = 0.0
+            event_rate_core_khz = 0.0
 
     return {
         "core_efficiency": core_efficiency,
         "speedup_factor": speedup_factor,
-        "event_rate_core_hz": event_rate_core_hz,
+        "event_rate_core_khz": event_rate_core_khz,
     }
