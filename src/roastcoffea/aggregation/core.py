@@ -38,7 +38,7 @@ class MetricsAggregator:
         t_start: float,
         t_end: float,
         custom_metrics: dict[str, Any] | None = None,
-        span_metrics: dict[str, Any] | None = None,
+        span_metrics: dict[tuple[str, ...], Any] | None = None,
         processor_name: str | None = None,
         chunk_metrics: list[dict[str, Any]] | None = None,
         section_metrics: list[dict[str, Any]] | None = None,
@@ -87,7 +87,9 @@ class MetricsAggregator:
         # Parse fine metrics from Spans if available
         fine_metrics = {}
         if span_metrics:
-            fine_metrics = parse_fine_metrics(span_metrics, processor_name=processor_name)
+            fine_metrics = parse_fine_metrics(
+                span_metrics, processor_name=processor_name
+            )
 
             # Update compression metrics with real data from Spans
             # Don't calculate compression ratio - the two metrics measure different things:

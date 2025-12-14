@@ -87,10 +87,12 @@ class TestParseFineMetrics:
 
     def test_parse_handles_zero_total_time(self):
         """Handles zero total time without division by zero."""
-        metrics = parse_fine_metrics({
-            ("execute", "task", "thread-cpu", "seconds"): 0.0,
-            ("execute", "task", "thread-noncpu", "seconds"): 0.0,
-        })
+        metrics = parse_fine_metrics(
+            {
+                ("execute", "task", "thread-cpu", "seconds"): 0.0,
+                ("execute", "task", "thread-noncpu", "seconds"): 0.0,
+            }
+        )
 
         assert metrics["processor_cpu_percent"] == 0.0
         assert metrics["processor_io_wait_percent"] == 0.0

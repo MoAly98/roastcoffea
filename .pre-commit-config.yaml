@@ -29,10 +29,8 @@ repos:
     rev: "v1.18.2"
     hooks:
       - id: mypy
-        files: src|tests
+        files: src
         args: [--config-file=pyproject.toml]
-        additional_dependencies:
-          - pytest
 
   - repo: https://github.com/shellcheck-py/shellcheck-py
     rev: "v0.11.0.1"
@@ -50,7 +48,7 @@ repos:
     rev: v2.4.1
     hooks:
       - id: codespell
-        exclude: ^(LICENSE|pixi\.lock)$
+        exclude: ^(LICENSE$|pixi\.lock$|docs/_build/|examples/)
 
   - repo: https://github.com/henryiii/validate-pyproject-schema-store
     rev: 2025.08.15

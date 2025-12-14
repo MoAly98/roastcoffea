@@ -86,8 +86,6 @@ class TestTrackBytesContextManager:
         class BrokenFileSource:
             """File source without the required attribute."""
 
-            pass
-
         class TestProcessor:
             def __init__(self):
                 self._roastcoffea_current_chunk = {"bytes": {}}
@@ -106,8 +104,6 @@ class TestTrackBytesContextManager:
 
         class TestProcessor:
             """Processor without metrics container."""
-
-            pass
 
         processor = TestProcessor()
         filesource = MockFileSource(start_bytes=1000)

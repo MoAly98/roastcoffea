@@ -16,7 +16,7 @@ from coffea import processor
 from coffea.nanoevents import NanoAODSchema
 from dask.distributed import Client, LocalCluster
 
-from roastcoffea import MetricsCollector, track_metrics, track_memory, track_time
+from roastcoffea import MetricsCollector, track_memory, track_metrics, track_time
 
 NanoAODSchema.warn_missing_crossrefs = False
 
@@ -296,7 +296,7 @@ def test_metrics_collector_e2e_with_chunk_tracking(dask_cluster, test_fileset):
 
     # Verify specific timing sections
     for chunk in chunk_metrics:
-        if "timing" in chunk and chunk["timing"]:
+        if chunk.get("timing"):
             assert "load_jets" in chunk["timing"], "Should have load_jets timing"
 
     # Verify memory sections are present
@@ -305,8 +305,10 @@ def test_metrics_collector_e2e_with_chunk_tracking(dask_cluster, test_fileset):
 
     # Verify specific memory sections
     for chunk in chunk_metrics:
-        if "memory" in chunk and chunk["memory"]:
-            assert "jet_selection" in chunk["memory"], "Should have jet_selection memory"
+        if chunk.get("memory"):
+            assert "jet_selection" in chunk["memory"], (
+                "Should have jet_selection memory"
+            )
 
     # Verify metadata is populated
     for chunk in chunk_metrics:

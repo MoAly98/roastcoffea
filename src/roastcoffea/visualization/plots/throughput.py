@@ -185,22 +185,22 @@ def plot_throughput_timeline(
         raise ValueError(msg)
 
     # Extract per-chunk timing: starts, ends, bytes, runtimes
-    starts = []
-    ends = []
-    bytes_read = []
-    runtimes = []
+    starts_list = []
+    ends_list = []
+    bytes_read_list = []
+    runtimes_list = []
 
     for _key, (t0, t1, bytesread) in chunk_info.items():
-        starts.append(t0)
-        ends.append(t1)
-        bytes_read.append(bytesread)
-        runtimes.append(t1 - t0)
+        starts_list.append(t0)
+        ends_list.append(t1)
+        bytes_read_list.append(bytesread)
+        runtimes_list.append(t1 - t0)
 
     # Convert to numpy arrays
-    starts = np.array(starts)
-    ends = np.array(ends)
-    bytes_read = np.array(bytes_read)
-    runtimes = np.array(runtimes)
+    starts = np.array(starts_list)
+    ends = np.array(ends_list)
+    bytes_read = np.array(bytes_read_list)
+    runtimes = np.array(runtimes_list)
 
     # Determine time range
     t_min = min(starts)
@@ -235,7 +235,7 @@ def plot_throughput_timeline(
     fig, ax1 = plt.subplots(figsize=figsize)
 
     ax1.fill_between(
-        sample_times_dt,
+        np.array(sample_times_dt),
         instantaneous_rates,
         alpha=0.5,
         color="C1",
@@ -245,7 +245,7 @@ def plot_throughput_timeline(
     ax1.set_xlabel("Time")
     ax1.set_ylabel("Data Rate (Gbps)", color="C1")
     ax1.tick_params(axis="y", labelcolor="C1")
-    ax1.set_ylim([0, max(instantaneous_rates) * 1.1 if instantaneous_rates else 1])
+    ax1.set_ylim((0, max(instantaneous_rates) * 1.1 if instantaneous_rates else 1))
     ax1.grid(True, alpha=0.3)
 
     # Overlay worker count if available
@@ -259,7 +259,7 @@ def plot_throughput_timeline(
             ax2.plot(timestamps, counts, linewidth=2, color="C0", label="Workers")
             ax2.set_ylabel("Number of Workers", color="C0")
             ax2.tick_params(axis="y", labelcolor="C0")
-            ax2.set_ylim([0, max(counts) * 1.1])
+            ax2.set_ylim((0, max(counts) * 1.1))
 
     ax1.set_title(title)
 

@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 
 
 def plot_efficiency_summary(
-    metrics: dict[str, Any],
+    metrics: dict[str, Any] | None,
     output_path: Path | None = None,
     figsize: tuple[int, int] = (10, 6),
 ) -> tuple[plt.Figure, plt.Axes]:
@@ -67,7 +67,9 @@ def plot_efficiency_summary(
     # Create plot
     fig, ax = plt.subplots(figsize=figsize)
 
-    bars = ax.bar(metric_names, metric_values, color=["steelblue", "coral"][: len(metric_names)])
+    bars = ax.bar(
+        metric_names, metric_values, color=["steelblue", "coral"][: len(metric_names)]
+    )
 
     # Add value labels on top of bars
     for bar in bars:
@@ -95,7 +97,7 @@ def plot_efficiency_summary(
 
 
 def plot_resource_utilization(
-    metrics: dict[str, Any],
+    metrics: dict[str, Any] | None,
     output_path: Path | None = None,
     figsize: tuple[int, int] = (10, 6),
 ) -> tuple[plt.Figure, plt.Axes]:
@@ -129,11 +131,8 @@ def plot_resource_utilization(
     # Extract resource metrics
     avg_workers = metrics.get("avg_workers")
     total_cores = metrics.get("total_cores")
-    peak_memory_gb = (
-        metrics.get("peak_memory_bytes") / 1e9
-        if metrics.get("peak_memory_bytes")
-        else None
-    )
+    peak_memory_bytes = metrics.get("peak_memory_bytes")
+    peak_memory_gb = peak_memory_bytes / 1e9 if peak_memory_bytes else None
 
     if avg_workers is None and total_cores is None and peak_memory_gb is None:
         msg = "No resource metrics available (workers, cores, or memory)"

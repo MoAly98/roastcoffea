@@ -5,8 +5,6 @@ These files contain only docstrings and are placeholders for future implementati
 
 from __future__ import annotations
 
-import pytest
-
 
 class TestStubFiles:
     """Test that stub files are importable and properly documented."""
@@ -37,7 +35,10 @@ class TestStubFiles:
         import roastcoffea.visualization.dashboards.main
 
         assert roastcoffea.visualization.dashboards.main.__doc__ is not None
-        assert "comprehensive dashboard" in roastcoffea.visualization.dashboards.main.__doc__
+        assert (
+            "comprehensive dashboard"
+            in roastcoffea.visualization.dashboards.main.__doc__
+        )
 
     def test_stub_files_have_no_functions(self):
         """Stub files should not define any functions or classes."""
@@ -65,6 +66,6 @@ class TestStubFiles:
                 and not inspect.ismodule(obj)
                 and name != "annotations"  # From __future__ import
             ]
-            assert (
-                len(user_defined) == 0
-            ), f"{module.__name__} stub should not define any public members, found: {user_defined}"
+            assert len(user_defined) == 0, (
+                f"{module.__name__} stub should not define any public members, found: {user_defined}"
+            )

@@ -48,7 +48,6 @@ def _start_tracking_on_scheduler(dask_scheduler, interval: float = 1.0):
     dask_scheduler.worker_last_seen = {}
     dask_scheduler.worker_cpu = {}
     dask_scheduler.track_count = True
-    import warnings
 
     async def track_worker_metrics():
         """Async task to track worker metrics."""
@@ -234,7 +233,9 @@ class DaskMetricsBackend(AbstractMetricsBackend):
         # We need to return both the context manager and capture the ID
         return {"context": span_cm, "name": name}
 
-    def get_span_metrics(self, span_info: dict[str, Any], delay: float = 0.5) -> dict[str, Any]:
+    def get_span_metrics(
+        self, span_info: dict[str, Any], delay: float = 0.5
+    ) -> dict[tuple[str, ...], Any]:
         """Extract metrics from a span from scheduler.
 
         Span metrics sync from workers to scheduler after a delay (default: 0.5s interval).

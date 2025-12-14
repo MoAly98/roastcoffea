@@ -5,8 +5,8 @@ from __future__ import annotations
 import pytest
 
 from roastcoffea.aggregation.branch_coverage import (
-    _extract_accessed_branches,
-    _extract_file_metadata,
+    _extract_accessed_branches,  # noqa: PLC2701
+    _extract_file_metadata,  # noqa: PLC2701
     aggregate_branch_coverage,
 )
 

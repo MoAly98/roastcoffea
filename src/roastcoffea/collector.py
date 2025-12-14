@@ -10,6 +10,8 @@ import time
 from pathlib import Path
 from typing import Any
 
+from coffea.processor import ProcessorABC
+from distributed import Client
 from rich.console import Console
 
 from roastcoffea.aggregation.core import MetricsAggregator
@@ -72,11 +74,11 @@ class MetricsCollector:
 
     def __init__(
         self,
-        client: "distributed.Client",
+        client: Client,
         backend: str = "dask",
         track_workers: bool = True,
         worker_tracking_interval: float = 1.0,
-        processor_instance: "coffea.processor.ProcessorABC | None" = None,
+        processor_instance: ProcessorABC | None = None,
     ) -> None:
         """Initialize MetricsCollector."""
         self.client = client
@@ -107,7 +109,7 @@ class MetricsCollector:
         self.coffea_report: dict[str, Any] | None = None
         self.tracking_data: dict[str, Any] | None = None
         self.span_info: dict[str, Any] | None = None
-        self.span_metrics: dict[str, Any] | None = None
+        self.span_metrics: dict[tuple[str, ...], Any] | None = None
         self.metrics: dict[str, Any] | None = None
 
         # Chunk-level tracking
@@ -127,7 +129,9 @@ class MetricsCollector:
             # When Dask serializes the processor, the class attribute ensures
             # all worker copies have metrics collection enabled
             self.processor_instance.__class__._roastcoffea_collect_metrics = True
-            logger.debug("Enabled chunk metrics collection on processor instance and class")
+            logger.debug(
+                "Enabled chunk metrics collection on processor instance and class"
+            )
 
         if self.track_workers:
             self.metrics_backend.start_tracking(interval=self.worker_tracking_interval)
@@ -139,11 +143,14 @@ class MetricsCollector:
                 # Enter the span context and capture the span ID
                 span_id = self.span_info["context"].__enter__()
                 self.span_info["id"] = span_id
-                logger.debug(f"Dask Span created successfully (ID: {span_id}) for fine metrics collection")
+                logger.debug(
+                    "Dask Span created successfully (ID: %s) for fine metrics collection",
+                    span_id,
+                )
             except Exception as e:
                 logger.warning(
-                    f"Failed to enter Dask Span context: {e}. "
-                    "Fine-grained metrics will not be collected."
+                    "Failed to enter Dask Span context: %s. Fine-grained metrics will not be collected.",
+                    e,
                 )
                 self.span_info = None
 
@@ -157,17 +164,28 @@ class MetricsCollector:
         if self.processor_instance is not None:
             self.processor_instance._roastcoffea_collect_metrics = False
             # Clean up class attribute
-            if hasattr(self.processor_instance.__class__, "_roastcoffea_collect_metrics"):
-                delattr(self.processor_instance.__class__, "_roastcoffea_collect_metrics")
-            logger.debug("Disabled chunk metrics collection on processor instance and class")
+            if hasattr(
+                self.processor_instance.__class__, "_roastcoffea_collect_metrics"
+            ):
+                delattr(
+                    self.processor_instance.__class__, "_roastcoffea_collect_metrics"
+                )
+            logger.debug(
+                "Disabled chunk metrics collection on processor instance and class"
+            )
 
         # Exit span context and extract metrics
         if self.span_info is not None:
             try:
                 self.span_info["context"].__exit__(exc_type, exc_val, exc_tb)
-                self.span_metrics = self.metrics_backend.get_span_metrics(self.span_info)
+                self.span_metrics = self.metrics_backend.get_span_metrics(
+                    self.span_info
+                )
                 if self.span_metrics:
-                    logger.debug(f"Collected {len(self.span_metrics)} fine metrics from Dask Span")
+                    logger.debug(
+                        "Collected %d fine metrics from Dask Span",
+                        len(self.span_metrics),
+                    )
                 else:
                     logger.warning(
                         "Dask Span completed but no metrics were collected. "
@@ -175,8 +193,8 @@ class MetricsCollector:
                     )
             except Exception as e:
                 logger.warning(
-                    f"Failed to extract metrics from Dask Span: {e}. "
-                    "Fine-grained metrics will not be available."
+                    "Failed to extract metrics from Dask Span: %s. Fine-grained metrics will not be available.",
+                    e,
                 )
                 self.span_metrics = None
 
@@ -185,9 +203,9 @@ class MetricsCollector:
 
         # Log chunk metrics collected
         if self.chunk_metrics:
-            logger.debug(f"Collected metrics for {len(self.chunk_metrics)} chunks")
+            logger.debug("Collected metrics for %d chunks", len(self.chunk_metrics))
         if self.section_metrics:
-            logger.debug(f"Collected metrics for {len(self.section_metrics)} sections")
+            logger.debug("Collected metrics for %d sections", len(self.section_metrics))
 
         # Auto-aggregate if we have a coffea report
         if self.coffea_report is not None:
@@ -231,19 +249,25 @@ class MetricsCollector:
         output : dict
             Output dictionary from Coffea workflow
         """
-        if isinstance(output, dict) and "__roastcoffea_metrics__" in output:
-            metrics_list = output["__roastcoffea_metrics__"]
+        try:
+            if "__roastcoffea_metrics__" in output:
+                metrics_list = output["__roastcoffea_metrics__"]
 
-            if isinstance(metrics_list, list):
-                self.chunk_metrics = metrics_list
-                logger.debug(f"Extracted {len(metrics_list)} chunk metrics from output")
+                if isinstance(metrics_list, list):
+                    self.chunk_metrics = metrics_list
+                    logger.debug(
+                        "Extracted %d chunk metrics from output", len(metrics_list)
+                    )
 
-                # Remove from output so user doesn't see internal data
-                del output["__roastcoffea_metrics__"]
+                    # Remove from output so user doesn't see internal data
+                    del output["__roastcoffea_metrics__"]
+                else:
+                    logger.warning("Metrics not a list: %s", type(metrics_list))
             else:
-                logger.warning(f"Metrics not a list: {type(metrics_list)}")
-        else:
-            logger.debug("No metrics found in output")
+                logger.debug("No metrics found in output")
+        except TypeError:
+            # Handle non-dict output gracefully
+            logger.debug("Output is not a dict, no metrics to extract")
 
     def set_coffea_report(
         self, report: dict[str, Any], custom_metrics: dict[str, Any] | None = None

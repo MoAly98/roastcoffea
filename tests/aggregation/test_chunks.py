@@ -33,9 +33,9 @@ class TestBuildChunkInfo:
 
         assert len(chunk_info) == 2
         assert ("data.root", 0, 1000) in chunk_info
-        assert chunk_info[("data.root", 0, 1000)] == (1.0, 2.5, 50000)
+        assert chunk_info["data.root", 0, 1000] == (1.0, 2.5, 50000)
         assert ("data2.root", 1000, 2000) in chunk_info
-        assert chunk_info[("data2.root", 1000, 2000)] == (2.5, 4.0, 75000)
+        assert chunk_info["data2.root", 1000, 2000] == (2.5, 4.0, 75000)
 
     def test_build_chunk_info_missing_file_metadata(self):
         """build_chunk_info() skips chunks without file metadata."""
@@ -115,7 +115,7 @@ class TestBuildChunkInfo:
         chunk_info = build_chunk_info(chunk_metrics)
 
         assert len(chunk_info) == 1
-        assert chunk_info[("data.root", 0, 1000)] == (1.0, 2.5, 0)
+        assert chunk_info["data.root", 0, 1000] == (1.0, 2.5, 0)
 
     def test_build_chunk_info_empty_list(self):
         """build_chunk_info() handles empty list correctly."""
@@ -164,7 +164,7 @@ class TestBuildChunkInfo:
 
         # Should have one entry with the last value
         assert len(chunk_info) == 1
-        assert chunk_info[("data.root", 0, 1000)] == (2.0, 3.0, 60000)
+        assert chunk_info["data.root", 0, 1000] == (2.0, 3.0, 60000)
 
     def test_build_chunk_info_with_extra_fields(self):
         """build_chunk_info() ignores extra fields in chunk metrics."""
@@ -187,4 +187,4 @@ class TestBuildChunkInfo:
 
         # Should successfully extract the needed fields
         assert len(chunk_info) == 1
-        assert chunk_info[("data.root", 0, 1000)] == (1.0, 2.5, 50000)
+        assert chunk_info["data.root", 0, 1000] == (1.0, 2.5, 50000)

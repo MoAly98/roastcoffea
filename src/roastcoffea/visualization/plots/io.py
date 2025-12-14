@@ -57,15 +57,29 @@ def plot_compression_ratio_distribution(
     fig, ax = plt.subplots(figsize=figsize)
 
     # Plot histogram
-    ax.hist(compression_ratios, bins=bins, alpha=0.7, color="steelblue", edgecolor="black")
+    ax.hist(
+        compression_ratios, bins=bins, alpha=0.7, color="steelblue", edgecolor="black"
+    )
 
     # Calculate statistics
     mean_ratio = np.mean(compression_ratios)
     median_ratio = np.median(compression_ratios)
 
     # Add vertical lines for mean and median
-    ax.axvline(mean_ratio, color="red", linestyle="--", linewidth=2, label=f"Mean: {mean_ratio:.3f}")
-    ax.axvline(median_ratio, color="green", linestyle="--", linewidth=2, label=f"Median: {median_ratio:.3f}")
+    ax.axvline(
+        mean_ratio,
+        color="red",
+        linestyle="--",
+        linewidth=2,
+        label=f"Mean: {mean_ratio:.3f}",
+    )
+    ax.axvline(
+        median_ratio,
+        color="green",
+        linestyle="--",
+        linewidth=2,
+        label=f"Median: {median_ratio:.3f}",
+    )
 
     ax.set_xlabel("Compression Ratio (compressed/uncompressed)")
     ax.set_ylabel("Number of Files")
@@ -140,13 +154,25 @@ def plot_data_access_percentage(
     median_pct = np.median(bytes_read_percentages)
 
     # Add vertical lines for mean and median
-    ax.axvline(mean_pct, color="red", linestyle="--", linewidth=2, label=f"Mean: {mean_pct:.1f}%")
-    ax.axvline(median_pct, color="blue", linestyle="--", linewidth=2, label=f"Median: {median_pct:.1f}%")
+    ax.axvline(
+        mean_pct,
+        color="red",
+        linestyle="--",
+        linewidth=2,
+        label=f"Mean: {mean_pct:.1f}%",
+    )
+    ax.axvline(
+        median_pct,
+        color="blue",
+        linestyle="--",
+        linewidth=2,
+        label=f"Median: {median_pct:.1f}%",
+    )
 
     ax.set_xlabel("Bytes Read (%)")
     ax.set_ylabel("Number of Files")
     ax.set_title(title)
-    ax.set_xlim([0, 100])
+    ax.set_xlim((0, 100))
     ax.legend()
     ax.grid(True, alpha=0.3)
 

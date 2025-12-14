@@ -22,10 +22,7 @@ def _serialize_for_json(obj: Any) -> Any:
         JSON-serializable object
     """
     if isinstance(obj, dict):
-        return {
-            _serialize_key(k): _serialize_for_json(v)
-            for k, v in obj.items()
-        }
+        return {_serialize_key(k): _serialize_for_json(v) for k, v in obj.items()}
     if isinstance(obj, list):
         return [_serialize_for_json(item) for item in obj]
     if isinstance(obj, tuple):
@@ -54,9 +51,9 @@ def _serialize_key(key: Any) -> str:
     if isinstance(key, tuple):
         # Convert tuple keys to string representation
         return str(key)
-    if isinstance(key, (str, int, float, bool)) or key is None:
+    if isinstance(key, str):
         return key
-    # Fallback: convert to string
+    # Convert int, float, bool, None, and anything else to string
     return str(key)
 
 

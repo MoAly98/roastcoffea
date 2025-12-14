@@ -4,6 +4,7 @@ Per-chunk timing, memory, and performance breakdowns.
 """
 
 from __future__ import annotations
+
 from pathlib import Path
 from typing import Any
 

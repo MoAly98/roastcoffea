@@ -192,7 +192,10 @@ class TestAggregateWorkflowMetrics:
 
         # Add non-dict entries to custom_metrics
         custom_metrics = {
-            "dataset1": {"entries": 50, "performance_counters": {"num_requested_bytes": 500}},
+            "dataset1": {
+                "entries": 50,
+                "performance_counters": {"num_requested_bytes": 500},
+            },
             "not_a_dict": "string_value",  # This should be skipped
             123: {"entries": 25},  # Numeric key with dict value - should work
         }

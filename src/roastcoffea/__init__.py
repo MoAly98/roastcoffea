@@ -35,14 +35,11 @@ from roastcoffea.instrumentation import track_bytes, track_memory, track_time
 __version__ = "0.1.0"
 
 __all__ = [
-    # Core
     "MetricsCollector",
     "__version__",
-    # Instrumentation
+    "load_measurement",
+    "track_bytes",
+    "track_memory",
     "track_metrics",
     "track_time",
-    "track_memory",
-    "track_bytes",
-    # Export
-    "load_measurement",
 ]

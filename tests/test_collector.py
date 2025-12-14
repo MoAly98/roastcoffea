@@ -19,9 +19,10 @@ class TestMetricsCollectorInitialization:
         """Initialize with default parameters."""
         mock_client = Mock()
 
-        with patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend, patch(
-            "roastcoffea.collector.MetricsAggregator"
-        ) as mock_aggregator:
+        with (
+            patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend,
+            patch("roastcoffea.collector.MetricsAggregator") as mock_aggregator,
+        ):
             collector = MetricsCollector(client=mock_client)
 
             assert collector.client == mock_client
@@ -41,8 +42,9 @@ class TestMetricsCollectorInitialization:
         mock_processor = Mock()
         mock_processor.__class__.__name__ = "MyProcessor"
 
-        with patch("roastcoffea.collector.DaskMetricsBackend"), patch(
-            "roastcoffea.collector.MetricsAggregator"
+        with (
+            patch("roastcoffea.collector.DaskMetricsBackend"),
+            patch("roastcoffea.collector.MetricsAggregator"),
         ):
             collector = MetricsCollector(
                 client=mock_client, processor_instance=mock_processor
@@ -55,8 +57,9 @@ class TestMetricsCollectorInitialization:
         """Initialize with custom parameters."""
         mock_client = Mock()
 
-        with patch("roastcoffea.collector.DaskMetricsBackend"), patch(
-            "roastcoffea.collector.MetricsAggregator"
+        with (
+            patch("roastcoffea.collector.DaskMetricsBackend"),
+            patch("roastcoffea.collector.MetricsAggregator"),
         ):
             collector = MetricsCollector(
                 client=mock_client,
@@ -79,8 +82,9 @@ class TestMetricsCollectorInitialization:
         """Verify initial state is correct."""
         mock_client = Mock()
 
-        with patch("roastcoffea.collector.DaskMetricsBackend"), patch(
-            "roastcoffea.collector.MetricsAggregator"
+        with (
+            patch("roastcoffea.collector.DaskMetricsBackend"),
+            patch("roastcoffea.collector.MetricsAggregator"),
         ):
             collector = MetricsCollector(client=mock_client)
 
@@ -102,8 +106,9 @@ class TestMetricsCollectorContextManager:
         """__enter__ sets start time."""
         mock_client = Mock()
 
-        with patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class, patch(
-            "roastcoffea.collector.MetricsAggregator"
+        with (
+            patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class,
+            patch("roastcoffea.collector.MetricsAggregator"),
         ):
             mock_backend = Mock()
             mock_backend_class.return_value = mock_backend
@@ -124,8 +129,9 @@ class TestMetricsCollectorContextManager:
         mock_processor = Mock()
         mock_processor.__class__.__name__ = "TestProcessor"
 
-        with patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class, patch(
-            "roastcoffea.collector.MetricsAggregator"
+        with (
+            patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class,
+            patch("roastcoffea.collector.MetricsAggregator"),
         ):
             mock_backend = Mock()
             mock_backend_class.return_value = mock_backend
@@ -147,8 +153,9 @@ class TestMetricsCollectorContextManager:
         """__enter__ starts worker tracking when enabled."""
         mock_client = Mock()
 
-        with patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class, patch(
-            "roastcoffea.collector.MetricsAggregator"
+        with (
+            patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class,
+            patch("roastcoffea.collector.MetricsAggregator"),
         ):
             mock_backend = Mock()
             mock_backend_class.return_value = mock_backend
@@ -165,8 +172,9 @@ class TestMetricsCollectorContextManager:
         """__enter__ skips worker tracking when disabled."""
         mock_client = Mock()
 
-        with patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class, patch(
-            "roastcoffea.collector.MetricsAggregator"
+        with (
+            patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class,
+            patch("roastcoffea.collector.MetricsAggregator"),
         ):
             mock_backend = Mock()
             mock_backend_class.return_value = mock_backend
@@ -181,8 +189,9 @@ class TestMetricsCollectorContextManager:
         """__enter__ creates Dask span for fine metrics."""
         mock_client = Mock()
 
-        with patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class, patch(
-            "roastcoffea.collector.MetricsAggregator"
+        with (
+            patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class,
+            patch("roastcoffea.collector.MetricsAggregator"),
         ):
             mock_backend = Mock()
             mock_backend_class.return_value = mock_backend
@@ -203,8 +212,9 @@ class TestMetricsCollectorContextManager:
         """__enter__ handles span creation failure gracefully."""
         mock_client = Mock()
 
-        with patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class, patch(
-            "roastcoffea.collector.MetricsAggregator"
+        with (
+            patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class,
+            patch("roastcoffea.collector.MetricsAggregator"),
         ):
             mock_backend = Mock()
             mock_backend_class.return_value = mock_backend
@@ -224,8 +234,9 @@ class TestMetricsCollectorContextManager:
         """__exit__ sets end time."""
         mock_client = Mock()
 
-        with patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class, patch(
-            "roastcoffea.collector.MetricsAggregator"
+        with (
+            patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class,
+            patch("roastcoffea.collector.MetricsAggregator"),
         ):
             mock_backend = Mock()
             mock_backend_class.return_value = mock_backend
@@ -243,8 +254,9 @@ class TestMetricsCollectorContextManager:
         """__exit__ stops worker tracking."""
         mock_client = Mock()
 
-        with patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class, patch(
-            "roastcoffea.collector.MetricsAggregator"
+        with (
+            patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class,
+            patch("roastcoffea.collector.MetricsAggregator"),
         ):
             mock_backend = Mock()
             mock_backend_class.return_value = mock_backend
@@ -263,8 +275,9 @@ class TestMetricsCollectorContextManager:
         """__exit__ extracts metrics from span."""
         mock_client = Mock()
 
-        with patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class, patch(
-            "roastcoffea.collector.MetricsAggregator"
+        with (
+            patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class,
+            patch("roastcoffea.collector.MetricsAggregator"),
         ):
             mock_backend = Mock()
             mock_backend_class.return_value = mock_backend
@@ -289,8 +302,9 @@ class TestMetricsCollectorContextManager:
         """__exit__ handles span metric extraction failure."""
         mock_client = Mock()
 
-        with patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class, patch(
-            "roastcoffea.collector.MetricsAggregator"
+        with (
+            patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class,
+            patch("roastcoffea.collector.MetricsAggregator"),
         ):
             mock_backend = Mock()
             mock_backend_class.return_value = mock_backend
@@ -300,7 +314,9 @@ class TestMetricsCollectorContextManager:
             mock_span_context.__enter__.return_value = "span-id"
             span_info = {"context": mock_span_context, "id": "span-id"}
             mock_backend.create_span.return_value = span_info
-            mock_backend.get_span_metrics.side_effect = RuntimeError("Failed to get metrics")
+            mock_backend.get_span_metrics.side_effect = RuntimeError(
+                "Failed to get metrics"
+            )
 
             collector = MetricsCollector(client=mock_client, track_workers=False)
 
@@ -314,9 +330,10 @@ class TestMetricsCollectorContextManager:
         """__exit__ auto-aggregates when coffea_report is set."""
         mock_client = Mock()
 
-        with patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class, patch(
-            "roastcoffea.collector.MetricsAggregator"
-        ) as mock_aggregator_class:
+        with (
+            patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class,
+            patch("roastcoffea.collector.MetricsAggregator") as mock_aggregator_class,
+        ):
             mock_backend = Mock()
             mock_backend_class.return_value = mock_backend
             mock_backend.create_span.return_value = None
@@ -339,9 +356,10 @@ class TestMetricsCollectorContextManager:
         """__exit__ skips aggregation when coffea_report not set."""
         mock_client = Mock()
 
-        with patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class, patch(
-            "roastcoffea.collector.MetricsAggregator"
-        ) as mock_aggregator_class:
+        with (
+            patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class,
+            patch("roastcoffea.collector.MetricsAggregator") as mock_aggregator_class,
+        ):
             mock_backend = Mock()
             mock_backend_class.return_value = mock_backend
             mock_backend.create_span.return_value = None
@@ -366,8 +384,9 @@ class TestMetricsCollectorMethods:
         """record_chunk_metrics appends to list."""
         mock_client = Mock()
 
-        with patch("roastcoffea.collector.DaskMetricsBackend"), patch(
-            "roastcoffea.collector.MetricsAggregator"
+        with (
+            patch("roastcoffea.collector.DaskMetricsBackend"),
+            patch("roastcoffea.collector.MetricsAggregator"),
         ):
             collector = MetricsCollector(client=mock_client)
 
@@ -385,8 +404,9 @@ class TestMetricsCollectorMethods:
         """record_section_metrics appends to list."""
         mock_client = Mock()
 
-        with patch("roastcoffea.collector.DaskMetricsBackend"), patch(
-            "roastcoffea.collector.MetricsAggregator"
+        with (
+            patch("roastcoffea.collector.DaskMetricsBackend"),
+            patch("roastcoffea.collector.MetricsAggregator"),
         ):
             collector = MetricsCollector(client=mock_client)
 
@@ -404,8 +424,9 @@ class TestMetricsCollectorMethods:
         """extract_metrics_from_output extracts and removes metrics."""
         mock_client = Mock()
 
-        with patch("roastcoffea.collector.DaskMetricsBackend"), patch(
-            "roastcoffea.collector.MetricsAggregator"
+        with (
+            patch("roastcoffea.collector.DaskMetricsBackend"),
+            patch("roastcoffea.collector.MetricsAggregator"),
         ):
             collector = MetricsCollector(client=mock_client)
 
@@ -431,8 +452,9 @@ class TestMetricsCollectorMethods:
         """extract_metrics_from_output handles output without metrics."""
         mock_client = Mock()
 
-        with patch("roastcoffea.collector.DaskMetricsBackend"), patch(
-            "roastcoffea.collector.MetricsAggregator"
+        with (
+            patch("roastcoffea.collector.DaskMetricsBackend"),
+            patch("roastcoffea.collector.MetricsAggregator"),
         ):
             collector = MetricsCollector(client=mock_client)
 
@@ -447,8 +469,9 @@ class TestMetricsCollectorMethods:
         """extract_metrics_from_output handles non-dict output."""
         mock_client = Mock()
 
-        with patch("roastcoffea.collector.DaskMetricsBackend"), patch(
-            "roastcoffea.collector.MetricsAggregator"
+        with (
+            patch("roastcoffea.collector.DaskMetricsBackend"),
+            patch("roastcoffea.collector.MetricsAggregator"),
         ):
             collector = MetricsCollector(client=mock_client)
 
@@ -464,8 +487,9 @@ class TestMetricsCollectorMethods:
         """set_coffea_report stores report."""
         mock_client = Mock()
 
-        with patch("roastcoffea.collector.DaskMetricsBackend"), patch(
-            "roastcoffea.collector.MetricsAggregator"
+        with (
+            patch("roastcoffea.collector.DaskMetricsBackend"),
+            patch("roastcoffea.collector.MetricsAggregator"),
         ):
             collector = MetricsCollector(client=mock_client)
 
@@ -478,8 +502,9 @@ class TestMetricsCollectorMethods:
         """set_coffea_report stores custom metrics."""
         mock_client = Mock()
 
-        with patch("roastcoffea.collector.DaskMetricsBackend"), patch(
-            "roastcoffea.collector.MetricsAggregator"
+        with (
+            patch("roastcoffea.collector.DaskMetricsBackend"),
+            patch("roastcoffea.collector.MetricsAggregator"),
         ):
             collector = MetricsCollector(client=mock_client)
 
@@ -495,9 +520,10 @@ class TestMetricsCollectorMethods:
         """get_metrics calls _aggregate_metrics if not yet aggregated."""
         mock_client = Mock()
 
-        with patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class, patch(
-            "roastcoffea.collector.MetricsAggregator"
-        ) as mock_aggregator_class:
+        with (
+            patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class,
+            patch("roastcoffea.collector.MetricsAggregator") as mock_aggregator_class,
+        ):
             mock_backend = Mock()
             mock_backend_class.return_value = mock_backend
             mock_backend.create_span.return_value = None
@@ -526,9 +552,10 @@ class TestMetricsCollectorMethods:
         """get_metrics returns cached metrics without re-aggregating."""
         mock_client = Mock()
 
-        with patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class, patch(
-            "roastcoffea.collector.MetricsAggregator"
-        ) as mock_aggregator_class:
+        with (
+            patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class,
+            patch("roastcoffea.collector.MetricsAggregator") as mock_aggregator_class,
+        ):
             mock_backend = Mock()
             mock_backend_class.return_value = mock_backend
             mock_backend.create_span.return_value = None
@@ -557,8 +584,9 @@ class TestMetricsCollectorMethods:
         """get_metrics raises if called outside context manager."""
         mock_client = Mock()
 
-        with patch("roastcoffea.collector.DaskMetricsBackend"), patch(
-            "roastcoffea.collector.MetricsAggregator"
+        with (
+            patch("roastcoffea.collector.DaskMetricsBackend"),
+            patch("roastcoffea.collector.MetricsAggregator"),
         ):
             collector = MetricsCollector(client=mock_client)
             collector.set_coffea_report({"bytesread": 1000})
@@ -570,8 +598,9 @@ class TestMetricsCollectorMethods:
         """_aggregate_metrics raises if coffea_report not set."""
         mock_client = Mock()
 
-        with patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class, patch(
-            "roastcoffea.collector.MetricsAggregator"
+        with (
+            patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class,
+            patch("roastcoffea.collector.MetricsAggregator"),
         ):
             mock_backend = Mock()
             mock_backend_class.return_value = mock_backend
@@ -590,11 +619,11 @@ class TestMetricsCollectorMethods:
         """save_measurement saves to disk."""
         mock_client = Mock()
 
-        with patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class, patch(
-            "roastcoffea.collector.MetricsAggregator"
-        ) as mock_aggregator_class, patch(
-            "roastcoffea.collector.save_measurement"
-        ) as mock_save:
+        with (
+            patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class,
+            patch("roastcoffea.collector.MetricsAggregator") as mock_aggregator_class,
+            patch("roastcoffea.collector.save_measurement") as mock_save,
+        ):
             mock_backend = Mock()
             mock_backend_class.return_value = mock_backend
             mock_backend.create_span.return_value = None
@@ -622,13 +651,15 @@ class TestMetricsCollectorMethods:
         """save_measurement raises if called before context exit."""
         mock_client = Mock()
 
-        with patch("roastcoffea.collector.DaskMetricsBackend"), patch(
-            "roastcoffea.collector.MetricsAggregator"
+        with (
+            patch("roastcoffea.collector.DaskMetricsBackend"),
+            patch("roastcoffea.collector.MetricsAggregator"),
         ):
             collector = MetricsCollector(client=mock_client)
 
             with pytest.raises(
-                RuntimeError, match="Cannot save measurement before context manager completes"
+                RuntimeError,
+                match="Cannot save measurement before context manager completes",
             ):
                 collector.save_measurement(output_dir=Path("/tmp"))
 
@@ -636,11 +667,11 @@ class TestMetricsCollectorMethods:
         """print_summary generates Rich tables."""
         mock_client = Mock()
 
-        with patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class, patch(
-            "roastcoffea.collector.MetricsAggregator"
-        ) as mock_aggregator_class, patch(
-            "roastcoffea.collector.Console"
-        ) as mock_console:
+        with (
+            patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class,
+            patch("roastcoffea.collector.MetricsAggregator") as mock_aggregator_class,
+            patch("roastcoffea.collector.Console") as mock_console,
+        ):
             mock_backend = Mock()
             mock_backend_class.return_value = mock_backend
             mock_backend.create_span.return_value = None
@@ -673,11 +704,11 @@ class TestMetricsCollectorWarnings:
         """Warn when fine metrics collected without processor_name."""
         mock_client = Mock()
 
-        with patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class, patch(
-            "roastcoffea.collector.MetricsAggregator"
-        ) as mock_aggregator_class, patch(
-            "roastcoffea.collector.logger"
-        ) as mock_logger:
+        with (
+            patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class,
+            patch("roastcoffea.collector.MetricsAggregator") as mock_aggregator_class,
+            patch("roastcoffea.collector.logger") as mock_logger,
+        ):
             mock_backend = Mock()
             mock_backend_class.return_value = mock_backend
             mock_backend.create_span.return_value = None
@@ -701,18 +732,22 @@ class TestMetricsCollectorWarnings:
 
             # Should have logged warning
             mock_logger.warning.assert_called()
-            warning_call = [call for call in mock_logger.warning.call_args_list if "Fine metrics" in str(call)]
+            warning_call = [
+                call
+                for call in mock_logger.warning.call_args_list
+                if "Fine metrics" in str(call)
+            ]
             assert len(warning_call) > 0
 
     def test_warns_when_span_metrics_empty(self):
         """Warn when Dask Span completes but metrics are empty."""
         mock_client = Mock()
 
-        with patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class, patch(
-            "roastcoffea.collector.MetricsAggregator"
-        ) as mock_aggregator_class, patch(
-            "roastcoffea.collector.logger"
-        ) as mock_logger:
+        with (
+            patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class,
+            patch("roastcoffea.collector.MetricsAggregator") as mock_aggregator_class,
+            patch("roastcoffea.collector.logger") as mock_logger,
+        ):
             mock_backend = Mock()
             mock_backend_class.return_value = mock_backend
 
@@ -735,46 +770,15 @@ class TestMetricsCollectorWarnings:
             warning_calls = [str(call) for call in mock_logger.warning.call_args_list]
             assert any("no metrics were collected" in call for call in warning_calls)
 
-    def test_logs_chunk_and_section_metrics_debug(self):
-        """Log debug messages for chunk and section metrics."""
-        mock_client = Mock()
-
-        with patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class, patch(
-            "roastcoffea.collector.MetricsAggregator"
-        ) as mock_aggregator_class, patch(
-            "roastcoffea.collector.logger"
-        ) as mock_logger:
-            mock_backend = Mock()
-            mock_backend_class.return_value = mock_backend
-            mock_backend.create_span.return_value = None
-
-            mock_aggregator = Mock()
-            mock_aggregator_class.return_value = mock_aggregator
-            mock_aggregator.aggregate.return_value = {"elapsed_time_seconds": 10.0}
-
-            collector = MetricsCollector(client=mock_client, track_workers=False)
-            collector.set_coffea_report({"bytesread": 1000})
-
-            # Add chunk and section metrics
-            collector.record_chunk_metrics({"duration": 1.0})
-            collector.record_chunk_metrics({"duration": 2.0})
-            collector.record_section_metrics({"section": "test"})
-
-            with collector:
-                pass
-
-            # Should have logged debug messages
-            debug_calls = [str(call) for call in mock_logger.debug.call_args_list]
-            assert any("2 chunks" in call for call in debug_calls)
-            assert any("1 sections" in call for call in debug_calls)
-
     def test_warns_when_metrics_not_a_list(self):
         """Warn when __roastcoffea_metrics__ is not a list."""
         mock_client = Mock()
 
-        with patch("roastcoffea.collector.DaskMetricsBackend"), patch(
-            "roastcoffea.collector.MetricsAggregator"
-        ), patch("roastcoffea.collector.logger") as mock_logger:
+        with (
+            patch("roastcoffea.collector.DaskMetricsBackend"),
+            patch("roastcoffea.collector.MetricsAggregator"),
+            patch("roastcoffea.collector.logger") as mock_logger,
+        ):
             collector = MetricsCollector(client=mock_client)
 
             output = {
@@ -791,9 +795,10 @@ class TestMetricsCollectorWarnings:
         """Raise RuntimeError when metrics aggregation fails."""
         mock_client = Mock()
 
-        with patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class, patch(
-            "roastcoffea.collector.MetricsAggregator"
-        ) as mock_aggregator_class:
+        with (
+            patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class,
+            patch("roastcoffea.collector.MetricsAggregator") as mock_aggregator_class,
+        ):
             mock_backend = Mock()
             mock_backend_class.return_value = mock_backend
             mock_backend.create_span.return_value = None
@@ -816,13 +821,12 @@ class TestMetricsCollectorWarnings:
         """print_summary includes fine metrics table when available."""
         mock_client = Mock()
 
-        with patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class, patch(
-            "roastcoffea.collector.MetricsAggregator"
-        ) as mock_aggregator_class, patch(
-            "roastcoffea.collector.Console"
-        ) as mock_console, patch(
-            "roastcoffea.collector.format_fine_metrics_table"
-        ) as mock_fine_table:
+        with (
+            patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class,
+            patch("roastcoffea.collector.MetricsAggregator") as mock_aggregator_class,
+            patch("roastcoffea.collector.Console") as mock_console,
+            patch("roastcoffea.collector.format_fine_metrics_table") as mock_fine_table,
+        ):
             mock_backend = Mock()
             mock_backend_class.return_value = mock_backend
             mock_backend.create_span.return_value = None
@@ -850,13 +854,14 @@ class TestMetricsCollectorWarnings:
         """print_summary includes chunk metrics table when available."""
         mock_client = Mock()
 
-        with patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class, patch(
-            "roastcoffea.collector.MetricsAggregator"
-        ) as mock_aggregator_class, patch(
-            "roastcoffea.collector.Console"
-        ) as mock_console, patch(
-            "roastcoffea.collector.format_chunk_metrics_table"
-        ) as mock_chunk_table:
+        with (
+            patch("roastcoffea.collector.DaskMetricsBackend") as mock_backend_class,
+            patch("roastcoffea.collector.MetricsAggregator") as mock_aggregator_class,
+            patch("roastcoffea.collector.Console") as mock_console,
+            patch(
+                "roastcoffea.collector.format_chunk_metrics_table"
+            ) as mock_chunk_table,
+        ):
             mock_backend = Mock()
             mock_backend_class.return_value = mock_backend
             mock_backend.create_span.return_value = None

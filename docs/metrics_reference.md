@@ -314,9 +314,7 @@ Fine metrics are available when:
 # Customize retry behavior (not typically needed)
 backend = DaskBackend(client)
 metrics = backend.get_span_metrics(
-    span_info,
-    max_retries=5,      # More retries
-    retry_delay=0.3     # Shorter initial delay
+    span_info, max_retries=5, retry_delay=0.3  # More retries  # Shorter initial delay
 )
 ```
 
@@ -600,11 +598,13 @@ with MetricsCollector(executor, output_dir="benchmarks") as mc:
 ```python
 from coffea_metrics import MetricsCollector, track_metrics
 
+
 class MyProcessor(processor.ProcessorABC):
     @track_metrics
     def process(self, events):
         # Normal processing
         return result
+
 
 with MetricsCollector(executor, output_dir) as mc:
     output, report = runner(fileset, processor_instance)
@@ -619,6 +619,7 @@ with MetricsCollector(executor, output_dir) as mc:
 ```python
 from coffea_metrics import track_metrics, track_section, track_memory
 
+
 class MyProcessor(processor.ProcessorABC):
     @track_metrics
     def process(self, events):
@@ -629,6 +630,7 @@ class MyProcessor(processor.ProcessorABC):
             self.hist.fill(jets.pt)
 
         return result
+
 
 # Get: + per-section timing/memory within chunks
 ```
@@ -651,7 +653,9 @@ print(f"Processor Non-CPU time: {metrics['processor_noncpu_time_seconds']:.1f}s"
 print(f"Processor CPU %: {metrics['processor_cpu_percentage']:.1f}%")
 print(f"Processor Non-CPU %: {metrics['processor_noncpu_percentage']:.1f}%")
 print(f"Bytes read (Coffea): {metrics['total_bytes_read_coffea'] / 1e9:.2f} GB")
-print(f"Memory read (Dask): {metrics.get('total_bytes_memory_read_dask', 0) / 1e9:.2f} GB")
+print(
+    f"Memory read (Dask): {metrics.get('total_bytes_memory_read_dask', 0) / 1e9:.2f} GB"
+)
 print(f"Disk read: {metrics.get('disk_read_bytes', 0) / 1e9:.2f} GB")
 ```
 

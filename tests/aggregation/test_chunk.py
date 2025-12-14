@@ -142,9 +142,7 @@ class TestMemoryStatistics:
 
     def test_memory_statistics_single_chunk(self):
         """Single chunk memory has zero standard deviation."""
-        chunk_metrics = [
-            {"duration": 1.0, "mem_delta_mb": 15.0, "dataset": "test"}
-        ]
+        chunk_metrics = [{"duration": 1.0, "mem_delta_mb": 15.0, "dataset": "test"}]
 
         result = aggregate_chunk_metrics(chunk_metrics)
 
@@ -307,9 +305,7 @@ class TestSectionMetrics:
     def test_single_section(self):
         """Aggregation with single section."""
         chunk_metrics = [{"duration": 1.0, "dataset": "test"}]
-        section_metrics = [
-            {"name": "jet_selection", "type": "time", "duration": 0.5}
-        ]
+        section_metrics = [{"name": "jet_selection", "type": "time", "duration": 0.5}]
 
         result = aggregate_chunk_metrics(chunk_metrics, section_metrics)
 
@@ -419,9 +415,7 @@ class TestEdgeCases:
 
     def test_negative_memory_delta(self):
         """Chunk with negative memory delta (memory freed)."""
-        chunk_metrics = [
-            {"duration": 1.0, "mem_delta_mb": -50.0, "dataset": "test"}
-        ]
+        chunk_metrics = [{"duration": 1.0, "mem_delta_mb": -50.0, "dataset": "test"}]
 
         result = aggregate_chunk_metrics(chunk_metrics)
 

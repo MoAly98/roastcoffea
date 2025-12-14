@@ -53,7 +53,7 @@ def format_throughput_table(metrics: dict[str, Any]) -> Table:
     table.add_column("Value", style="magenta")
 
     # Data rate
-    data_rate_gbps = metrics.get('data_rate_gbps', 0)
+    data_rate_gbps = metrics.get("data_rate_gbps", 0)
     data_rate_mbps = (data_rate_gbps * 1000) / 8  # Convert Gbps to MB/s
     table.add_row(
         "Data Rate",
@@ -280,7 +280,9 @@ def format_fine_metrics_table(metrics: dict[str, Any]) -> Table | None:
     if overhead_cpu is not None and overhead_cpu > 0:
         table.add_row("Dask Overhead CPU Time", _format_time(overhead_cpu))
     if overhead_io_wait is not None and overhead_io_wait > 0:
-        table.add_row("Dask Overhead I/O & Waiting Time", _format_time(overhead_io_wait))
+        table.add_row(
+            "Dask Overhead I/O & Waiting Time", _format_time(overhead_io_wait)
+        )
 
     # Disk I/O
     disk_read = metrics.get("disk_read_bytes")
@@ -403,7 +405,10 @@ def format_chunk_metrics_table(metrics: dict[str, Any]) -> Table | None:
         for dataset, data in per_dataset.items():
             num_dataset_chunks = data.get("num_chunks", 0)
             mean_time = data.get("mean_duration", 0)
-            table.add_row(f"  {dataset}", f"{num_dataset_chunks} chunks, {_format_time(mean_time)} avg")
+            table.add_row(
+                f"  {dataset}",
+                f"{num_dataset_chunks} chunks, {_format_time(mean_time)} avg",
+            )
 
     # Section timing breakdown
     sections = metrics.get("sections")

@@ -98,7 +98,7 @@ class TestPlotRuntimeDistribution:
         chunk_metrics = [{"num_events": 1000}, {"num_events": 2000}]
 
         # Should not raise - missing duration defaults to 0
-        fig, ax = plot_runtime_distribution(chunk_metrics)
+        fig, _ax = plot_runtime_distribution(chunk_metrics)
 
         assert isinstance(fig, plt.Figure)
         plt.close(fig)
@@ -108,9 +108,7 @@ class TestPlotRuntimeDistribution:
         fig, ax = plot_runtime_distribution(sample_chunk_metrics)
 
         # Check for vertical lines (at least 2: mean and median)
-        vertical_lines = [
-            line for line in ax.get_lines() if len(line.get_xdata()) == 2
-        ]
+        vertical_lines = [line for line in ax.get_lines() if len(line.get_xdata()) == 2]
         assert len(vertical_lines) >= 2
 
         plt.close(fig)
@@ -190,9 +188,7 @@ class TestPlotRuntimeVsEvents:
         """Raises ValueError if no runtime vs events data."""
         chunk_metrics = [{"duration": 1.5}, {"num_events": 1000}]
 
-        with pytest.raises(
-            ValueError, match="No runtime vs events data available"
-        ):
+        with pytest.raises(ValueError, match="No runtime vs events data available"):
             plot_runtime_vs_events(chunk_metrics)
 
     def test_plots_scatter_points(self, sample_chunk_metrics):
@@ -234,7 +230,7 @@ class TestPlotRuntimeVsEvents:
             {"duration": 1.5, "num_events": 10000},
         ]
 
-        fig, ax = plot_runtime_vs_events(chunk_metrics)
+        fig, _ax = plot_runtime_vs_events(chunk_metrics)
 
         # Should not raise, plot should be created
         assert isinstance(fig, plt.Figure)
@@ -249,7 +245,7 @@ class TestPlotRuntimeVsEvents:
             {"duration": 2.5, "num_events": 50000},
         ]
 
-        fig, ax = plot_runtime_vs_events(chunk_metrics)
+        fig, _ax = plot_runtime_vs_events(chunk_metrics)
 
         # Should not raise, plot should be created
         assert isinstance(fig, plt.Figure)

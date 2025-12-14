@@ -55,7 +55,7 @@ class AbstractMetricsBackend(ABC):
         ...
 
     @abstractmethod
-    def get_span_metrics(self, span_id: Any) -> dict[str, Any]:
+    def get_span_metrics(self, span_id: Any) -> dict[tuple[str, ...], Any]:
         """Extract metrics from a span.
 
         Parameters
@@ -65,8 +65,8 @@ class AbstractMetricsBackend(ABC):
 
         Returns
         -------
-        dict[str, Any]
-            Span metrics (cumulative_worker_metrics format).
+        dict[tuple[str, ...], Any]
+            Span metrics (cumulative_worker_metrics format with tuple keys).
         """
         ...
 

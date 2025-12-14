@@ -131,7 +131,7 @@ class TestPlotPerTaskCpuIo:
         }
 
         output_path = tmp_path / "cpu_io_plot.png"
-        fig, ax = plot_per_task_cpu_io(span_metrics, output_path=str(output_path))
+        fig, _ax = plot_per_task_cpu_io(span_metrics, output_path=str(output_path))
 
         # Verify file was created
         assert output_path.exists()
@@ -228,7 +228,7 @@ class TestPlotPerTaskBytesRead:
         fig, ax = plot_per_task_bytes_read(span_metrics)
 
         # Get bar heights
-        bars = [patch for patch in ax.patches]
+        bars = list(ax.patches)
         assert len(bars) == 1
         assert bars[0].get_height() == pytest.approx(5.0)  # 5 GB
 
@@ -241,7 +241,7 @@ class TestPlotPerTaskBytesRead:
         }
 
         output_path = tmp_path / "bytes_read.png"
-        fig, ax = plot_per_task_bytes_read(span_metrics, output_path=str(output_path))
+        fig, _ax = plot_per_task_bytes_read(span_metrics, output_path=str(output_path))
 
         assert output_path.exists()
 
@@ -313,7 +313,7 @@ class TestPlotPerTaskOverhead:
         fig, ax = plot_per_task_overhead(span_metrics)
 
         # Should have stacked bars
-        bars = [patch for patch in ax.patches]
+        bars = list(ax.patches)
         assert len(bars) >= 2  # At least 2 bars (decompress + compress)
 
         plt.close(fig)
@@ -325,7 +325,7 @@ class TestPlotPerTaskOverhead:
         }
 
         output_path = tmp_path / "overhead.png"
-        fig, ax = plot_per_task_overhead(span_metrics, output_path=str(output_path))
+        fig, _ax = plot_per_task_overhead(span_metrics, output_path=str(output_path))
 
         assert output_path.exists()
 

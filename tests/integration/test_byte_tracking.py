@@ -94,9 +94,7 @@ class TestByteTrackingIntegration:
 
         # Process a chunk
         processor = TestProcessor()
-        events = MockEvents(
-            num_events=1000, filename="test.root", start=0, stop=1000
-        )
+        events = MockEvents(num_events=1000, filename="test.root", start=0, stop=1000)
 
         result = processor.process(events)
 
@@ -162,7 +160,7 @@ class TestByteTrackingIntegration:
         assert ("file2.root", 0, 1000) in chunk_info
 
         # Verify each chunk has timing and bytes
-        for key, (t_start, t_end, bytes_read) in chunk_info.items():
+        for _key, (t_start, t_end, bytes_read) in chunk_info.items():
             assert t_start < t_end  # Valid timing
             assert bytes_read == 3000  # All chunks read 3000 bytes
 
@@ -224,9 +222,9 @@ class TestByteTrackingIntegration:
         # Verify structure
         assert len(chunk_info) == 2
         assert ("data.root", 0, 1000) in chunk_info
-        assert chunk_info[("data.root", 0, 1000)] == (1.0, 2.0, 50000)
+        assert chunk_info["data.root", 0, 1000] == (1.0, 2.0, 50000)
         assert ("data.root", 1000, 2000) in chunk_info
-        assert chunk_info[("data.root", 1000, 2000)] == (2.0, 3.0, 60000)
+        assert chunk_info["data.root", 1000, 2000] == (2.0, 3.0, 60000)
 
     def test_plot_throughput_timeline_compatible_format(self):
         """Test that chunk_info format is compatible with plot_throughput_timeline."""
@@ -290,8 +288,8 @@ class TestByteTrackingIntegration:
 
                 # Track fine-grained bytes for jet access
                 with track_bytes(self, events, "jet_kinematics"):
-                    jet_eta = events.Jet.eta
-                    jet_phi = events.Jet.phi
+                    jet_eta = events.Jet.eta  # noqa: F841
+                    jet_phi = events.Jet.phi  # noqa: F841
 
                 # Simple analysis
                 njets = len(jets)
@@ -327,7 +325,7 @@ class TestByteTrackingIntegration:
             executor = processor.DaskExecutor(client=client)
             runner = processor.Runner(executor=executor, savemetrics=True, maxchunks=1)
 
-            output, report = runner(
+            output, _report = runner(
                 fileset,
                 treename="Events",
                 processor_instance=proc,

@@ -7,14 +7,17 @@ detailed profiling within processor methods.
 from __future__ import annotations
 
 import time
+from collections.abc import Generator
 from contextlib import contextmanager
-from typing import Generator
 
-from roastcoffea.utils import get_process_memory
+import awkward as ak
+from coffea.processor import ProcessorABC
 
 
 @contextmanager
-def track_time(processor_self: "coffea.processor.ProcessorABC", section_name: str) -> Generator[None, None, None]:
+def track_time(
+    processor_self: ProcessorABC, section_name: str
+) -> Generator[None, None, None]:
     """Context manager to track timing for a named operation.
 
     Measures wall time for a specific operation within processor.process().
@@ -69,7 +72,9 @@ def track_time(processor_self: "coffea.processor.ProcessorABC", section_name: st
 
 
 @contextmanager
-def track_memory(processor_self: "coffea.processor.ProcessorABC", section_name: str) -> Generator[None, None, None]:
+def track_memory(
+    processor_self: ProcessorABC, section_name: str
+) -> Generator[None, None, None]:
     """Context manager to track memory usage for a named operation.
 
     Measures memory delta (before/after) for a specific operation.
@@ -144,7 +149,9 @@ def track_memory(processor_self: "coffea.processor.ProcessorABC", section_name: 
 
 @contextmanager
 def track_bytes(
-    processor_self: "coffea.processor.ProcessorABC", events: "awkward.Array", section_name: str
+    processor_self: ProcessorABC,
+    events: ak.Array,
+    section_name: str,
 ) -> Generator[None, None, None]:
     """Context manager to track bytes read from filehandle for a named operation.
 
@@ -225,7 +232,9 @@ def track_bytes(
             if "bytes" not in processor_self._roastcoffea_current_chunk:
                 processor_self._roastcoffea_current_chunk["bytes"] = {}
 
-            processor_self._roastcoffea_current_chunk["bytes"][section_name] = bytes_delta
+            processor_self._roastcoffea_current_chunk["bytes"][section_name] = (
+                bytes_delta
+            )
     else:
         # No collection active, just yield
         yield

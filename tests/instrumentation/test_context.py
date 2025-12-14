@@ -55,9 +55,9 @@ class TestTrackTimeContext:
         """track_time() still records metrics when exception occurs."""
         processor = MockProcessor()
 
-        with pytest.raises(ValueError, match="test error"):
+        with pytest.raises(ValueError, match="test error"):  # noqa: SIM117
             with track_time(processor, "failing_operation"):
-                raise ValueError("test error")
+                raise ValueError("test error")  # noqa: EM101
 
         # Should still record timing
         assert "failing_operation" in processor._roastcoffea_current_chunk["timing"]
@@ -114,9 +114,9 @@ class TestTrackMemoryContext:
         """track_memory() still records metrics when exception occurs."""
         processor = MockProcessor()
 
-        with pytest.raises(ValueError, match="test error"):
+        with pytest.raises(ValueError, match="test error"):  # noqa: SIM117
             with track_memory(processor, "failing_operation"):
-                raise ValueError("test error")
+                raise ValueError("test error")  # noqa: EM101
 
         # Should still record memory metrics
         assert "failing_operation" in processor._roastcoffea_current_chunk["memory"]
@@ -147,7 +147,7 @@ class TestTrackMemoryContext:
 
         with track_memory(processor, "allocation_test"):
             # Allocate some memory
-            data = [0] * 100000  # ~800KB worth of integers
+            data = [0] * 100000  # noqa: F841 - intentional allocation for memory test
 
         delta_mb = processor._roastcoffea_current_chunk["memory"]["allocation_test"]
         # If psutil is available, should detect some memory change
@@ -162,7 +162,7 @@ class TestCombinedContextUsage:
         """Can use track_time() and track_memory() together."""
         processor = MockProcessor()
 
-        with track_time(processor, "outer_timing"):
+        with track_time(processor, "outer_timing"):  # noqa: SIM117
             with track_memory(processor, "inner_memory"):
                 pass
 
@@ -173,10 +173,9 @@ class TestCombinedContextUsage:
         """Can nest multiple context managers."""
         processor = MockProcessor()
 
-        with track_time(processor, "outer"):
-            with track_memory(processor, "middle"):
-                with track_time(processor, "inner"):
-                    pass
+        with track_time(processor, "outer"), track_memory(processor, "middle"):  # noqa: SIM117
+            with track_time(processor, "inner"):
+                pass
 
         assert "outer" in processor._roastcoffea_current_chunk["timing"]
         assert "middle" in processor._roastcoffea_current_chunk["memory"]
@@ -253,17 +252,19 @@ class TestEdgeCases:
 
         def mock_import(name, *args, **kwargs):
             if name == "psutil":
-                raise ImportError("No module named 'psutil'")
+                raise ImportError("No module named 'psutil'")  # noqa: EM101
             return real_import(name, *args, **kwargs)
 
         # Patch builtins.__import__ to make psutil import fail
-        with patch.object(builtins, "__import__", side_effect=mock_import):
+        with patch.object(builtins, "__import__", side_effect=mock_import):  # noqa: SIM117
             with track_memory(processor, "test_without_psutil"):
-                data = [0] * 1000
+                data = [0] * 1000  # noqa: F841
 
         # Should record 0.0 when psutil not available
         assert "test_without_psutil" in processor._roastcoffea_current_chunk["memory"]
-        assert processor._roastcoffea_current_chunk["memory"]["test_without_psutil"] == 0.0
+        assert (
+            processor._roastcoffea_current_chunk["memory"]["test_without_psutil"] == 0.0
+        )
 
     def test_track_memory_handles_measurement_exception(self):
         """track_memory() handles exceptions during memory measurement."""
@@ -280,7 +281,7 @@ class TestEdgeCases:
                 call_count[0] += 1
                 if call_count[0] > 1:
                     # Second call fails
-                    raise RuntimeError("Process failed")
+                    raise RuntimeError("Process failed")  # noqa: EM101
 
             def memory_info(self):
                 mock_info = MagicMock()
@@ -300,7 +301,7 @@ class TestEdgeCases:
             return real_import(name, *args, **kwargs)
 
         # Patch builtins.__import__
-        with patch.object(builtins, "__import__", side_effect=mock_import):
+        with patch.object(builtins, "__import__", side_effect=mock_import):  # noqa: SIM117
             with track_memory(processor, "test_exception"):
                 pass
 

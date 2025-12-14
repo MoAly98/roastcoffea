@@ -8,7 +8,8 @@ from __future__ import annotations
 
 import functools
 import time
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from roastcoffea.utils import get_process_memory
 
@@ -189,42 +190,13 @@ def _extract_chunk_metadata(events: Any) -> dict[str, Any]:
     except Exception:
         pass
 
-    # Try direct metadata attribute first (NanoEvents provides this)
-    try:
-        metadata_obj = events.metadata
-        metadata["dataset"] = metadata_obj.get("dataset")
-        metadata["file"] = metadata_obj.get("filename")
-        metadata["uuid"] = metadata_obj.get("uuid")
-        metadata["entry_start"] = metadata_obj.get("entrystart")
-        metadata["entry_stop"] = metadata_obj.get("entrystop")
-    except Exception:
-        pass
-
-    # Fallback: Try behavior-based extraction
-    if not metadata.get("dataset") and hasattr(events, "behavior"):
-        behavior = events.behavior
-        if hasattr(behavior, "get"):
-            factory = behavior.get("__events_factory__")
-            if factory is not None:
-                # Extract metadata from factory
-                if hasattr(factory, "_partition_key"):
-                    partition_key = factory._partition_key
-                    if isinstance(partition_key, dict):
-                        # Extract dataset, file, entry range
-                        if "dataset" not in metadata:
-                            metadata["dataset"] = partition_key.get("dataset")
-                        if "file" not in metadata:
-                            metadata["file"] = partition_key.get("filename")
-
-                        # Entry range
-                        if "entry_start" not in metadata:
-                            start = partition_key.get("entrysteps", [None, None])[0]
-                            if start is not None:
-                                metadata["entry_start"] = start
-                        if "entry_stop" not in metadata:
-                            stop = partition_key.get("entrysteps", [None, None])[1]
-                            if stop is not None:
-                                metadata["entry_stop"] = stop
+    # Extract from events.metadata (NanoEvents provides this)
+    metadata_obj = events.metadata
+    metadata["dataset"] = metadata_obj.get("dataset")
+    metadata["file"] = metadata_obj.get("filename")
+    metadata["uuid"] = metadata_obj.get("uuid")
+    metadata["entry_start"] = metadata_obj.get("entrystart")
+    metadata["entry_stop"] = metadata_obj.get("entrystop")
 
     return metadata
 
@@ -278,7 +250,7 @@ def _extract_file_metadata(processor_self: Any, events: Any) -> dict[str, Any] |
 
         # Build per-branch byte mapping for data access analysis
         branch_bytes = {}
-        for branch_name in tree.keys():
+        for branch_name in tree:
             try:
                 branch_bytes[branch_name] = tree[branch_name].compressed_bytes
             except Exception:

@@ -83,9 +83,7 @@ def aggregate_workflow_metrics(
 
     # Calculate event rate metrics
     event_rate_elapsed_khz = (
-        (total_events / elapsed_time_seconds) / 1000
-        if elapsed_time_seconds > 0
-        else 0
+        (total_events / elapsed_time_seconds) / 1000 if elapsed_time_seconds > 0 else 0
     )
     event_rate_cpu_total_khz = (
         (total_events / total_cpu_time) / 1000 if total_cpu_time > 0 else 0

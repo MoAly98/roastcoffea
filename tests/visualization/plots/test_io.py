@@ -62,9 +62,7 @@ class TestPlotCompressionRatioDistribution:
 
     def test_custom_figsize(self, sample_metrics):
         """Can set custom figure size."""
-        fig, _ax = plot_compression_ratio_distribution(
-            sample_metrics, figsize=(8, 4)
-        )
+        fig, _ax = plot_compression_ratio_distribution(sample_metrics, figsize=(8, 4))
 
         assert fig.get_figwidth() == 8
         assert fig.get_figheight() == 4
@@ -98,9 +96,7 @@ class TestPlotCompressionRatioDistribution:
         fig, ax = plot_compression_ratio_distribution(sample_metrics)
 
         # Check for vertical lines (at least 2: mean and median)
-        vertical_lines = [
-            line for line in ax.get_lines() if len(line.get_xdata()) == 2
-        ]
+        vertical_lines = [line for line in ax.get_lines() if len(line.get_xdata()) == 2]
         assert len(vertical_lines) >= 2
 
         plt.close(fig)
@@ -184,16 +180,12 @@ class TestPlotDataAccessPercentage:
 
     def test_raises_on_empty_data(self):
         """Raises ValueError if no bytes read percentage data."""
-        with pytest.raises(
-            ValueError, match="No bytes read percentage data available"
-        ):
+        with pytest.raises(ValueError, match="No bytes read percentage data available"):
             plot_data_access_percentage({"bytes_read_percent_per_file": []})
 
     def test_raises_on_missing_key(self):
         """Raises ValueError if bytes_read_percent_per_file key missing."""
-        with pytest.raises(
-            ValueError, match="No bytes read percentage data available"
-        ):
+        with pytest.raises(ValueError, match="No bytes read percentage data available"):
             plot_data_access_percentage({})
 
     def test_plots_mean_and_median_lines(self, sample_metrics):
@@ -201,9 +193,7 @@ class TestPlotDataAccessPercentage:
         fig, ax = plot_data_access_percentage(sample_metrics)
 
         # Check for vertical lines (at least 2: mean and median)
-        vertical_lines = [
-            line for line in ax.get_lines() if len(line.get_xdata()) == 2
-        ]
+        vertical_lines = [line for line in ax.get_lines() if len(line.get_xdata()) == 2]
         assert len(vertical_lines) >= 2
 
         plt.close(fig)
@@ -212,7 +202,7 @@ class TestPlotDataAccessPercentage:
         """Handles high bytes read percentages correctly."""
         metrics = {"bytes_read_percent_per_file": [95.0, 98.5, 97.2, 99.1]}
 
-        fig, ax = plot_data_access_percentage(metrics)
+        fig, _ax = plot_data_access_percentage(metrics)
 
         # Should not raise, plot should be created
         assert isinstance(fig, plt.Figure)
@@ -223,7 +213,7 @@ class TestPlotDataAccessPercentage:
         """Handles low bytes read percentages correctly."""
         metrics = {"bytes_read_percent_per_file": [1.5, 2.3, 0.8, 3.1]}
 
-        fig, ax = plot_data_access_percentage(metrics)
+        fig, _ax = plot_data_access_percentage(metrics)
 
         # Should not raise, plot should be created
         assert isinstance(fig, plt.Figure)

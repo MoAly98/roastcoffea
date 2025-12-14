@@ -1,9 +1,8 @@
-import skhep_testdata
 import awkward as ak
+import skhep_testdata
 import uproot
 from coffea import processor
 from coffea.nanoevents import NanoAODSchema, NanoEventsFactory
-from dask.distributed import Client, LocalCluster
 
 NanoAODSchema.warn_missing_crossrefs = False
 
@@ -43,7 +42,9 @@ def analyze_with_branches(events, num_branches: int, materialize: bool = False) 
             electron_pt = ak.materialize(electron_pt)
             electron_eta = ak.materialize(electron_eta)
         results["nelectrons"] = ak.sum(ak.num(electron_pt))
-        results["mean_electron_eta"] = ak.mean(electron_eta) if len(electron_eta) > 0 else 0
+        results["mean_electron_eta"] = (
+            ak.mean(electron_eta) if len(electron_eta) > 0 else 0
+        )
 
     if num_branches >= 10:
         muon_pt = events.Muon.pt
@@ -63,7 +64,9 @@ def analyze_with_branches(events, num_branches: int, materialize: bool = False) 
     return results
 
 
-def test_uproot_direct(filename: str, treepath: str, num_branches: int, materialize: bool = False) -> int:
+def test_uproot_direct(
+    filename: str, treepath: str, num_branches: int, materialize: bool = False
+) -> int:
     """Test with direct uproot access.
 
     Args:
@@ -73,7 +76,9 @@ def test_uproot_direct(filename: str, treepath: str, num_branches: int, material
         materialize: If True, explicitly materialize arrays
     """
     f = uproot.open(filename)
-    events = NanoEventsFactory.from_root(f, treepath=treepath, schemaclass=NanoAODSchema, mode="virtual").events()
+    events = NanoEventsFactory.from_root(
+        f, treepath=treepath, schemaclass=NanoAODSchema, mode="virtual"
+    ).events()
 
     # Run analysis
     _ = analyze_with_branches(events, num_branches, materialize=materialize)
@@ -142,20 +147,26 @@ def main():
         print(f"Testing with {num_branches} branches...")
 
         # Test uproot direct (without materialization)
-        uproot_bytes = test_uproot_direct(test_file, treepath, num_branches, materialize=False)
+        uproot_bytes = test_uproot_direct(
+            test_file, treepath, num_branches, materialize=False
+        )
 
         # Test uproot direct (with explicit materialization)
-        uproot_bytes_mat = test_uproot_direct(test_file, treepath, num_branches, materialize=True)
+        uproot_bytes_mat = test_uproot_direct(
+            test_file, treepath, num_branches, materialize=True
+        )
 
         # Test Coffea
         coffea_bytes = test_coffea(test_file, num_branches)
 
-        results.append({
-            "branches": num_branches,
-            "uproot_kb": uproot_bytes / 1e3,
-            "uproot_mat_kb": uproot_bytes_mat / 1e3,
-            "coffea_kb": coffea_bytes / 1e3,
-        })
+        results.append(
+            {
+                "branches": num_branches,
+                "uproot_kb": uproot_bytes / 1e3,
+                "uproot_mat_kb": uproot_bytes_mat / 1e3,
+                "coffea_kb": coffea_bytes / 1e3,
+            }
+        )
 
         print(f"  Uproot (lazy):        {uproot_bytes / 1e3:8.2f} KB")
         print(f"  Uproot (materialize): {uproot_bytes_mat / 1e3:8.2f} KB")

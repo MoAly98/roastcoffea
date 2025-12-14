@@ -31,6 +31,7 @@ class TestGetProcessMemory:
         with patch.dict(sys.modules, {"psutil": None}):
             # Force reimport to trigger ImportError
             import importlib
+
             import roastcoffea.utils
 
             importlib.reload(roastcoffea.utils)

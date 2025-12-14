@@ -207,7 +207,9 @@ class TestDaskMetricsBackendEdgeCases:
 
         assert result == {}
 
-    def test_get_span_metrics_scheduler_function_no_spans_extension(self, local_cluster):
+    def test_get_span_metrics_scheduler_function_no_spans_extension(
+        self, local_cluster
+    ):
         """_get_span_metrics handles missing spans extension on scheduler."""
         from unittest.mock import MagicMock
 
@@ -272,9 +274,7 @@ class TestDaskMetricsBackendEdgeCases:
         # Mock complete scheduler with span and metrics
         mock_scheduler = MagicMock()
         mock_span = MagicMock()
-        mock_span.cumulative_worker_metrics = {
-            "execute": {"cpu": 10.5, "memory": 1024}
-        }
+        mock_span.cumulative_worker_metrics = {"execute": {"cpu": 10.5, "memory": 1024}}
         mock_spans_ext = MagicMock()
         mock_spans_ext.spans.get.return_value = mock_span
         mock_scheduler.extensions.get.return_value = mock_spans_ext

@@ -10,7 +10,8 @@ from typing import Any
 
 
 def parse_fine_metrics(
-    cumulative_worker_metrics: dict[str, Any], processor_name: str | None = None
+    cumulative_worker_metrics: dict[tuple[str, ...], Any],
+    processor_name: str | None = None,
 ) -> dict[str, Any]:
     """Parse Dask Spans cumulative_worker_metrics into fine metrics.
 
@@ -60,13 +61,13 @@ def parse_fine_metrics(
     serialize_time = 0.0
 
     for key, value in cumulative_worker_metrics.items():
-        if not isinstance(key, tuple) or len(key) < 3:
+        if len(key) < 3:
             continue
 
         # Extract components from tuple key
         # Format: (context, task_prefix, activity, unit)
-        task_prefix = key[1] if len(key) > 1 else None
-        activity = key[2] if len(key) > 2 else None
+        task_prefix = key[1]
+        activity = key[2]
         unit = key[3] if len(key) > 3 else None
 
         # Determine if this is processor work or overhead

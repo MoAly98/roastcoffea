@@ -3,10 +3,9 @@
 
 .. automodule:: roastcoffea.aggregation.backends.base
 
-   
+
    .. rubric:: Classes
 
    .. autosummary::
-   
+
       AbstractTrackingDataParser
-   

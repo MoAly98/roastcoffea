@@ -189,7 +189,9 @@ class TestMetricsAggregator:
         assert metrics is not sample_coffea_report
         assert metrics is not sample_tracking_data
 
-    def test_aggregate_with_span_metrics(self, sample_coffea_report, sample_tracking_data):
+    def test_aggregate_with_span_metrics(
+        self, sample_coffea_report, sample_tracking_data
+    ):
         """Aggregator processes span_metrics when provided."""
         aggregator = MetricsAggregator(backend="dask")
 
@@ -211,7 +213,9 @@ class TestMetricsAggregator:
         # Just verify that aggregation succeeded
         assert "elapsed_time_seconds" in metrics
 
-    def test_aggregate_with_chunk_metrics(self, sample_coffea_report, sample_tracking_data):
+    def test_aggregate_with_chunk_metrics(
+        self, sample_coffea_report, sample_tracking_data
+    ):
         """Aggregator processes chunk_metrics when provided."""
         aggregator = MetricsAggregator(backend="dask")
 
@@ -249,7 +253,9 @@ class TestMetricsAggregator:
         assert "raw_chunk_metrics" in metrics
         assert metrics["raw_chunk_metrics"] == chunk_metrics
 
-    def test_aggregate_with_section_metrics(self, sample_coffea_report, sample_tracking_data):
+    def test_aggregate_with_section_metrics(
+        self, sample_coffea_report, sample_tracking_data
+    ):
         """Aggregator preserves section_metrics when provided."""
         aggregator = MetricsAggregator(backend="dask")
 

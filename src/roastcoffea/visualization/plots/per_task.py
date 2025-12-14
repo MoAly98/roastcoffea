@@ -11,7 +11,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def extract_per_task_metrics(span_metrics: dict[tuple, Any]) -> dict[str, dict[str, float]]:
+def extract_per_task_metrics(
+    span_metrics: dict[tuple, Any],
+) -> dict[str, dict[str, float]]:
     """Extract per-task metrics from span cumulative_worker_metrics.
 
     Parameters
@@ -24,10 +26,10 @@ def extract_per_task_metrics(span_metrics: dict[tuple, Any]) -> dict[str, dict[s
     dict
         Nested dict: {task_prefix: {activity: value}}
     """
-    per_task = {}
+    per_task: dict[str, dict[str, float]] = {}
 
     for key, value in span_metrics.items():
-        if not isinstance(key, tuple) or len(key) < 3:
+        if len(key) < 3:
             continue
 
         context, task_prefix, activity, *_ = key
@@ -238,8 +240,8 @@ def plot_per_task_overhead(
     width = 0.35
 
     # Stack compression
-    p1 = ax.bar(x - width / 2, decompress_times, width, label="Decompress")
-    p2 = ax.bar(
+    ax.bar(x - width / 2, decompress_times, width, label="Decompress")
+    ax.bar(
         x - width / 2,
         compress_times,
         width,
@@ -248,8 +250,8 @@ def plot_per_task_overhead(
     )
 
     # Stack serialization
-    p3 = ax.bar(x + width / 2, deserialize_times, width, label="Deserialize")
-    p4 = ax.bar(
+    ax.bar(x + width / 2, deserialize_times, width, label="Deserialize")
+    ax.bar(
         x + width / 2,
         serialize_times,
         width,

@@ -576,7 +576,7 @@ class TestFormatterEdgeCases:
 
     def test_format_bytes_petabytes(self):
         """Test _format_bytes with petabyte values (line 16)."""
-        from roastcoffea.export.reporter import _format_bytes
+        from roastcoffea.export.reporter import _format_bytes  # noqa: PLC2701
 
         # Test with very large value that reaches PB
         petabytes = 2.5 * 1024**5  # 2.5 PB in bytes
@@ -601,8 +601,10 @@ class TestFormatterEdgeCases:
         row_count = len(table.rows)
         assert row_count > 0
         # Verify table can be rendered (exercises all add_row calls)
-        from rich.console import Console
         from io import StringIO
+
+        from rich.console import Console
+
         console = Console(file=StringIO())
         console.print(table)
 
@@ -623,8 +625,10 @@ class TestFormatterEdgeCases:
         row_count = len(table.rows)
         assert row_count > 0
         # Verify table can be rendered (exercises all add_row calls)
-        from rich.console import Console
         from io import StringIO
+
+        from rich.console import Console
+
         console = Console(file=StringIO())
         console.print(table)
 

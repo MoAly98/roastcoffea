@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 
 def aggregate_chunk_metrics(
@@ -68,7 +68,9 @@ def aggregate_chunk_metrics(
 
         if len(mem_deltas) > 1:
             mean_mem = result["chunk_mem_delta_mean_mb"]
-            variance_mem = sum((m - mean_mem) ** 2 for m in mem_deltas) / (len(mem_deltas) - 1)
+            variance_mem = sum((m - mean_mem) ** 2 for m in mem_deltas) / (
+                len(mem_deltas) - 1
+            )
             result["chunk_mem_delta_std_mb"] = variance_mem**0.5
         else:
             result["chunk_mem_delta_std_mb"] = 0.0
@@ -98,7 +100,7 @@ def aggregate_chunk_metrics(
             datasets[dataset]["total_events"] += chunk["num_events"]
 
     # Calculate per-dataset averages
-    for dataset, data in datasets.items():
+    for _dataset, data in datasets.items():
         if data["num_chunks"] > 0:
             data["mean_duration"] = data["total_duration"] / data["num_chunks"]
         if data["total_events"] > 0:
@@ -128,16 +130,16 @@ def aggregate_chunk_metrics(
                 sections[name]["mem_deltas"].append(section["mem_delta_mb"])
 
         # Calculate averages
-        for name, data in sections.items():
+        for _name, data in sections.items():
             if data["count"] > 0:
                 data["mean_duration"] = data["total_duration"] / data["count"]
 
             # Memory averages
             if "mem_deltas" in data:
-                mem_deltas_section = data["mem_deltas"]
-                data["mean_mem_delta_mb"] = sum(mem_deltas_section) / len(mem_deltas_section)
-                data["max_mem_delta_mb"] = max(mem_deltas_section)
-                data["min_mem_delta_mb"] = min(mem_deltas_section)
+                mem_deltas_list = cast(list[float], data["mem_deltas"])
+                data["mean_mem_delta_mb"] = sum(mem_deltas_list) / len(mem_deltas_list)
+                data["max_mem_delta_mb"] = max(mem_deltas_list)
+                data["min_mem_delta_mb"] = min(mem_deltas_list)
                 del data["mem_deltas"]  # Remove raw list
 
         result["sections"] = sections

@@ -112,9 +112,7 @@ def aggregate_branch_coverage(
         )
 
         bytes_read_percent = (
-            100 * bytes_read / total_tree_bytes
-            if total_tree_bytes > 0
-            else 0.0
+            100 * bytes_read / total_tree_bytes if total_tree_bytes > 0 else 0.0
         )
 
         # Store per-file metrics
