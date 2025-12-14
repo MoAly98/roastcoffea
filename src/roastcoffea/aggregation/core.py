@@ -136,10 +136,12 @@ class MetricsAggregator:
         # Preserve raw tracking data for visualization
         combined_metrics["tracking_data"] = tracking_data
 
-        # Preserve raw chunk metrics for detailed analysis
+        # Preserve raw metrics for detailed analysis and visualization
         if chunk_metrics:
             combined_metrics["raw_chunk_metrics"] = chunk_metrics
         if section_metrics:
             combined_metrics["raw_section_metrics"] = section_metrics
+        if span_metrics:
+            combined_metrics["raw_span_metrics"] = span_metrics
 
         return combined_metrics
