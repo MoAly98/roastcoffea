@@ -12,37 +12,37 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
     <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=7988a563" />
-
-
+    
+    
 
 
 <style>
   body {
     --color-code-background: #f2f2f2;
   --color-code-foreground: #1e1e1e;
-
+  
   }
   @media not print {
     body[data-theme="dark"] {
       --color-code-background: #202020;
   --color-code-foreground: #d0d0d0;
-
+  
     }
     @media (prefers-color-scheme: dark) {
       body:not([data-theme="light"]) {
         --color-code-background: #202020;
   --color-code-foreground: #d0d0d0;
-
+  
       }
     }
   }
 </style></head>
   <body>
-
+    
     <script>
       document.body.dataset.theme = localStorage.getItem("theme") || "auto";
     </script>
-
+    
 
 <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
   <symbol id="svg-toc" viewBox="0 0 24 24">
@@ -181,11 +181,11 @@
   </header>
   <aside class="sidebar-drawer">
     <div class="sidebar-container">
-
+      
       <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
-
+  
   <span class="sidebar-brand-text"> </span>
-
+  
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
   <input type="hidden" name="check_keywords" value="yes">
@@ -237,7 +237,7 @@
 </div>
 
       </div>
-
+      
     </div>
   </aside>
   <div class="main">
@@ -279,6 +279,8 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">distributed</span><span class="w"> </span><span class="kn">import</span> <span class="n">span</span>
+
 <span class="kn">from</span><span class="w"> </span><span class="nn">roastcoffea.backends.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">AbstractMetricsBackend</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
@@ -310,6 +312,7 @@
     <span class="n">dask_scheduler</span><span class="o">.</span><span class="n">worker_occupancy</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">dask_scheduler</span><span class="o">.</span><span class="n">worker_executing</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">dask_scheduler</span><span class="o">.</span><span class="n">worker_last_seen</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">dask_scheduler</span><span class="o">.</span><span class="n">worker_cpu</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">dask_scheduler</span><span class="o">.</span><span class="n">track_count</span> <span class="o">=</span> <span class="kc">True</span>
 
     <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">track_worker_metrics</span><span class="p">():</span>
@@ -328,6 +331,9 @@
 
                 <span class="c1"># Get memory limit</span>
                 <span class="n">memory_limit</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">worker_state</span><span class="p">,</span> <span class="s2">&quot;memory_limit&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+                <span class="c1"># Get CPU utilization percentage (0-100)</span>
+                <span class="n">cpu_percent</span> <span class="o">=</span> <span class="n">worker_state</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;cpu&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 
                 <span class="c1"># Get cores (nthreads)</span>
                 <span class="n">cores</span> <span class="o">=</span> <span class="n">worker_state</span><span class="o">.</span><span class="n">nthreads</span>
@@ -366,6 +372,8 @@
                     <span class="n">dask_scheduler</span><span class="o">.</span><span class="n">worker_executing</span><span class="p">[</span><span class="n">worker_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
                 <span class="k">if</span> <span class="n">worker_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dask_scheduler</span><span class="o">.</span><span class="n">worker_last_seen</span><span class="p">:</span>
                     <span class="n">dask_scheduler</span><span class="o">.</span><span class="n">worker_last_seen</span><span class="p">[</span><span class="n">worker_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">if</span> <span class="n">worker_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dask_scheduler</span><span class="o">.</span><span class="n">worker_cpu</span><span class="p">:</span>
+                    <span class="n">dask_scheduler</span><span class="o">.</span><span class="n">worker_cpu</span><span class="p">[</span><span class="n">worker_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 
                 <span class="c1"># Append timestamped data</span>
                 <span class="n">dask_scheduler</span><span class="o">.</span><span class="n">worker_memory</span><span class="p">[</span><span class="n">worker_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
@@ -388,6 +396,7 @@
                 <span class="n">dask_scheduler</span><span class="o">.</span><span class="n">worker_last_seen</span><span class="p">[</span><span class="n">worker_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
                     <span class="p">(</span><span class="n">timestamp</span><span class="p">,</span> <span class="n">last_seen</span><span class="p">)</span>
                 <span class="p">)</span>
+                <span class="n">dask_scheduler</span><span class="o">.</span><span class="n">worker_cpu</span><span class="p">[</span><span class="n">worker_id</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">timestamp</span><span class="p">,</span> <span class="n">cpu_percent</span><span class="p">))</span>
 
             <span class="c1"># Sleep for interval</span>
             <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">interval</span><span class="p">)</span>
@@ -425,6 +434,7 @@
         <span class="s2">&quot;worker_occupancy&quot;</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">dask_scheduler</span><span class="p">,</span> <span class="s2">&quot;worker_occupancy&quot;</span><span class="p">,</span> <span class="p">{}),</span>
         <span class="s2">&quot;worker_executing&quot;</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">dask_scheduler</span><span class="p">,</span> <span class="s2">&quot;worker_executing&quot;</span><span class="p">,</span> <span class="p">{}),</span>
         <span class="s2">&quot;worker_last_seen&quot;</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">dask_scheduler</span><span class="p">,</span> <span class="s2">&quot;worker_last_seen&quot;</span><span class="p">,</span> <span class="p">{}),</span>
+        <span class="s2">&quot;worker_cpu&quot;</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">dask_scheduler</span><span class="p">,</span> <span class="s2">&quot;worker_cpu&quot;</span><span class="p">,</span> <span class="p">{}),</span>
     <span class="p">}</span>
 
 
@@ -491,41 +501,27 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        span_info : dict or None</span>
-<span class="sd">            Dictionary with &#39;context&#39; (context manager) and &#39;id&#39; (span ID), or None if unavailable</span>
+<span class="sd">        span_info : dict</span>
+<span class="sd">            Dictionary with &#39;context&#39; (context manager) and &#39;name&#39; (span name)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="kn">from</span><span class="w"> </span><span class="nn">distributed</span><span class="w"> </span><span class="kn">import</span> <span class="n">span</span>
-
-            <span class="n">span_cm</span> <span class="o">=</span> <span class="n">span</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-            <span class="c1"># The span context manager returns the span_id when entered</span>
-            <span class="c1"># We need to return both the context manager and capture the ID</span>
-            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;context&quot;</span><span class="p">:</span> <span class="n">span_cm</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">name</span><span class="p">}</span>
-        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                <span class="s2">&quot;Dask Spans not available (distributed.span import failed). &quot;</span>
-                <span class="s2">&quot;Fine-grained metrics (CPU/I/O breakdown, compression ratio) will not be collected. &quot;</span>
-                <span class="s2">&quot;To enable, ensure you have a recent version of dask.distributed installed.&quot;</span>
-            <span class="p">)</span>
-            <span class="k">return</span> <span class="kc">None</span>
-        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Failed to create Dask Span: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">. &quot;</span>
-                <span class="s2">&quot;Fine-grained metrics will not be collected.&quot;</span>
-            <span class="p">)</span>
-            <span class="k">return</span> <span class="kc">None</span></div>
+        <span class="n">span_cm</span> <span class="o">=</span> <span class="n">span</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="c1"># The span context manager returns the span_id when entered</span>
+        <span class="c1"># We need to return both the context manager and capture the ID</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;context&quot;</span><span class="p">:</span> <span class="n">span_cm</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">name</span><span class="p">}</span></div>
 
 
 <div class="viewcode-block" id="DaskMetricsBackend.get_span_metrics">
 <a class="viewcode-back" href="../../../api/_autosummary/roastcoffea.backends.dask.html#roastcoffea.backends.dask.DaskMetricsBackend.get_span_metrics">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_span_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">span_info</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">delay</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_span_metrics</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">span_info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">delay</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Extract metrics from a span from scheduler.</span>
 
 <span class="sd">        Span metrics sync from workers to scheduler after a delay (default: 0.5s interval).</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        span_info : dict or Any</span>
+<span class="sd">        span_info : dict</span>
 <span class="sd">            Span info dict from create_span containing &#39;id&#39; and &#39;name&#39;</span>
 <span class="sd">        delay : float, default 0.5</span>
 <span class="sd">            Delay in seconds before extracting span metrics</span>
@@ -533,41 +529,33 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        dict</span>
-<span class="sd">            cumulative_worker_metrics from span, or empty dict if unavailable</span>
+<span class="sd">            cumulative_worker_metrics from span, or empty dict if span_id not available</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">span_info</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Get the span_id from the span_info</span>
+        <span class="n">span_id</span> <span class="o">=</span> <span class="n">span_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">span_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;No span_id available, cannot extract metrics&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="p">{}</span>
 
-        <span class="k">try</span><span class="p">:</span>
-            <span class="c1"># Get the span_id from the span_info</span>
-            <span class="n">span_id</span> <span class="o">=</span> <span class="n">span_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">span_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;No span_id available, cannot extract metrics&quot;</span><span class="p">)</span>
+        <span class="c1"># Access the Span object through the scheduler&#39;s spans extension</span>
+        <span class="c1"># Use run_on_scheduler to get the actual Span object</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_get_span_metrics</span><span class="p">(</span><span class="n">dask_scheduler</span><span class="p">,</span> <span class="n">span_id</span><span class="p">):</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Get cumulative_worker_metrics from a span on the scheduler.&quot;&quot;&quot;</span>
+            <span class="n">spans_ext</span> <span class="o">=</span> <span class="n">dask_scheduler</span><span class="o">.</span><span class="n">extensions</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;spans&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">spans_ext</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">return</span> <span class="p">{}</span>
 
-            <span class="c1"># Access the Span object through the scheduler&#39;s spans extension</span>
-            <span class="c1"># Use run_on_scheduler to get the actual Span object</span>
-            <span class="k">def</span><span class="w"> </span><span class="nf">_get_span_metrics</span><span class="p">(</span><span class="n">dask_scheduler</span><span class="p">,</span> <span class="n">span_id</span><span class="p">):</span>
-<span class="w">                </span><span class="sd">&quot;&quot;&quot;Get cumulative_worker_metrics from a span on the scheduler.&quot;&quot;&quot;</span>
-                <span class="n">spans_ext</span> <span class="o">=</span> <span class="n">dask_scheduler</span><span class="o">.</span><span class="n">extensions</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;spans&quot;</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">spans_ext</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="p">{}</span>
+            <span class="n">span_obj</span> <span class="o">=</span> <span class="n">spans_ext</span><span class="o">.</span><span class="n">spans</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">span_id</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">span_obj</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">{}</span>
 
-                <span class="n">span_obj</span> <span class="o">=</span> <span class="n">spans_ext</span><span class="o">.</span><span class="n">spans</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">span_id</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">span_obj</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="p">{}</span>
+            <span class="c1"># Return the cumulative_worker_metrics property</span>
+            <span class="k">return</span> <span class="n">span_obj</span><span class="o">.</span><span class="n">cumulative_worker_metrics</span>
 
-                <span class="c1"># Return the cumulative_worker_metrics property</span>
-                <span class="k">return</span> <span class="n">span_obj</span><span class="o">.</span><span class="n">cumulative_worker_metrics</span>
-
-            <span class="c1"># Retry logic to handle heartbeat synchronization delays</span>
-            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">delay</span><span class="p">)</span>
-            <span class="n">metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">run_on_scheduler</span><span class="p">(</span><span class="n">_get_span_metrics</span><span class="p">,</span> <span class="n">span_id</span><span class="o">=</span><span class="n">span_id</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">metrics</span> <span class="k">if</span> <span class="n">metrics</span> <span class="k">else</span> <span class="p">{}</span>
-
-        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to extract span metrics: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="p">{}</span></div>
+        <span class="c1"># Retry logic to handle heartbeat synchronization delays</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">delay</span><span class="p">)</span>
+        <span class="n">metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">run_on_scheduler</span><span class="p">(</span><span class="n">_get_span_metrics</span><span class="p">,</span> <span class="n">span_id</span><span class="o">=</span><span class="n">span_id</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">metrics</span> <span class="k">if</span> <span class="n">metrics</span> <span class="k">else</span> <span class="p">{}</span></div>
 
 
 <div class="viewcode-block" id="DaskMetricsBackend.supports_fine_metrics">
@@ -587,10 +575,10 @@
         </article>
       </div>
       <footer>
-
+        
         <div class="related-pages">
-
-
+          
+          
         </div>
         <div class="bottom-of-page">
           <div class="left-details">
@@ -598,9 +586,9 @@
                 Copyright &#169; {_dt.datetime.now().year}, Mohamed Aly
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
-
+            
             <a href="https://github.com/pradyunsg/furo">Furo</a>
-
+            
           </div>
           <div class="right-details">
             <div class="icons">
@@ -609,17 +597,17 @@
                     <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path>
                 </svg>
             </a>
-
+              
             </div>
           </div>
         </div>
-
+        
       </footer>
     </div>
     <aside class="toc-drawer no-toc">
-
-
-
+      
+      
+      
     </aside>
   </div>
 </div><script src="../../../_static/documentation_options.js?v=5929fcd5"></script>

@@ -12,37 +12,37 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
     <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=7988a563" />
-
-
+    
+    
 
 
 <style>
   body {
     --color-code-background: #f2f2f2;
   --color-code-foreground: #1e1e1e;
-
+  
   }
   @media not print {
     body[data-theme="dark"] {
       --color-code-background: #202020;
   --color-code-foreground: #d0d0d0;
-
+  
     }
     @media (prefers-color-scheme: dark) {
       body:not([data-theme="light"]) {
         --color-code-background: #202020;
   --color-code-foreground: #d0d0d0;
-
+  
       }
     }
   }
 </style></head>
   <body>
-
+    
     <script>
       document.body.dataset.theme = localStorage.getItem("theme") || "auto";
     </script>
-
+    
 
 <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
   <symbol id="svg-toc" viewBox="0 0 24 24">
@@ -181,11 +181,11 @@
   </header>
   <aside class="sidebar-drawer">
     <div class="sidebar-container">
-
+      
       <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
-
+  
   <span class="sidebar-brand-text"> </span>
-
+  
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
   <input type="hidden" name="check_keywords" value="yes">
@@ -237,7 +237,7 @@
 </div>
 
       </div>
-
+      
     </div>
   </aside>
   <div class="main">
@@ -278,7 +278,8 @@
 <div class="viewcode-block" id="parse_fine_metrics">
 <a class="viewcode-back" href="../../../api/_autosummary/roastcoffea.aggregation.fine_metrics.html#roastcoffea.aggregation.fine_metrics.parse_fine_metrics">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">parse_fine_metrics</span><span class="p">(</span>
-    <span class="n">cumulative_worker_metrics</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">processor_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">cumulative_worker_metrics</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="n">processor_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse Dask Spans cumulative_worker_metrics into fine metrics.</span>
 
@@ -299,11 +300,11 @@
 <span class="sd">    dict</span>
 <span class="sd">        Parsed fine metrics with keys:</span>
 <span class="sd">        - processor_cpu_time_seconds: CPU time in processor</span>
-<span class="sd">        - processor_noncpu_time_seconds: Non-CPU time in processor (waiting, GIL, etc)</span>
-<span class="sd">        - processor_cpu_percentage: CPU / (CPU + non-CPU) x 100 for processor</span>
-<span class="sd">        - processor_noncpu_percentage: Non-CPU / (CPU + non-CPU) x 100 for processor</span>
+<span class="sd">        - processor_io_wait_time_seconds: I/O and waiting time in processor (I/O, GIL, blocking)</span>
+<span class="sd">        - processor_cpu_percent: CPU / (CPU + I/O wait) x 100 for processor</span>
+<span class="sd">        - processor_io_wait_percent: I/O wait / (CPU + I/O wait) x 100 for processor</span>
 <span class="sd">        - overhead_cpu_time_seconds: CPU time in Dask overhead (if processor_name given)</span>
-<span class="sd">        - overhead_noncpu_time_seconds: Non-CPU time in Dask overhead</span>
+<span class="sd">        - overhead_io_wait_time_seconds: I/O and waiting time in Dask overhead</span>
 <span class="sd">        - disk_read_bytes: Bytes read from disk</span>
 <span class="sd">        - disk_write_bytes: Bytes written to disk</span>
 <span class="sd">        - decompression_time_seconds: Time spent decompressing</span>
@@ -316,9 +317,9 @@
     <span class="c1"># Aggregate metrics by activity type</span>
     <span class="c1"># Metrics have keys like: (&#39;execute&#39;, task_prefix, activity, unit)</span>
     <span class="n">processor_cpu</span> <span class="o">=</span> <span class="mf">0.0</span>
-    <span class="n">processor_noncpu</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">processor_io_wait</span> <span class="o">=</span> <span class="mf">0.0</span>
     <span class="n">overhead_cpu</span> <span class="o">=</span> <span class="mf">0.0</span>
-    <span class="n">overhead_noncpu</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">overhead_io_wait</span> <span class="o">=</span> <span class="mf">0.0</span>
     <span class="n">disk_read</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">disk_write</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">memory_read</span> <span class="o">=</span> <span class="mi">0</span>
@@ -328,13 +329,13 @@
     <span class="n">serialize_time</span> <span class="o">=</span> <span class="mf">0.0</span>
 
     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">cumulative_worker_metrics</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
             <span class="k">continue</span>
 
         <span class="c1"># Extract components from tuple key</span>
         <span class="c1"># Format: (context, task_prefix, activity, unit)</span>
-        <span class="n">task_prefix</span> <span class="o">=</span> <span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="kc">None</span>
-        <span class="n">activity</span> <span class="o">=</span> <span class="n">key</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">task_prefix</span> <span class="o">=</span> <span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">activity</span> <span class="o">=</span> <span class="n">key</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
         <span class="n">unit</span> <span class="o">=</span> <span class="n">key</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span> <span class="k">else</span> <span class="kc">None</span>
 
         <span class="c1"># Determine if this is processor work or overhead</span>
@@ -347,9 +348,9 @@
                 <span class="n">overhead_cpu</span> <span class="o">+=</span> <span class="n">value</span>
         <span class="k">elif</span> <span class="n">activity</span> <span class="o">==</span> <span class="s2">&quot;thread-noncpu&quot;</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">is_processor</span><span class="p">:</span>
-                <span class="n">processor_noncpu</span> <span class="o">+=</span> <span class="n">value</span>
+                <span class="n">processor_io_wait</span> <span class="o">+=</span> <span class="n">value</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">overhead_noncpu</span> <span class="o">+=</span> <span class="n">value</span>
+                <span class="n">overhead_io_wait</span> <span class="o">+=</span> <span class="n">value</span>
         <span class="k">elif</span> <span class="n">activity</span> <span class="o">==</span> <span class="s2">&quot;disk-read&quot;</span> <span class="ow">and</span> <span class="n">unit</span> <span class="o">==</span> <span class="s2">&quot;bytes&quot;</span><span class="p">:</span>
             <span class="n">disk_read</span> <span class="o">+=</span> <span class="n">value</span>
         <span class="k">elif</span> <span class="n">activity</span> <span class="o">==</span> <span class="s2">&quot;disk-write&quot;</span> <span class="ow">and</span> <span class="n">unit</span> <span class="o">==</span> <span class="s2">&quot;bytes&quot;</span><span class="p">:</span>
@@ -366,12 +367,12 @@
             <span class="n">serialize_time</span> <span class="o">+=</span> <span class="n">value</span>
 
     <span class="c1"># Calculate percentages for processor</span>
-    <span class="n">processor_total</span> <span class="o">=</span> <span class="n">processor_cpu</span> <span class="o">+</span> <span class="n">processor_noncpu</span>
+    <span class="n">processor_total</span> <span class="o">=</span> <span class="n">processor_cpu</span> <span class="o">+</span> <span class="n">processor_io_wait</span>
     <span class="n">processor_cpu_pct</span> <span class="o">=</span> <span class="p">(</span>
         <span class="p">(</span><span class="n">processor_cpu</span> <span class="o">/</span> <span class="n">processor_total</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span> <span class="k">if</span> <span class="n">processor_total</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">0.0</span>
     <span class="p">)</span>
-    <span class="n">processor_noncpu_pct</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="p">(</span><span class="n">processor_noncpu</span> <span class="o">/</span> <span class="n">processor_total</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span> <span class="k">if</span> <span class="n">processor_total</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">0.0</span>
+    <span class="n">processor_io_wait_pct</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="n">processor_io_wait</span> <span class="o">/</span> <span class="n">processor_total</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span> <span class="k">if</span> <span class="n">processor_total</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">0.0</span>
     <span class="p">)</span>
 
     <span class="c1"># Calculate overhead totals</span>
@@ -381,14 +382,14 @@
     <span class="k">return</span> <span class="p">{</span>
         <span class="c1"># Processor time breakdown</span>
         <span class="s2">&quot;processor_cpu_time_seconds&quot;</span><span class="p">:</span> <span class="n">processor_cpu</span><span class="p">,</span>
-        <span class="s2">&quot;processor_noncpu_time_seconds&quot;</span><span class="p">:</span> <span class="n">processor_noncpu</span><span class="p">,</span>
-        <span class="s2">&quot;processor_cpu_percentage&quot;</span><span class="p">:</span> <span class="n">processor_cpu_pct</span><span class="p">,</span>
-        <span class="s2">&quot;processor_noncpu_percentage&quot;</span><span class="p">:</span> <span class="n">processor_noncpu_pct</span><span class="p">,</span>
+        <span class="s2">&quot;processor_io_wait_time_seconds&quot;</span><span class="p">:</span> <span class="n">processor_io_wait</span><span class="p">,</span>
+        <span class="s2">&quot;processor_cpu_percent&quot;</span><span class="p">:</span> <span class="n">processor_cpu_pct</span><span class="p">,</span>
+        <span class="s2">&quot;processor_io_wait_percent&quot;</span><span class="p">:</span> <span class="n">processor_io_wait_pct</span><span class="p">,</span>
         <span class="c1"># Dask overhead (only populated if processor_name given)</span>
         <span class="s2">&quot;overhead_cpu_time_seconds&quot;</span><span class="p">:</span> <span class="n">overhead_cpu</span><span class="p">,</span>
-        <span class="s2">&quot;overhead_noncpu_time_seconds&quot;</span><span class="p">:</span> <span class="n">overhead_noncpu</span><span class="p">,</span>
+        <span class="s2">&quot;overhead_io_wait_time_seconds&quot;</span><span class="p">:</span> <span class="n">overhead_io_wait</span><span class="p">,</span>
         <span class="c1"># Data volume from Dask Spans</span>
-        <span class="s2">&quot;total_bytes_memory_read_dask&quot;</span><span class="p">:</span> <span class="n">memory_read</span><span class="p">,</span>  <span class="c1"># In-memory data access tracked by Dask</span>
+        <span class="s2">&quot;total_bytes_memory_read&quot;</span><span class="p">:</span> <span class="n">memory_read</span><span class="p">,</span>  <span class="c1"># In-memory data access tracked by Dask</span>
         <span class="s2">&quot;disk_read_bytes&quot;</span><span class="p">:</span> <span class="n">disk_read</span><span class="p">,</span>
         <span class="s2">&quot;disk_write_bytes&quot;</span><span class="p">:</span> <span class="n">disk_write</span><span class="p">,</span>
         <span class="c1"># Compression overhead</span>
@@ -405,10 +406,10 @@
         </article>
       </div>
       <footer>
-
+        
         <div class="related-pages">
-
-
+          
+          
         </div>
         <div class="bottom-of-page">
           <div class="left-details">
@@ -416,9 +417,9 @@
                 Copyright &#169; {_dt.datetime.now().year}, Mohamed Aly
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
-
+            
             <a href="https://github.com/pradyunsg/furo">Furo</a>
-
+            
           </div>
           <div class="right-details">
             <div class="icons">
@@ -427,17 +428,17 @@
                     <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path>
                 </svg>
             </a>
-
+              
             </div>
           </div>
         </div>
-
+        
       </footer>
     </div>
     <aside class="toc-drawer no-toc">
-
-
-
+      
+      
+      
     </aside>
   </div>
 </div><script src="../../../_static/documentation_options.js?v=5929fcd5"></script>

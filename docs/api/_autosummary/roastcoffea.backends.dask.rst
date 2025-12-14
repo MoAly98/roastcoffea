@@ -3,9 +3,10 @@
 
 .. automodule:: roastcoffea.backends.dask
 
-
+   
    .. rubric:: Classes
 
    .. autosummary::
-
+   
       DaskMetricsBackend
+   

@@ -13,37 +13,37 @@
     <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?v=8dab3a3b" />
     <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=7988a563" />
-
-
+    
+    
 
 
 <style>
   body {
     --color-code-background: #f2f2f2;
   --color-code-foreground: #1e1e1e;
-
+  
   }
   @media not print {
     body[data-theme="dark"] {
       --color-code-background: #202020;
   --color-code-foreground: #d0d0d0;
-
+  
     }
     @media (prefers-color-scheme: dark) {
       body:not([data-theme="light"]) {
         --color-code-background: #202020;
   --color-code-foreground: #d0d0d0;
-
+  
       }
     }
   }
 </style></head>
   <body>
-
+    
     <script>
       document.body.dataset.theme = localStorage.getItem("theme") || "auto";
     </script>
-
+    
 
 <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
   <symbol id="svg-toc" viewBox="0 0 24 24">
@@ -182,11 +182,11 @@
   </header>
   <aside class="sidebar-drawer">
     <div class="sidebar-container">
-
+      
       <div class="sidebar-sticky"><a class="sidebar-brand" href="../../index.html">
-
+  
   <span class="sidebar-brand-text"> </span>
-
+  
 </a><form class="sidebar-search-container" method="get" action="../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
   <input type="hidden" name="check_keywords" value="yes">
@@ -238,7 +238,7 @@
 </div>
 
       </div>
-
+      
     </div>
   </aside>
   <div class="main">
@@ -277,11 +277,17 @@
           <section id="module-roastcoffea.visualization.plots.cpu">
 <span id="roastcoffea-visualization-plots-cpu"></span><h1>roastcoffea.visualization.plots.cpu<a class="headerlink" href="#module-roastcoffea.visualization.plots.cpu" title="Link to this heading">¶</a></h1>
 <p>CPU utilization plots.</p>
-<p>Both static and interactive visualizations of CPU usage.</p>
+<p>Visualizations for CPU usage and worker task metrics.</p>
 <p class="rubric">Functions</p>
 <div class="table-wrapper autosummary longtable docutils container">
 <table class="autosummary longtable docutils align-default">
 <tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#roastcoffea.visualization.plots.cpu.plot_cpu_utilization_mean_timeline" title="roastcoffea.visualization.plots.cpu.plot_cpu_utilization_mean_timeline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_cpu_utilization_mean_timeline</span></code></a>(tracking_data)</p></td>
+<td><p>Plot mean CPU utilization percentage over time with min-max band.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#roastcoffea.visualization.plots.cpu.plot_cpu_utilization_per_worker_timeline" title="roastcoffea.visualization.plots.cpu.plot_cpu_utilization_per_worker_timeline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_cpu_utilization_per_worker_timeline</span></code></a>(...)</p></td>
+<td><p>Plot CPU utilization percentage per worker over time.</p></td>
+</tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#roastcoffea.visualization.plots.cpu.plot_executing_tasks_timeline" title="roastcoffea.visualization.plots.cpu.plot_executing_tasks_timeline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_executing_tasks_timeline</span></code></a>(tracking_data)</p></td>
 <td><p>Plot number of executing tasks per worker over time.</p></td>
 </tr>
@@ -293,7 +299,7 @@
 </div>
 <dl class="py function">
 <dt class="sig sig-object py" id="roastcoffea.visualization.plots.cpu.plot_occupancy_timeline">
-<span class="sig-prename descclassname"><span class="pre">roastcoffea.visualization.plots.cpu.</span></span><span class="sig-name descname"><span class="pre">plot_occupancy_timeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tracking_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(12,</span> <span class="pre">6)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Worker</span> <span class="pre">Occupancy</span> <span class="pre">Over</span> <span class="pre">Time'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/roastcoffea/visualization/plots/cpu.html#plot_occupancy_timeline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#roastcoffea.visualization.plots.cpu.plot_occupancy_timeline" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">roastcoffea.visualization.plots.cpu.</span></span><span class="sig-name descname"><span class="pre">plot_occupancy_timeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tracking_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(12,</span> <span class="pre">6)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Worker</span> <span class="pre">Occupancy</span> <span class="pre">Over</span> <span class="pre">Time'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_legend_entries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/roastcoffea/visualization/plots/cpu.html#plot_occupancy_timeline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#roastcoffea.visualization.plots.cpu.plot_occupancy_timeline" title="Link to this definition">¶</a></dt>
 <dd><p>Plot worker occupancy (task saturation) over time.</p>
 <p>Occupancy is a metric from Dask scheduler indicating how saturated
 a worker is with tasks. 0.0 = idle, higher values = more saturated.</p>
@@ -304,6 +310,7 @@ a worker is with tasks. 0.0 = idle, higher values = more saturated.</p>
 <li><p><strong>output_path</strong> (<em>Path</em><em>, </em><em>optional</em>) – Save path</p></li>
 <li><p><strong>figsize</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a>) – Figure size</p></li>
 <li><p><strong>title</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Plot title</p></li>
+<li><p><strong>max_legend_entries</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>optional</em>) – Maximum number of workers to show in legend. Default is 5.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -320,7 +327,7 @@ a worker is with tasks. 0.0 = idle, higher values = more saturated.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="roastcoffea.visualization.plots.cpu.plot_executing_tasks_timeline">
-<span class="sig-prename descclassname"><span class="pre">roastcoffea.visualization.plots.cpu.</span></span><span class="sig-name descname"><span class="pre">plot_executing_tasks_timeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tracking_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(12,</span> <span class="pre">6)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Executing</span> <span class="pre">Tasks</span> <span class="pre">Per</span> <span class="pre">Worker</span> <span class="pre">Over</span> <span class="pre">Time'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/roastcoffea/visualization/plots/cpu.html#plot_executing_tasks_timeline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#roastcoffea.visualization.plots.cpu.plot_executing_tasks_timeline" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">roastcoffea.visualization.plots.cpu.</span></span><span class="sig-name descname"><span class="pre">plot_executing_tasks_timeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tracking_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(12,</span> <span class="pre">6)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Executing</span> <span class="pre">Tasks</span> <span class="pre">Per</span> <span class="pre">Worker</span> <span class="pre">Over</span> <span class="pre">Time'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_legend_entries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/roastcoffea/visualization/plots/cpu.html#plot_executing_tasks_timeline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#roastcoffea.visualization.plots.cpu.plot_executing_tasks_timeline" title="Link to this definition">¶</a></dt>
 <dd><p>Plot number of executing tasks per worker over time.</p>
 <p>Executing tasks are tasks actually running (subset of active tasks).</p>
 <dl class="field-list simple">
@@ -330,6 +337,7 @@ a worker is with tasks. 0.0 = idle, higher values = more saturated.</p>
 <li><p><strong>output_path</strong> (<em>Path</em><em>, </em><em>optional</em>) – Save path</p></li>
 <li><p><strong>figsize</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a>) – Figure size</p></li>
 <li><p><strong>title</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Plot title</p></li>
+<li><p><strong>max_legend_entries</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>optional</em>) – Maximum number of workers to show in legend. Default is 5.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -344,12 +352,67 @@ a worker is with tasks. 0.0 = idle, higher values = more saturated.</p>
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="roastcoffea.visualization.plots.cpu.plot_cpu_utilization_per_worker_timeline">
+<span class="sig-prename descclassname"><span class="pre">roastcoffea.visualization.plots.cpu.</span></span><span class="sig-name descname"><span class="pre">plot_cpu_utilization_per_worker_timeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tracking_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(12,</span> <span class="pre">6)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'CPU</span> <span class="pre">Utilization</span> <span class="pre">Per</span> <span class="pre">Worker</span> <span class="pre">Over</span> <span class="pre">Time'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_legend_entries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/roastcoffea/visualization/plots/cpu.html#plot_cpu_utilization_per_worker_timeline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#roastcoffea.visualization.plots.cpu.plot_cpu_utilization_per_worker_timeline" title="Link to this definition">¶</a></dt>
+<dd><p>Plot CPU utilization percentage per worker over time.</p>
+<p>Shows actual CPU usage (0-100%) for each worker, providing insight
+into compute resource utilization.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tracking_data</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em> or </em><em>None</em>) – Tracking data with worker_cpu</p></li>
+<li><p><strong>output_path</strong> (<em>Path</em><em>, </em><em>optional</em>) – Save path</p></li>
+<li><p><strong>figsize</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a>) – Figure size</p></li>
+<li><p><strong>title</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Plot title</p></li>
+<li><p><strong>max_legend_entries</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>optional</em>) – Maximum number of workers to show in legend. Default is 5.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>fig, ax</strong> – Matplotlib figure and axes</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Figure and Axes</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If tracking_data is None or missing CPU data</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="roastcoffea.visualization.plots.cpu.plot_cpu_utilization_mean_timeline">
+<span class="sig-prename descclassname"><span class="pre">roastcoffea.visualization.plots.cpu.</span></span><span class="sig-name descname"><span class="pre">plot_cpu_utilization_mean_timeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tracking_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(10,</span> <span class="pre">4)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'CPU</span> <span class="pre">Utilization</span> <span class="pre">Over</span> <span class="pre">Time'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/roastcoffea/visualization/plots/cpu.html#plot_cpu_utilization_mean_timeline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#roastcoffea.visualization.plots.cpu.plot_cpu_utilization_mean_timeline" title="Link to this definition">¶</a></dt>
+<dd><p>Plot mean CPU utilization percentage over time with min-max band.</p>
+<p>Shows aggregated CPU usage across all workers, with mean line and
+shaded min-max range.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tracking_data</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a><em> or </em><em>None</em>) – Tracking data with worker_cpu</p></li>
+<li><p><strong>output_path</strong> (<em>Path</em><em>, </em><em>optional</em>) – Save path</p></li>
+<li><p><strong>figsize</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a>) – Figure size</p></li>
+<li><p><strong>title</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Plot title</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>fig, ax</strong> – Matplotlib figure and axes</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Figure and Axes</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If tracking_data is None or missing CPU data</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
         </article>
       </div>
       <footer>
-
+        
         <div class="related-pages">
           <a class="next-page" href="roastcoffea.visualization.plots.throughput.html">
               <div class="page-info">
@@ -366,9 +429,9 @@ a worker is with tasks. 0.0 = idle, higher values = more saturated.</p>
                 <div class="context">
                   <span>Previous</span>
                 </div>
-
+                
                 <div class="title">roastcoffea.visualization.plots.memory</div>
-
+                
               </div>
             </a>
         </div>
@@ -378,9 +441,9 @@ a worker is with tasks. 0.0 = idle, higher values = more saturated.</p>
                 Copyright &#169; {_dt.datetime.now().year}, Mohamed Aly
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
-
+            
             <a href="https://github.com/pradyunsg/furo">Furo</a>
-
+            
           </div>
           <div class="right-details">
             <div class="icons">
@@ -389,16 +452,16 @@ a worker is with tasks. 0.0 = idle, higher values = more saturated.</p>
                     <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path>
                 </svg>
             </a>
-
+              
             </div>
           </div>
         </div>
-
+        
       </footer>
     </div>
     <aside class="toc-drawer">
-
-
+      
+      
       <div class="toc-sticky toc-scroll">
         <div class="toc-title-container">
           <span class="toc-title">
@@ -411,6 +474,8 @@ a worker is with tasks. 0.0 = idle, higher values = more saturated.</p>
 <li><a class="reference internal" href="#">roastcoffea.visualization.plots.cpu</a><ul>
 <li><a class="reference internal" href="#roastcoffea.visualization.plots.cpu.plot_occupancy_timeline"><code class="docutils literal notranslate"><span class="pre">plot_occupancy_timeline()</span></code></a></li>
 <li><a class="reference internal" href="#roastcoffea.visualization.plots.cpu.plot_executing_tasks_timeline"><code class="docutils literal notranslate"><span class="pre">plot_executing_tasks_timeline()</span></code></a></li>
+<li><a class="reference internal" href="#roastcoffea.visualization.plots.cpu.plot_cpu_utilization_per_worker_timeline"><code class="docutils literal notranslate"><span class="pre">plot_cpu_utilization_per_worker_timeline()</span></code></a></li>
+<li><a class="reference internal" href="#roastcoffea.visualization.plots.cpu.plot_cpu_utilization_mean_timeline"><code class="docutils literal notranslate"><span class="pre">plot_cpu_utilization_mean_timeline()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -418,8 +483,8 @@ a worker is with tasks. 0.0 = idle, higher values = more saturated.</p>
           </div>
         </div>
       </div>
-
-
+      
+      
     </aside>
   </div>
 </div><script src="../../_static/documentation_options.js?v=5929fcd5"></script>

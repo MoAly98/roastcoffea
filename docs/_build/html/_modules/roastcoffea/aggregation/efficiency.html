@@ -12,37 +12,37 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
     <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=7988a563" />
-
-
+    
+    
 
 
 <style>
   body {
     --color-code-background: #f2f2f2;
   --color-code-foreground: #1e1e1e;
-
+  
   }
   @media not print {
     body[data-theme="dark"] {
       --color-code-background: #202020;
   --color-code-foreground: #d0d0d0;
-
+  
     }
     @media (prefers-color-scheme: dark) {
       body:not([data-theme="light"]) {
         --color-code-background: #202020;
   --color-code-foreground: #d0d0d0;
-
+  
       }
     }
   }
 </style></head>
   <body>
-
+    
     <script>
       document.body.dataset.theme = localStorage.getItem("theme") || "auto";
     </script>
-
+    
 
 <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
   <symbol id="svg-toc" viewBox="0 0 24 24">
@@ -181,11 +181,11 @@
   </header>
   <aside class="sidebar-drawer">
     <div class="sidebar-container">
-
+      
       <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
-
+  
   <span class="sidebar-brand-text"> </span>
-
+  
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
   <input type="hidden" name="check_keywords" value="yes">
@@ -237,7 +237,7 @@
 </div>
 
       </div>
-
+      
     </div>
   </aside>
   <div class="main">
@@ -295,7 +295,7 @@
 <span class="sd">    dict</span>
 <span class="sd">        Efficiency metrics</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">wall_time</span> <span class="o">=</span> <span class="n">workflow_metrics</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;wall_time&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">elapsed_time_seconds</span> <span class="o">=</span> <span class="n">workflow_metrics</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;elapsed_time_seconds&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
     <span class="n">total_cpu_time</span> <span class="o">=</span> <span class="n">workflow_metrics</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;total_cpu_time&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
     <span class="n">total_events</span> <span class="o">=</span> <span class="n">workflow_metrics</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;total_events&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
     <span class="n">total_cores</span> <span class="o">=</span> <span class="n">worker_metrics</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;total_cores&quot;</span><span class="p">)</span>
@@ -303,8 +303,8 @@
     <span class="c1"># Calculate core efficiency</span>
     <span class="n">core_efficiency</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="n">total_cores</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">wall_time</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">total_available_time</span> <span class="o">=</span> <span class="n">total_cores</span> <span class="o">*</span> <span class="n">wall_time</span>
+        <span class="k">if</span> <span class="n">elapsed_time_seconds</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">total_available_time</span> <span class="o">=</span> <span class="n">total_cores</span> <span class="o">*</span> <span class="n">elapsed_time_seconds</span>
             <span class="n">core_efficiency</span> <span class="o">=</span> <span class="p">(</span>
                 <span class="n">total_cpu_time</span> <span class="o">/</span> <span class="n">total_available_time</span>
                 <span class="k">if</span> <span class="n">total_available_time</span> <span class="o">&gt;</span> <span class="mi">0</span>
@@ -314,30 +314,34 @@
             <span class="n">core_efficiency</span> <span class="o">=</span> <span class="mf">0.0</span>
 
     <span class="c1"># Calculate speedup factor</span>
-    <span class="n">speedup_factor</span> <span class="o">=</span> <span class="n">total_cpu_time</span> <span class="o">/</span> <span class="n">wall_time</span> <span class="k">if</span> <span class="n">wall_time</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">0.0</span>
+    <span class="n">speedup_factor</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">total_cpu_time</span> <span class="o">/</span> <span class="n">elapsed_time_seconds</span> <span class="k">if</span> <span class="n">elapsed_time_seconds</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">0.0</span>
+    <span class="p">)</span>
 
-    <span class="c1"># Calculate event rate per core</span>
-    <span class="n">event_rate_core_hz</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1"># Calculate event rate per core (in kHz for consistency)</span>
+    <span class="n">event_rate_core_khz</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="n">total_cores</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">wall_time</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">event_rate_core_hz</span> <span class="o">=</span> <span class="n">total_events</span> <span class="o">/</span> <span class="p">(</span><span class="n">wall_time</span> <span class="o">*</span> <span class="n">total_cores</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">elapsed_time_seconds</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">event_rate_core_khz</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">total_events</span> <span class="o">/</span> <span class="p">(</span><span class="n">elapsed_time_seconds</span> <span class="o">*</span> <span class="n">total_cores</span><span class="p">)</span>
+            <span class="p">)</span> <span class="o">/</span> <span class="mi">1000</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">event_rate_core_hz</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="n">event_rate_core_khz</span> <span class="o">=</span> <span class="mf">0.0</span>
 
     <span class="k">return</span> <span class="p">{</span>
         <span class="s2">&quot;core_efficiency&quot;</span><span class="p">:</span> <span class="n">core_efficiency</span><span class="p">,</span>
         <span class="s2">&quot;speedup_factor&quot;</span><span class="p">:</span> <span class="n">speedup_factor</span><span class="p">,</span>
-        <span class="s2">&quot;event_rate_core_hz&quot;</span><span class="p">:</span> <span class="n">event_rate_core_hz</span><span class="p">,</span>
+        <span class="s2">&quot;event_rate_core_khz&quot;</span><span class="p">:</span> <span class="n">event_rate_core_khz</span><span class="p">,</span>
     <span class="p">}</span></div>
 
 </pre></div>
         </article>
       </div>
       <footer>
-
+        
         <div class="related-pages">
-
-
+          
+          
         </div>
         <div class="bottom-of-page">
           <div class="left-details">
@@ -345,9 +349,9 @@
                 Copyright &#169; {_dt.datetime.now().year}, Mohamed Aly
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
-
+            
             <a href="https://github.com/pradyunsg/furo">Furo</a>
-
+            
           </div>
           <div class="right-details">
             <div class="icons">
@@ -356,17 +360,17 @@
                     <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path>
                 </svg>
             </a>
-
+              
             </div>
           </div>
         </div>
-
+        
       </footer>
     </div>
     <aside class="toc-drawer no-toc">
-
-
-
+      
+      
+      
     </aside>
   </div>
 </div><script src="../../../_static/documentation_options.js?v=5929fcd5"></script>

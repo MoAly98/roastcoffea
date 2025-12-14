@@ -12,37 +12,37 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=8dab3a3b" />
     <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=7988a563" />
-
-
+    
+    
 
 
 <style>
   body {
     --color-code-background: #f2f2f2;
   --color-code-foreground: #1e1e1e;
-
+  
   }
   @media not print {
     body[data-theme="dark"] {
       --color-code-background: #202020;
   --color-code-foreground: #d0d0d0;
-
+  
     }
     @media (prefers-color-scheme: dark) {
       body:not([data-theme="light"]) {
         --color-code-background: #202020;
   --color-code-foreground: #d0d0d0;
-
+  
       }
     }
   }
 </style></head>
   <body>
-
+    
     <script>
       document.body.dataset.theme = localStorage.getItem("theme") || "auto";
     </script>
-
+    
 
 <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
   <symbol id="svg-toc" viewBox="0 0 24 24">
@@ -181,11 +181,11 @@
   </header>
   <aside class="sidebar-drawer">
     <div class="sidebar-container">
-
+      
       <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
-
+  
   <span class="sidebar-brand-text"> </span>
-
+  
 </a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
   <input type="hidden" name="check_keywords" value="yes">
@@ -237,7 +237,7 @@
 </div>
 
       </div>
-
+      
     </div>
   </aside>
   <div class="main">
@@ -268,7 +268,7 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">cast</span>
 
 
 <div class="viewcode-block" id="aggregate_chunk_metrics">
@@ -336,7 +336,9 @@
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">mem_deltas</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">mean_mem</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;chunk_mem_delta_mean_mb&quot;</span><span class="p">]</span>
-            <span class="n">variance_mem</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">((</span><span class="n">m</span> <span class="o">-</span> <span class="n">mean_mem</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">mem_deltas</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mem_deltas</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">variance_mem</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">((</span><span class="n">m</span> <span class="o">-</span> <span class="n">mean_mem</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">mem_deltas</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span>
+                <span class="nb">len</span><span class="p">(</span><span class="n">mem_deltas</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="p">)</span>
             <span class="n">result</span><span class="p">[</span><span class="s2">&quot;chunk_mem_delta_std_mb&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">variance_mem</span><span class="o">**</span><span class="mf">0.5</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">result</span><span class="p">[</span><span class="s2">&quot;chunk_mem_delta_std_mb&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
@@ -366,7 +368,7 @@
             <span class="n">datasets</span><span class="p">[</span><span class="n">dataset</span><span class="p">][</span><span class="s2">&quot;total_events&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">chunk</span><span class="p">[</span><span class="s2">&quot;num_events&quot;</span><span class="p">]</span>
 
     <span class="c1"># Calculate per-dataset averages</span>
-    <span class="k">for</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">datasets</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">_dataset</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">datasets</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;num_chunks&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">data</span><span class="p">[</span><span class="s2">&quot;mean_duration&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;total_duration&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;num_chunks&quot;</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;total_events&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -396,30 +398,93 @@
                 <span class="n">sections</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s2">&quot;mem_deltas&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">section</span><span class="p">[</span><span class="s2">&quot;mem_delta_mb&quot;</span><span class="p">])</span>
 
         <span class="c1"># Calculate averages</span>
-        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">sections</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">_name</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">sections</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;count&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">data</span><span class="p">[</span><span class="s2">&quot;mean_duration&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;total_duration&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;count&quot;</span><span class="p">]</span>
 
             <span class="c1"># Memory averages</span>
             <span class="k">if</span> <span class="s2">&quot;mem_deltas&quot;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
-                <span class="n">mem_deltas_section</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;mem_deltas&quot;</span><span class="p">]</span>
-                <span class="n">data</span><span class="p">[</span><span class="s2">&quot;mean_mem_delta_mb&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">mem_deltas_section</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">mem_deltas_section</span><span class="p">)</span>
-                <span class="n">data</span><span class="p">[</span><span class="s2">&quot;max_mem_delta_mb&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">mem_deltas_section</span><span class="p">)</span>
-                <span class="n">data</span><span class="p">[</span><span class="s2">&quot;min_mem_delta_mb&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">mem_deltas_section</span><span class="p">)</span>
+                <span class="n">mem_deltas_list</span> <span class="o">=</span> <span class="n">cast</span><span class="p">(</span><span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;mem_deltas&quot;</span><span class="p">])</span>
+                <span class="n">data</span><span class="p">[</span><span class="s2">&quot;mean_mem_delta_mb&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">mem_deltas_list</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">mem_deltas_list</span><span class="p">)</span>
+                <span class="n">data</span><span class="p">[</span><span class="s2">&quot;max_mem_delta_mb&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">mem_deltas_list</span><span class="p">)</span>
+                <span class="n">data</span><span class="p">[</span><span class="s2">&quot;min_mem_delta_mb&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">mem_deltas_list</span><span class="p">)</span>
                 <span class="k">del</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;mem_deltas&quot;</span><span class="p">]</span>  <span class="c1"># Remove raw list</span>
 
         <span class="n">result</span><span class="p">[</span><span class="s2">&quot;sections&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sections</span>
 
     <span class="k">return</span> <span class="n">result</span></div>
 
+
+
+<div class="viewcode-block" id="build_chunk_info">
+<a class="viewcode-back" href="../../../api/_autosummary/roastcoffea.aggregation.chunk.html#roastcoffea.aggregation.chunk.build_chunk_info">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_chunk_info</span><span class="p">(</span><span class="n">chunk_metrics</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Build chunk_info dict from chunk metrics for throughput plotting.</span>
+
+<span class="sd">    Transforms chunk-level metrics collected by @track_metrics into the format</span>
+<span class="sd">    expected by plot_throughput_timeline().</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    chunk_metrics : list of dict</span>
+<span class="sd">        List of chunk metrics dicts from @track_metrics decorator.</span>
+<span class="sd">        Each dict contains: file, entry_start, entry_stop,</span>
+<span class="sd">        t_start, t_end, bytes_read</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Dictionary mapping chunk keys to timing/bytes data:</span>
+<span class="sd">        {(filename, entry_start, entry_stop): (t_start, t_end, bytes_read)}</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; chunk_metrics = [</span>
+<span class="sd">    ...     {&quot;file&quot;: &quot;data.root&quot;, &quot;entry_start&quot;: 0, &quot;entry_stop&quot;: 1000,</span>
+<span class="sd">    ...      &quot;t_start&quot;: 1.0, &quot;t_end&quot;: 2.5, &quot;bytes_read&quot;: 50000},</span>
+<span class="sd">    ... ]</span>
+<span class="sd">    &gt;&gt;&gt; chunk_info = build_chunk_info(chunk_metrics)</span>
+<span class="sd">    &gt;&gt;&gt; chunk_info</span>
+<span class="sd">    {(&#39;data.root&#39;, 0, 1000): (1.0, 2.5, 50000)}</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    - Chunks without file/entry metadata are skipped.</span>
+<span class="sd">    - Chunks without bytes_read default to 0 bytes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">chunk_info</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">chunk_metrics</span><span class="p">:</span>
+        <span class="c1"># Extract required fields</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;file&quot;</span><span class="p">)</span>
+        <span class="n">entry_start</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;entry_start&quot;</span><span class="p">)</span>
+        <span class="n">entry_stop</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;entry_stop&quot;</span><span class="p">)</span>
+        <span class="n">t_start</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;t_start&quot;</span><span class="p">)</span>
+        <span class="n">t_end</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;t_end&quot;</span><span class="p">)</span>
+        <span class="n">bytes_read</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bytes_read&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># Skip chunks without essential metadata</span>
+        <span class="k">if</span> <span class="n">filename</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">entry_start</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">entry_stop</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">t_start</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">t_end</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="c1"># Build chunk key and value</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">entry_start</span><span class="p">,</span> <span class="n">entry_stop</span><span class="p">)</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="n">t_end</span><span class="p">,</span> <span class="n">bytes_read</span><span class="p">)</span>
+
+        <span class="n">chunk_info</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="k">return</span> <span class="n">chunk_info</span></div>
+
 </pre></div>
         </article>
       </div>
       <footer>
-
+        
         <div class="related-pages">
-
-
+          
+          
         </div>
         <div class="bottom-of-page">
           <div class="left-details">
@@ -427,9 +492,9 @@
                 Copyright &#169; {_dt.datetime.now().year}, Mohamed Aly
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
-
+            
             <a href="https://github.com/pradyunsg/furo">Furo</a>
-
+            
           </div>
           <div class="right-details">
             <div class="icons">
@@ -438,17 +503,17 @@
                     <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path>
                 </svg>
             </a>
-
+              
             </div>
           </div>
         </div>
-
+        
       </footer>
     </div>
     <aside class="toc-drawer no-toc">
-
-
-
+      
+      
+      
     </aside>
   </div>
 </div><script src="../../../_static/documentation_options.js?v=5929fcd5"></script>

@@ -12,37 +12,37 @@
     <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?v=8dab3a3b" />
     <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=7988a563" />
-
-
+    
+    
 
 
 <style>
   body {
     --color-code-background: #f2f2f2;
   --color-code-foreground: #1e1e1e;
-
+  
   }
   @media not print {
     body[data-theme="dark"] {
       --color-code-background: #202020;
   --color-code-foreground: #d0d0d0;
-
+  
     }
     @media (prefers-color-scheme: dark) {
       body:not([data-theme="light"]) {
         --color-code-background: #202020;
   --color-code-foreground: #d0d0d0;
-
+  
       }
     }
   }
 </style></head>
   <body>
-
+    
     <script>
       document.body.dataset.theme = localStorage.getItem("theme") || "auto";
     </script>
-
+    
 
 <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
   <symbol id="svg-toc" viewBox="0 0 24 24">
@@ -181,11 +181,11 @@
   </header>
   <aside class="sidebar-drawer">
     <div class="sidebar-container">
-
+      
       <div class="sidebar-sticky"><a class="sidebar-brand" href="../../index.html">
-
+  
   <span class="sidebar-brand-text"> </span>
-
+  
 </a><form class="sidebar-search-container" method="get" action="../../search.html" role="search">
   <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
   <input type="hidden" name="check_keywords" value="yes">
@@ -237,7 +237,7 @@
 </div>
 
       </div>
-
+      
     </div>
   </aside>
   <div class="main">
@@ -274,7 +274,8 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">functools</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">roastcoffea.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_process_memory</span>
 
@@ -287,8 +288,9 @@
 <span class="sd">    Automatically captures chunk-level metrics including:</span>
 <span class="sd">    - Wall time (start, end, duration)</span>
 <span class="sd">    - Memory usage (before/after)</span>
+<span class="sd">    - Bytes read from file source (if available)</span>
 <span class="sd">    - Chunk metadata (dataset, file, entry range if available)</span>
-<span class="sd">    - Fine-grained timing/memory sections from context managers</span>
+<span class="sd">    - Fine-grained timing/memory/bytes sections from context managers</span>
 
 <span class="sd">    The decorator works in distributed Dask mode by injecting metrics</span>
 <span class="sd">    directly into the output dictionary as a list. Coffea&#39;s tree reduction</span>
@@ -297,7 +299,7 @@
 <span class="sd">    Usage::</span>
 
 <span class="sd">        from coffea import processor</span>
-<span class="sd">        from roastcoffea import track_metrics, track_time, track_memory</span>
+<span class="sd">        from roastcoffea import track_metrics, track_time, track_memory, track_bytes</span>
 
 <span class="sd">        class MyProcessor(processor.ProcessorABC):</span>
 <span class="sd">            @track_metrics</span>
@@ -307,6 +309,9 @@
 
 <span class="sd">                with track_memory(self, &quot;histogram_filling&quot;):</span>
 <span class="sd">                    # ... fill histograms</span>
+
+<span class="sd">                with track_bytes(self, events, &quot;muon_loading&quot;):</span>
+<span class="sd">                    muons = events.Muon</span>
 
 <span class="sd">                return {&quot;sum&quot;: len(events)}</span>
 
@@ -333,6 +338,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_roastcoffea_current_chunk</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;timing&quot;</span><span class="p">:</span> <span class="p">{},</span>
             <span class="s2">&quot;memory&quot;</span><span class="p">:</span> <span class="p">{},</span>
+            <span class="s2">&quot;bytes&quot;</span><span class="p">:</span> <span class="p">{},</span>
         <span class="p">}</span>
 
         <span class="c1"># Capture start time and memory</span>
@@ -341,6 +347,28 @@
 
         <span class="c1"># Extract chunk metadata from events</span>
         <span class="n">chunk_metadata</span> <span class="o">=</span> <span class="n">_extract_chunk_metadata</span><span class="p">(</span><span class="n">events</span><span class="p">)</span>
+
+        <span class="c1"># Extract file-level metadata (only once per file per worker)</span>
+        <span class="n">file_metadata</span> <span class="o">=</span> <span class="n">_extract_file_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">events</span><span class="p">)</span>
+
+        <span class="c1"># Check if filehandle is available for byte tracking (once)</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">filehandle</span> <span class="o">=</span> <span class="n">events</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;filehandle&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">filehandle</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">filehandle</span><span class="p">,</span> <span class="s2">&quot;file&quot;</span><span class="p">):</span>
+                <span class="n">source</span> <span class="o">=</span> <span class="n">filehandle</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">source</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="s2">&quot;num_requested_bytes&quot;</span><span class="p">):</span>
+                    <span class="n">source</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">source</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Capture bytes at start if filehandle available</span>
+        <span class="n">bytes_start</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">source</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">bytes_start</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">num_requested_bytes</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="k">pass</span>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="c1"># Run the actual processor</span>
@@ -351,6 +379,16 @@
             <span class="n">t_end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
             <span class="n">mem_after</span> <span class="o">=</span> <span class="n">get_process_memory</span><span class="p">()</span>
 
+            <span class="c1"># Capture bytes at end if filehandle available</span>
+            <span class="n">bytes_end</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">if</span> <span class="n">source</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">bytes_end</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">num_requested_bytes</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="k">pass</span>
+
+            <span class="n">bytes_read</span> <span class="o">=</span> <span class="n">bytes_end</span> <span class="o">-</span> <span class="n">bytes_start</span>
+
             <span class="c1"># Assemble complete chunk metrics</span>
             <span class="n">chunk_metrics</span> <span class="o">=</span> <span class="p">{</span>
                 <span class="s2">&quot;t_start&quot;</span><span class="p">:</span> <span class="n">t_start</span><span class="p">,</span>
@@ -359,12 +397,18 @@
                 <span class="s2">&quot;mem_before_mb&quot;</span><span class="p">:</span> <span class="n">mem_before</span><span class="p">,</span>
                 <span class="s2">&quot;mem_after_mb&quot;</span><span class="p">:</span> <span class="n">mem_after</span><span class="p">,</span>
                 <span class="s2">&quot;mem_delta_mb&quot;</span><span class="p">:</span> <span class="n">mem_after</span> <span class="o">-</span> <span class="n">mem_before</span><span class="p">,</span>
+                <span class="s2">&quot;bytes_read&quot;</span><span class="p">:</span> <span class="n">bytes_read</span><span class="p">,</span>
                 <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">(),</span>
                 <span class="o">**</span><span class="n">chunk_metadata</span><span class="p">,</span>
                 <span class="c1"># Include fine-grained sections</span>
                 <span class="s2">&quot;timing&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_roastcoffea_current_chunk</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;timing&quot;</span><span class="p">,</span> <span class="p">{}),</span>
                 <span class="s2">&quot;memory&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_roastcoffea_current_chunk</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;memory&quot;</span><span class="p">,</span> <span class="p">{}),</span>
+                <span class="s2">&quot;bytes&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_roastcoffea_current_chunk</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bytes&quot;</span><span class="p">,</span> <span class="p">{}),</span>
             <span class="p">}</span>
+
+            <span class="c1"># Include file-level metadata if extracted</span>
+            <span class="k">if</span> <span class="n">file_metadata</span><span class="p">:</span>
+                <span class="n">chunk_metrics</span><span class="p">[</span><span class="s2">&quot;file_metadata&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">file_metadata</span>
 
             <span class="c1"># Clean up container</span>
             <span class="nb">delattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_roastcoffea_current_chunk&quot;</span><span class="p">)</span>
@@ -379,25 +423,12 @@
 
             <span class="k">return</span> <span class="n">result</span>
 
-        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="c1"># Record failed chunk</span>
-            <span class="n">t_end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-            <span class="n">chunk_metrics</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s2">&quot;t_start&quot;</span><span class="p">:</span> <span class="n">t_start</span><span class="p">,</span>
-                <span class="s2">&quot;t_end&quot;</span><span class="p">:</span> <span class="n">t_end</span><span class="p">,</span>
-                <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="n">t_end</span> <span class="o">-</span> <span class="n">t_start</span><span class="p">,</span>
-                <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">),</span>
-                <span class="o">**</span><span class="n">chunk_metadata</span><span class="p">,</span>
-            <span class="p">}</span>
-
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
             <span class="c1"># Clean up container if it exists</span>
             <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_roastcoffea_current_chunk&quot;</span><span class="p">):</span>
                 <span class="nb">delattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_roastcoffea_current_chunk&quot;</span><span class="p">)</span>
 
-            <span class="c1"># Try to inject error metrics</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-                <span class="n">result</span><span class="p">[</span><span class="s2">&quot;__roastcoffea_metrics__&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">chunk_metrics</span><span class="p">]</span>
-
+            <span class="c1"># Re-raise the exception</span>
             <span class="k">raise</span>
 
     <span class="k">return</span> <span class="n">wrapper</span></div>
@@ -428,52 +459,103 @@
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
         <span class="k">pass</span>
 
-    <span class="c1"># Try direct metadata attribute first (NanoEvents provides this)</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">metadata_obj</span> <span class="o">=</span> <span class="n">events</span><span class="o">.</span><span class="n">metadata</span>
-        <span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;dataset&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">metadata_obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dataset&quot;</span><span class="p">)</span>
-        <span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;file&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">metadata_obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;filename&quot;</span><span class="p">)</span>
-        <span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;uuid&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">metadata_obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;uuid&quot;</span><span class="p">)</span>
-        <span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;entry_start&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">metadata_obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;entrystart&quot;</span><span class="p">)</span>
-        <span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;entry_stop&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">metadata_obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;entrystop&quot;</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-        <span class="k">pass</span>
-
-    <span class="c1"># Fallback: Try behavior-based extraction</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dataset&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">events</span><span class="p">,</span> <span class="s2">&quot;behavior&quot;</span><span class="p">):</span>
-        <span class="n">behavior</span> <span class="o">=</span> <span class="n">events</span><span class="o">.</span><span class="n">behavior</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">behavior</span><span class="p">,</span> <span class="s2">&quot;get&quot;</span><span class="p">):</span>
-            <span class="n">factory</span> <span class="o">=</span> <span class="n">behavior</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;__events_factory__&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">factory</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="c1"># Extract metadata from factory</span>
-                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">factory</span><span class="p">,</span> <span class="s2">&quot;_partition_key&quot;</span><span class="p">):</span>
-                    <span class="n">partition_key</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">_partition_key</span>
-                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">partition_key</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-                        <span class="c1"># Extract dataset, file, entry range</span>
-                        <span class="k">if</span> <span class="s2">&quot;dataset&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">:</span>
-                            <span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;dataset&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">partition_key</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dataset&quot;</span><span class="p">)</span>
-                        <span class="k">if</span> <span class="s2">&quot;file&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">:</span>
-                            <span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;file&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">partition_key</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;filename&quot;</span><span class="p">)</span>
-
-                        <span class="c1"># Entry range</span>
-                        <span class="k">if</span> <span class="s2">&quot;entry_start&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">:</span>
-                            <span class="n">start</span> <span class="o">=</span> <span class="n">partition_key</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;entrysteps&quot;</span><span class="p">,</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
-                            <span class="k">if</span> <span class="n">start</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                                <span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;entry_start&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">start</span>
-                        <span class="k">if</span> <span class="s2">&quot;entry_stop&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">:</span>
-                            <span class="n">stop</span> <span class="o">=</span> <span class="n">partition_key</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;entrysteps&quot;</span><span class="p">,</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">])[</span><span class="mi">1</span><span class="p">]</span>
-                            <span class="k">if</span> <span class="n">stop</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                                <span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;entry_stop&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stop</span>
+    <span class="c1"># Extract from events.metadata (NanoEvents provides this)</span>
+    <span class="n">metadata_obj</span> <span class="o">=</span> <span class="n">events</span><span class="o">.</span><span class="n">metadata</span>
+    <span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;dataset&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">metadata_obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dataset&quot;</span><span class="p">)</span>
+    <span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;file&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">metadata_obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;filename&quot;</span><span class="p">)</span>
+    <span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;uuid&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">metadata_obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;uuid&quot;</span><span class="p">)</span>
+    <span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;entry_start&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">metadata_obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;entrystart&quot;</span><span class="p">)</span>
+    <span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;entry_stop&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">metadata_obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;entrystop&quot;</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">metadata</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_extract_file_metadata</span><span class="p">(</span><span class="n">processor_self</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">events</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Extract file-level metadata (compression ratio, branch info).</span>
+
+<span class="sd">    This function extracts metadata that is constant for an entire file,</span>
+<span class="sd">    not chunk-specific. To avoid repeated extraction, it tracks which files</span>
+<span class="sd">    have already been processed on this worker using a set stored on the</span>
+<span class="sd">    processor instance.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        processor_self: The processor instance (self)</span>
+<span class="sd">        events: Events object with metadata containing filehandle</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Dictionary with file-level metadata, or None if already extracted</span>
+<span class="sd">        or filehandle not available</span>
+
+<span class="sd">    Metadata includes:</span>
+<span class="sd">        - filename: Full path to the file</span>
+<span class="sd">        - compression_ratio: compressed_bytes / uncompressed_bytes</span>
+<span class="sd">        - total_branches: Number of branches in the tree</span>
+<span class="sd">        - branch_bytes: Dict mapping branch_name -&gt; compressed_bytes</span>
+<span class="sd">        - total_tree_bytes: Total compressed bytes in tree</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Initialize tracking set on processor instance (persists across chunks)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">processor_self</span><span class="p">,</span> <span class="s2">&quot;_roastcoffea_processed_files&quot;</span><span class="p">):</span>
+        <span class="n">processor_self</span><span class="o">.</span><span class="n">_roastcoffea_processed_files</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Get filehandle and filename from metadata</span>
+        <span class="n">metadata_obj</span> <span class="o">=</span> <span class="n">events</span><span class="o">.</span><span class="n">metadata</span>
+        <span class="n">filehandle</span> <span class="o">=</span> <span class="n">metadata_obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;filehandle&quot;</span><span class="p">)</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">metadata_obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;filename&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Skip if no filehandle or filename</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">filehandle</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">filename</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="c1"># Skip if already extracted for this file on this worker</span>
+        <span class="k">if</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">processor_self</span><span class="o">.</span><span class="n">_roastcoffea_processed_files</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="c1"># Get tree name (default to &quot;Events&quot;)</span>
+        <span class="n">tree_name</span> <span class="o">=</span> <span class="n">metadata_obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;treename&quot;</span><span class="p">,</span> <span class="s2">&quot;Events&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Access the tree</span>
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">filehandle</span><span class="p">[</span><span class="n">tree_name</span><span class="p">]</span>
+
+        <span class="c1"># Build per-branch byte mapping for data access analysis</span>
+        <span class="n">branch_bytes</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">branch_name</span> <span class="ow">in</span> <span class="n">tree</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">branch_bytes</span><span class="p">[</span><span class="n">branch_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">tree</span><span class="p">[</span><span class="n">branch_name</span><span class="p">]</span><span class="o">.</span><span class="n">compressed_bytes</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="c1"># Skip branches that don&#39;t have compressed_bytes attribute</span>
+                <span class="k">pass</span>
+
+        <span class="c1"># Calculate compression ratio</span>
+        <span class="n">compressed</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">compressed_bytes</span>
+        <span class="n">uncompressed</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">uncompressed_bytes</span>
+        <span class="n">compression_ratio</span> <span class="o">=</span> <span class="n">compressed</span> <span class="o">/</span> <span class="n">uncompressed</span> <span class="k">if</span> <span class="n">uncompressed</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">0.0</span>
+
+        <span class="c1"># Assemble file metadata</span>
+        <span class="n">file_metadata</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;filename&quot;</span><span class="p">:</span> <span class="n">filename</span><span class="p">,</span>
+            <span class="s2">&quot;compression_ratio&quot;</span><span class="p">:</span> <span class="n">compression_ratio</span><span class="p">,</span>
+            <span class="s2">&quot;total_branches&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span>
+            <span class="s2">&quot;branch_bytes&quot;</span><span class="p">:</span> <span class="n">branch_bytes</span><span class="p">,</span>
+            <span class="s2">&quot;total_tree_bytes&quot;</span><span class="p">:</span> <span class="n">compressed</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="c1"># Mark as processed on this worker</span>
+        <span class="n">processor_self</span><span class="o">.</span><span class="n">_roastcoffea_processed_files</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">file_metadata</span>
+
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="c1"># If anything fails, just return None (file metadata is optional)</span>
+        <span class="k">return</span> <span class="kc">None</span>
 </pre></div>
         </article>
       </div>
       <footer>
-
+        
         <div class="related-pages">
-
-
+          
+          
         </div>
         <div class="bottom-of-page">
           <div class="left-details">
@@ -481,9 +563,9 @@
                 Copyright &#169; {_dt.datetime.now().year}, Mohamed Aly
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
-
+            
             <a href="https://github.com/pradyunsg/furo">Furo</a>
-
+            
           </div>
           <div class="right-details">
             <div class="icons">
@@ -492,17 +574,17 @@
                     <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path>
                 </svg>
             </a>
-
+              
             </div>
           </div>
         </div>
-
+        
       </footer>
     </div>
     <aside class="toc-drawer no-toc">
-
-
-
+      
+      
+      
     </aside>
   </div>
 </div><script src="../../_static/documentation_options.js?v=5929fcd5"></script>

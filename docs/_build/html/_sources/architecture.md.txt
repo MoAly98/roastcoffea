@@ -18,11 +18,11 @@ Additional backends can be added to support other executors (e.g., TaskVine) by 
 **Interface**:
 ```python
 class AbstractMetricsBackend:
-    def start_tracking(self, interval: float) -> None
-    def stop_tracking(self) -> dict
-    def create_span(self, name: str) -> Any
-    def get_span_metrics(self, span_info: Any) -> dict
-    def supports_fine_metrics() -> bool
+    def start_tracking(self, interval: float) -> None: ...
+    def stop_tracking(self) -> dict: ...
+    def create_span(self, name: str) -> Any: ...
+    def get_span_metrics(self, span_info: Any) -> dict: ...
+    def supports_fine_metrics(self) -> bool: ...
 ```
 
 ### 2. Aggregators (`roastcoffea.aggregation`)
@@ -70,7 +70,7 @@ Wraps `process()` to collect chunk-level metrics:
 
 ```python
 with track_time(self, "section"):
-    # ... code ...
+    ...  # your code here
 # Writes to self._roastcoffea_current_chunk["timing"]["section"]
 ```
 
