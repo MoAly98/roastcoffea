@@ -3,10 +3,9 @@
 
 .. automodule:: roastcoffea.backends.base
 
-   
+
    .. rubric:: Classes
 
    .. autosummary::
-   
+
       AbstractMetricsBackend
-   
