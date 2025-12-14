@@ -532,7 +532,7 @@ io_overhead_pct = (io_time / wall_time) × 100
 - CPU cores: `worker_state.nthreads`
 
 **Storage**: Time-series data stored in JSON:
-```json
+```text
 {
   "worker_counts": [{"timestamp": "...", "worker_count": 10}, ...],
   "worker_memory": {

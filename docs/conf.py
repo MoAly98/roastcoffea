@@ -40,6 +40,7 @@ myst_enable_extensions = [
     "deflist",
     "html_image",
 ]
+myst_heading_anchors = 3
 
 myst_fence_as_directive = ["mermaid"]
 
