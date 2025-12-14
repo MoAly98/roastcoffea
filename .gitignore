@@ -4,3 +4,7 @@ __pycache__/
 # pixi environments
 .pixi
 *.egg-info
+
+# Coverage artifacts
+.coverage
+htmlcov/
