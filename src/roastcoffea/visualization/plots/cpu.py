@@ -1,6 +1,6 @@
 """CPU utilization plots.
 
-Both static and interactive visualizations of CPU usage.
+Visualizations for CPU usage and worker task metrics.
 """
 
 from __future__ import annotations
@@ -8,10 +8,15 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
+import numpy as np
 
-from roastcoffea.visualization.utils import add_hover_tooltips
+from roastcoffea.visualization.utils import (
+    add_worker_count_annotation,
+    finalize_timeline_plot,
+    setup_timeline_axes,
+    validate_tracking_data,
+)
 
 
 def plot_occupancy_timeline(
@@ -37,9 +42,7 @@ def plot_occupancy_timeline(
     title : str
         Plot title
     max_legend_entries : int, optional
-        Maximum number of workers to show in legend. If worker count exceeds
-        this threshold, legend is hidden and hover tooltips are used instead.
-        Default is 5.
+        Maximum number of workers to show in legend. Default is 5.
 
     Returns
     -------
@@ -51,65 +54,27 @@ def plot_occupancy_timeline(
     ValueError
         If tracking_data is None or missing occupancy data
     """
-    if tracking_data is None:
-        msg = "tracking_data cannot be None"
-        raise ValueError(msg)
+    worker_occupancy = validate_tracking_data(
+        tracking_data, "worker_occupancy", "No worker occupancy data available"
+    )
 
-    worker_occupancy = tracking_data.get("worker_occupancy", {})
-
-    if not worker_occupancy:
-        msg = "No worker occupancy data available"
-        raise ValueError(msg)
-
-    # Create plot
     fig, ax = plt.subplots(figsize=figsize)
 
-    # Track lines and labels for hover tooltips
-    lines = []
-    labels = []
-
-    # Plot each worker's occupancy timeline
     for worker_id, timeline in worker_occupancy.items():
         if timeline:
             timestamps = [t for t, _ in timeline]
-            occupancy_values = [val for _, val in timeline]
-            (line,) = ax.plot(timestamps, occupancy_values, label=worker_id, alpha=0.7, linewidth=2)
-            lines.append(line)
-            labels.append(worker_id)
+            values = [val for _, val in timeline]
+            ax.plot(timestamps, values, label=worker_id, alpha=0.7, linewidth=2)
 
-    ax.set_xlabel("Time")
-    ax.set_ylabel("Occupancy (saturation)")
-    ax.set_title(title)
-    ax.grid(True, alpha=0.3)
+    setup_timeline_axes(ax, ylabel="Occupancy (saturation)", title=title)
 
-    # Show legend only if worker count is below threshold
     num_workers = len(worker_occupancy)
     if num_workers <= max_legend_entries:
         ax.legend(loc="upper left", bbox_to_anchor=(1.05, 1), fontsize=8)
     else:
-        # Add text annotation showing worker count
-        ax.text(
-            0.02,
-            0.98,
-            f"Showing {num_workers} workers",
-            transform=ax.transAxes,
-            va="top",
-            fontsize=9,
-            bbox=dict(boxstyle="round,pad=0.5", facecolor="white", alpha=0.7),
-        )
+        add_worker_count_annotation(ax, num_workers)
 
-    # Add hover tooltips
-    add_hover_tooltips(lines, labels)
-
-    # Format x-axis
-    ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M:%S"))
-    plt.xticks(rotation=45)
-
-    plt.tight_layout()
-
-    if output_path:
-        fig.savefig(output_path, dpi=150, bbox_inches="tight")
-
+    finalize_timeline_plot(fig, ax, output_path)
     return fig, ax
 
 
@@ -135,9 +100,7 @@ def plot_executing_tasks_timeline(
     title : str
         Plot title
     max_legend_entries : int, optional
-        Maximum number of workers to show in legend. If worker count exceeds
-        this threshold, legend is hidden and hover tooltips are used instead.
-        Default is 5.
+        Maximum number of workers to show in legend. Default is 5.
 
     Returns
     -------
@@ -149,68 +112,31 @@ def plot_executing_tasks_timeline(
     ValueError
         If tracking_data is None or missing executing data
     """
-    if tracking_data is None:
-        msg = "tracking_data cannot be None"
-        raise ValueError(msg)
+    worker_executing = validate_tracking_data(
+        tracking_data, "worker_executing", "No worker executing tasks data available"
+    )
 
-    worker_executing = tracking_data.get("worker_executing", {})
-
-    if not worker_executing:
-        msg = "No worker executing tasks data available"
-        raise ValueError(msg)
-
-    # Create plot
     fig, ax = plt.subplots(figsize=figsize)
 
-    # Track lines and labels for hover tooltips
-    lines = []
-    labels = []
-
-    # Plot each worker's executing task count timeline
     for worker_id, timeline in worker_executing.items():
         if timeline:
             timestamps = [t for t, _ in timeline]
-            executing_counts = [val for _, val in timeline]
-            (line,) = ax.plot(timestamps, executing_counts, label=worker_id, alpha=0.7, linewidth=2)
-            lines.append(line)
-            labels.append(worker_id)
+            values = [val for _, val in timeline]
+            ax.plot(timestamps, values, label=worker_id, alpha=0.7, linewidth=2)
 
-    ax.set_xlabel("Time")
-    ax.set_ylabel("Number of Executing Tasks")
-    ax.set_title(title)
-    ax.grid(True, alpha=0.3)
+    setup_timeline_axes(ax, ylabel="Number of Executing Tasks", title=title)
 
-    # Show legend only if worker count is below threshold
     num_workers = len(worker_executing)
     if num_workers <= max_legend_entries:
         ax.legend(loc="upper left", bbox_to_anchor=(1.05, 1), fontsize=8)
     else:
-        # Add text annotation showing worker count
-        ax.text(
-            0.02,
-            0.98,
-            f"Showing {num_workers} workers",
-            transform=ax.transAxes,
-            va="top",
-            fontsize=9,
-            bbox=dict(boxstyle="round,pad=0.5", facecolor="white", alpha=0.7),
-        )
+        add_worker_count_annotation(ax, num_workers)
 
-    # Add hover tooltips
-    add_hover_tooltips(lines, labels)
-
-    # Format x-axis
-    ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M:%S"))
-    plt.xticks(rotation=45)
-
-    plt.tight_layout()
-
-    if output_path:
-        fig.savefig(output_path, dpi=150, bbox_inches="tight")
-
+    finalize_timeline_plot(fig, ax, output_path)
     return fig, ax
 
-def plot_cpu_utilization_timeline(
+
+def plot_cpu_utilization_per_worker_timeline(
     tracking_data: dict[str, Any] | None,
     output_path: Path | None = None,
     figsize: tuple[int, int] = (12, 6),
@@ -233,9 +159,7 @@ def plot_cpu_utilization_timeline(
     title : str
         Plot title
     max_legend_entries : int, optional
-        Maximum number of workers to show in legend. If worker count exceeds
-        this threshold, legend is hidden and hover tooltips are used instead.
-        Default is 5.
+        Maximum number of workers to show in legend. Default is 5.
 
     Returns
     -------
@@ -247,64 +171,110 @@ def plot_cpu_utilization_timeline(
     ValueError
         If tracking_data is None or missing CPU data
     """
-    if tracking_data is None:
-        msg = "tracking_data cannot be None"
-        raise ValueError(msg)
+    worker_cpu = validate_tracking_data(
+        tracking_data, "worker_cpu", "No worker CPU data available"
+    )
 
-    worker_cpu = tracking_data.get("worker_cpu", {})
-
-    if not worker_cpu:
-        msg = "No worker CPU data available"
-        raise ValueError(msg)
-
-    # Create plot
     fig, ax = plt.subplots(figsize=figsize)
 
-    # Track lines and labels for hover tooltips
-    lines = []
-    labels = []
-
-    # Plot each worker's CPU utilization timeline
     for worker_id, timeline in worker_cpu.items():
         if timeline:
             timestamps = [t for t, _ in timeline]
-            cpu_values = [val for _, val in timeline]
-            (line,) = ax.plot(timestamps, cpu_values, label=worker_id, alpha=0.7, linewidth=2)
-            lines.append(line)
-            labels.append(worker_id)
+            values = [val for _, val in timeline]
+            ax.plot(timestamps, values, label=worker_id, alpha=0.7, linewidth=2)
 
-    ax.set_xlabel("Time")
-    ax.set_ylabel("CPU Utilization (%)")
-    ax.set_ylim([0, 100])
-    ax.set_title(title)
-    ax.grid(True, alpha=0.3)
+    setup_timeline_axes(ax, ylabel="CPU Utilization (%)", title=title, ylim=(0, 100))
 
-    # Show legend only if worker count is below threshold
     num_workers = len(worker_cpu)
     if num_workers <= max_legend_entries:
         ax.legend(loc="upper left", bbox_to_anchor=(1.05, 1), fontsize=8)
     else:
-        # Add text annotation showing worker count
-        ax.text(
-            0.02,
-            0.98,
-            f"Showing {num_workers} workers",
-            transform=ax.transAxes,
-            va="top",
-            fontsize=9,
-            bbox=dict(boxstyle="round,pad=0.5", facecolor="white", alpha=0.7),
-        )
+        add_worker_count_annotation(ax, num_workers)
 
-    # Add hover tooltips
-    add_hover_tooltips(lines, labels)
+    finalize_timeline_plot(fig, ax, output_path)
+    return fig, ax
 
-    # Format x-axis
-    ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M:%S"))
-    plt.xticks(rotation=45)
 
-    plt.tight_layout()
+def plot_cpu_utilization_mean_timeline(
+    tracking_data: dict[str, Any] | None,
+    output_path: Path | None = None,
+    figsize: tuple[int, int] = (10, 4),
+    title: str = "CPU Utilization Over Time",
+) -> tuple[plt.Figure, plt.Axes]:
+    """Plot mean CPU utilization percentage over time with min-max band.
 
-    if output_path:
-        fig.savefig(output_path, dpi=150, bbox_inches="tight")
+    Shows aggregated CPU usage across all workers, with mean line and
+    shaded min-max range.
 
+    Parameters
+    ----------
+    tracking_data : dict or None
+        Tracking data with worker_cpu
+    output_path : Path, optional
+        Save path
+    figsize : tuple
+        Figure size
+    title : str
+        Plot title
+
+    Returns
+    -------
+    fig, ax : Figure and Axes
+        Matplotlib figure and axes
+
+    Raises
+    ------
+    ValueError
+        If tracking_data is None or missing CPU data
+    """
+    worker_cpu = validate_tracking_data(
+        tracking_data, "worker_cpu", "No worker CPU data available"
+    )
+
+    # Collect all unique timestamps
+    all_timestamps = set()
+    for worker_id in worker_cpu:
+        for timestamp, _ in worker_cpu[worker_id]:
+            all_timestamps.add(timestamp)
+
+    sorted_timestamps = sorted(all_timestamps)
+
+    # Calculate CPU utilization stats at each timestamp
+    cpu_mean = []
+    cpu_min = []
+    cpu_max = []
+
+    for timestamp in sorted_timestamps:
+        worker_values = []
+        for worker_id in worker_cpu:
+            for t, cpu_value in worker_cpu[worker_id]:
+                if t == timestamp:
+                    worker_values.append(cpu_value)
+                    break
+
+        if worker_values:
+            cpu_mean.append(np.mean(worker_values))
+            cpu_min.append(np.min(worker_values))
+            cpu_max.append(np.max(worker_values))
+        else:
+            cpu_mean.append(0)
+            cpu_min.append(0)
+            cpu_max.append(0)
+
+    fig, ax = plt.subplots(figsize=figsize)
+
+    ax.plot(sorted_timestamps, cpu_mean, linewidth=2, label="Mean", color="C0")
+    ax.fill_between(
+        sorted_timestamps,
+        cpu_min,
+        cpu_max,
+        alpha=0.3,
+        label="Min-Max Range",
+        color="C0",
+    )
+
+    setup_timeline_axes(ax, ylabel="CPU Utilization (%)", title=title, ylim=(0, 100))
+    ax.legend()
+
+    finalize_timeline_plot(fig, ax, output_path)
     return fig, ax

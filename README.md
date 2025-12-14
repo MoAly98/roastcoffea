@@ -257,7 +257,7 @@ roastcoffea provides comprehensive visualization capabilities for all collected 
 ```python
 from roastcoffea import (
     plot_worker_count_timeline,
-    plot_memory_utilization_timeline,
+    plot_memory_utilization_mean_timeline,
     plot_occupancy_timeline,
     plot_executing_tasks_timeline,
     plot_worker_activity_timeline,
@@ -270,8 +270,8 @@ tracking_data = collector.get_metrics()["tracking_data"]
 # Worker count over time
 plot_worker_count_timeline(tracking_data=tracking_data, output_path="worker_count.png")
 
-# Memory utilization percentage over time
-plot_memory_utilization_timeline(
+# Memory utilization percentage over time (mean with min-max band)
+plot_memory_utilization_mean_timeline(
     tracking_data=tracking_data, output_path="memory_util.png"
 )
 

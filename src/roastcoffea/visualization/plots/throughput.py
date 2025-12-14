@@ -13,7 +13,12 @@ import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import numpy as np
 
-from roastcoffea.visualization.utils import add_hover_tooltips
+from roastcoffea.visualization.utils import (
+    add_worker_count_annotation,
+    finalize_timeline_plot,
+    setup_timeline_axes,
+    validate_tracking_data,
+)
 
 
 def plot_worker_activity_timeline(
@@ -39,9 +44,7 @@ def plot_worker_activity_timeline(
     title : str
         Plot title
     max_legend_entries : int, optional
-        Maximum number of workers to show in legend. If worker count exceeds
-        this threshold, legend is hidden and hover tooltips are used instead.
-        Default is 5.
+        Maximum number of workers to show in legend. Default is 5.
 
     Returns
     -------
@@ -53,65 +56,27 @@ def plot_worker_activity_timeline(
     ValueError
         If tracking_data is None or missing active tasks data
     """
-    if tracking_data is None:
-        msg = "tracking_data cannot be None"
-        raise ValueError(msg)
+    worker_active_tasks = validate_tracking_data(
+        tracking_data, "worker_active_tasks", "No worker active tasks data available"
+    )
 
-    worker_active_tasks = tracking_data.get("worker_active_tasks", {})
-
-    if not worker_active_tasks:
-        msg = "No worker active tasks data available"
-        raise ValueError(msg)
-
-    # Create plot
     fig, ax = plt.subplots(figsize=figsize)
 
-    # Track lines and labels for hover tooltips
-    lines = []
-    labels = []
-
-    # Plot each worker's active task count timeline
     for worker_id, timeline in worker_active_tasks.items():
         if timeline:
             timestamps = [t for t, _ in timeline]
-            task_counts = [val for _, val in timeline]
-            (line,) = ax.plot(timestamps, task_counts, label=worker_id, alpha=0.7, linewidth=2)
-            lines.append(line)
-            labels.append(worker_id)
+            values = [val for _, val in timeline]
+            ax.plot(timestamps, values, label=worker_id, alpha=0.7, linewidth=2)
 
-    ax.set_xlabel("Time")
-    ax.set_ylabel("Number of Active Tasks")
-    ax.set_title(title)
-    ax.grid(True, alpha=0.3)
+    setup_timeline_axes(ax, ylabel="Number of Active Tasks", title=title)
 
-    # Show legend only if worker count is below threshold
     num_workers = len(worker_active_tasks)
     if num_workers <= max_legend_entries:
         ax.legend(loc="upper left", bbox_to_anchor=(1.05, 1), fontsize=8)
     else:
-        # Add text annotation showing worker count
-        ax.text(
-            0.02,
-            0.98,
-            f"Showing {num_workers} workers",
-            transform=ax.transAxes,
-            va="top",
-            fontsize=9,
-            bbox=dict(boxstyle="round,pad=0.5", facecolor="white", alpha=0.7),
-        )
+        add_worker_count_annotation(ax, num_workers)
 
-    # Add hover tooltips
-    add_hover_tooltips(lines, labels)
-
-    # Format x-axis
-    ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M:%S"))
-    plt.xticks(rotation=45)
-
-    plt.tight_layout()
-
-    if output_path:
-        fig.savefig(output_path, dpi=150, bbox_inches="tight")
-
+    finalize_timeline_plot(fig, ax, output_path)
     return fig, ax
 
 
@@ -146,15 +111,9 @@ def plot_total_active_tasks_timeline(
     ValueError
         If tracking_data is None or missing active tasks data
     """
-    if tracking_data is None:
-        msg = "tracking_data cannot be None"
-        raise ValueError(msg)
-
-    worker_active_tasks = tracking_data.get("worker_active_tasks", {})
-
-    if not worker_active_tasks:
-        msg = "No worker active tasks data available"
-        raise ValueError(msg)
+    worker_active_tasks = validate_tracking_data(
+        tracking_data, "worker_active_tasks", "No worker active tasks data available"
+    )
 
     # Aggregate across all workers at each timestamp
     timestamp_totals: dict = {}
@@ -170,26 +129,14 @@ def plot_total_active_tasks_timeline(
     timestamps = [t for t, _ in sorted_items]
     totals = [c for _, c in sorted_items]
 
-    # Create plot
     fig, ax = plt.subplots(figsize=figsize)
 
     ax.plot(timestamps, totals, linewidth=2, color="steelblue")
     ax.fill_between(timestamps, totals, alpha=0.3, color="steelblue")
 
-    ax.set_xlabel("Time")
-    ax.set_ylabel("Total Active Tasks")
-    ax.set_title(title)
-    ax.grid(True, alpha=0.3)
+    setup_timeline_axes(ax, ylabel="Total Active Tasks", title=title)
 
-    # Format x-axis
-    ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M:%S"))
-    plt.xticks(rotation=45)
-
-    plt.tight_layout()
-
-    if output_path:
-        fig.savefig(output_path, dpi=150, bbox_inches="tight")
-
+    finalize_timeline_plot(fig, ax, output_path)
     return fig, ax
 
 
@@ -255,10 +202,6 @@ def plot_throughput_timeline(
     bytes_read = np.array(bytes_read)
     runtimes = np.array(runtimes)
 
-    # Convert epoch times to datetime for plotting
-    start_times_dt = [datetime.datetime.fromtimestamp(t) for t in starts]
-    end_times_dt = [datetime.datetime.fromtimestamp(t) for t in ends]
-
     # Determine time range
     t_min = min(starts)
     t_max = max(ends)
@@ -280,18 +223,25 @@ def plot_throughput_timeline(
             # Avoid division by zero
             valid = active_runtimes > 0
             if valid.any():
-                rate_Gbps = np.sum(active_bytes[valid] * 8 / 1e9 / active_runtimes[valid])
+                rate_Gbps = np.sum(
+                    active_bytes[valid] * 8 / 1e9 / active_runtimes[valid]
+                )
             else:
                 rate_Gbps = 0.0
         else:
             rate_Gbps = 0.0
         instantaneous_rates.append(rate_Gbps)
 
-    # Create plot
     fig, ax1 = plt.subplots(figsize=figsize)
 
-    # Plot throughput
-    ax1.fill_between(sample_times_dt, instantaneous_rates, alpha=0.5, color="C1", edgecolor="C1", linewidth=0.5)
+    ax1.fill_between(
+        sample_times_dt,
+        instantaneous_rates,
+        alpha=0.5,
+        color="C1",
+        edgecolor="C1",
+        linewidth=0.5,
+    )
     ax1.set_xlabel("Time")
     ax1.set_ylabel("Data Rate (Gbps)", color="C1")
     ax1.tick_params(axis="y", labelcolor="C1")
