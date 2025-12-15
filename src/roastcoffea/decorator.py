@@ -234,6 +234,7 @@ def _extract_file_metadata(processor_self: Any, events: Any) -> dict[str, Any] |
         filehandle = metadata_obj.get("filehandle")
         filename = metadata_obj.get("filename")
 
+
         # Skip if no filehandle or filename
         if not filehandle or not filename:
             return None
@@ -250,7 +251,7 @@ def _extract_file_metadata(processor_self: Any, events: Any) -> dict[str, Any] |
 
         # Build per-branch byte mapping for data access analysis
         branch_bytes = {}
-        for branch_name in tree:
+        for branch_name in tree.keys():
             try:
                 branch_bytes[branch_name] = tree[branch_name].compressed_bytes
             except Exception:
