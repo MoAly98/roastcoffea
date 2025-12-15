@@ -32,7 +32,7 @@ from roastcoffea.decorator import track_metrics
 from roastcoffea.export.measurements import load_measurement
 from roastcoffea.instrumentation import track_bytes, track_memory, track_time
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 __all__ = [
     "MetricsCollector",
