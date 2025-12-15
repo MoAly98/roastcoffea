@@ -10,12 +10,20 @@ from roastcoffea.decorator import (
 )
 
 
+class MockEventsFactory:
+    """Mock events factory that holds the filehandle."""
+
+    def __init__(self, filehandle):
+        self.filehandle = filehandle
+
+
 class MockEvents:
     """Mock events object for testing."""
 
-    def __init__(self, num_events=100, metadata=None):
+    def __init__(self, num_events=100, metadata=None, attrs=None):
         self._num_events = num_events
         self.metadata = metadata or {}
+        self.attrs = attrs or {}
 
     def __len__(self):
         return self._num_events
@@ -315,13 +323,15 @@ class TestByteTracking:
             @track_metrics
             def process(self, events):
                 # Simulate reading 500 bytes during processing
-                events.metadata["filehandle"].file.source.simulate_read(500)
+                factory = events.attrs["@events_factory"]
+                factory.filehandle.file.source.simulate_read(500)
                 return {}
 
         processor = TestProcessor()
         filesource = MockFileSource()
         filehandle = MockFileHandle(filesource)
-        events = MockEvents(metadata={"filehandle": filehandle})
+        factory = MockEventsFactory(filehandle)
+        events = MockEvents(attrs={"@events_factory": factory})
 
         result = processor.process(events)
 
@@ -400,13 +410,15 @@ class TestByteTracking:
             @track_metrics
             def process(self, events):
                 # Start: 5000, read 2500 bytes during processing
-                events.metadata["filehandle"].file.source.add_bytes(2500)
+                factory = events.attrs["@events_factory"]
+                factory.filehandle.file.source.add_bytes(2500)
                 return {}
 
         processor = TestProcessor()
         filesource = MockFileSource(start_bytes=5000)
         filehandle = MockFileHandle(filesource)
-        events = MockEvents(metadata={"filehandle": filehandle})
+        factory = MockEventsFactory(filehandle)
+        events = MockEvents(attrs={"@events_factory": factory})
 
         result = processor.process(events)
 

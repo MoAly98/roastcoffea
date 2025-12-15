@@ -87,11 +87,13 @@ def track_metrics(func: Callable) -> Callable:
         # Check if filehandle is available for byte tracking (once)
         source = None
         try:
-            filehandle = events.metadata.get("filehandle")
-            if filehandle and hasattr(filehandle, "file"):
-                source = filehandle.file.source
-                if not hasattr(source, "num_requested_bytes"):
-                    source = None
+            factory = events.attrs.get("@events_factory")
+            if factory and hasattr(factory, "filehandle"):
+                filehandle = factory.filehandle
+                if filehandle and hasattr(filehandle, "file"):
+                    source = filehandle.file.source
+                    if not hasattr(source, "num_requested_bytes"):
+                        source = None
         except Exception:
             source = None
 
@@ -230,9 +232,10 @@ def _extract_file_metadata(processor_self: Any, events: Any) -> dict[str, Any] |
         processor_self._roastcoffea_processed_files = set()
 
     try:
-        # Get filehandle and filename from metadata
+        # Get filehandle from events factory and filename from metadata
+        factory = events.attrs.get("@events_factory")
+        filehandle = factory.filehandle if factory and hasattr(factory, "filehandle") else None
         metadata_obj = events.metadata
-        filehandle = metadata_obj.get("filehandle")
         filename = metadata_obj.get("filename")
 
 
