@@ -28,7 +28,7 @@ authors = [
 { name = "Mohamed Aly", email = "mohamed.aly@cern.ch" },
 ]
 dependencies = [
-    "coffea@git+https://github.com/MoAly98/coffea.git@feat/fobj_in_procmeta",
+    "coffea>=2025.12.0",
     "dask[distributed]>=2024.0.0",
     "distributed>=2024.0.0",
     "rich>=13.0.0",

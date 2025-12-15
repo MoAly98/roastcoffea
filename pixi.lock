@@ -95,7 +95,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/2c/fc/1d7b80d0eb7b714984ce40efc78859c022cd930e402f599d8ca9e39c78a4/cachetools-6.2.4-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/98/78/01c019cdb5d6498122777c1a43056ebb3ebfeef2076d9d026bfe15583b2b/click-8.3.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/88/39/799be3f2f0f38cc727ee3b4f1445fe6d5e4133064ec2e4115069418a5bb6/cloudpickle-3.1.2-py3-none-any.whl
-      - pypi: git+https://github.com/MoAly98/coffea.git?rev=feat%2Ffobj_in_procmeta#c0b4cf58d8b6cbddcddb9d6188b68ebad194966a
+      - pypi: https://files.pythonhosted.org/packages/d7/07/db205782116dd15151243b8cba264981434c317cfbbeef9b3100d4e3e14c/coffea-2025.12.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/60/97/891a0971e1e4a8c5d2b20bbe0e524dc04548d2307fee33cdeba148fd4fc7/comm-0.2.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/4b/32/e0f13a1c5b0f8572d0ec6ae2f6c677b7991fafd95da523159c19eff0696a/contourpy-1.3.3-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/bb/bf/dea7efa4df17c44e9fe44d186d7d446f87e7971c5db5beefe05aed8f344d/correctionlib-2.7.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
@@ -251,7 +251,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/2c/fc/1d7b80d0eb7b714984ce40efc78859c022cd930e402f599d8ca9e39c78a4/cachetools-6.2.4-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/98/78/01c019cdb5d6498122777c1a43056ebb3ebfeef2076d9d026bfe15583b2b/click-8.3.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/88/39/799be3f2f0f38cc727ee3b4f1445fe6d5e4133064ec2e4115069418a5bb6/cloudpickle-3.1.2-py3-none-any.whl
-      - pypi: git+https://github.com/MoAly98/coffea.git?rev=feat%2Ffobj_in_procmeta#c0b4cf58d8b6cbddcddb9d6188b68ebad194966a
+      - pypi: https://files.pythonhosted.org/packages/d7/07/db205782116dd15151243b8cba264981434c317cfbbeef9b3100d4e3e14c/coffea-2025.12.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/60/97/891a0971e1e4a8c5d2b20bbe0e524dc04548d2307fee33cdeba148fd4fc7/comm-0.2.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/96/e4/7adcd9c8362745b2210728f209bfbcf7d91ba868a2c5f40d8b58f54c509b/contourpy-1.3.3-cp313-cp313-macosx_11_0_arm64.whl
       - pypi: https://files.pythonhosted.org/packages/f7/8d/a81aadde45d517c6ca7b6a890d3ba09fd08265483e5bea967e03a1820abb/correctionlib-2.7.0-cp313-cp313-macosx_11_0_arm64.whl
@@ -438,7 +438,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/db/3c/33bac158f8ab7f89b2e59426d5fe2e4f63f7ed25df84c036890172b412b5/cfgv-3.5.0-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/98/78/01c019cdb5d6498122777c1a43056ebb3ebfeef2076d9d026bfe15583b2b/click-8.3.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/88/39/799be3f2f0f38cc727ee3b4f1445fe6d5e4133064ec2e4115069418a5bb6/cloudpickle-3.1.2-py3-none-any.whl
-      - pypi: git+https://github.com/MoAly98/coffea.git?rev=feat%2Ffobj_in_procmeta#c0b4cf58d8b6cbddcddb9d6188b68ebad194966a
+      - pypi: https://files.pythonhosted.org/packages/d7/07/db205782116dd15151243b8cba264981434c317cfbbeef9b3100d4e3e14c/coffea-2025.12.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/60/97/891a0971e1e4a8c5d2b20bbe0e524dc04548d2307fee33cdeba148fd4fc7/comm-0.2.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/4b/32/e0f13a1c5b0f8572d0ec6ae2f6c677b7991fafd95da523159c19eff0696a/contourpy-1.3.3-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/bb/bf/dea7efa4df17c44e9fe44d186d7d446f87e7971c5db5beefe05aed8f344d/correctionlib-2.7.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
@@ -718,7 +718,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/db/3c/33bac158f8ab7f89b2e59426d5fe2e4f63f7ed25df84c036890172b412b5/cfgv-3.5.0-py2.py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/98/78/01c019cdb5d6498122777c1a43056ebb3ebfeef2076d9d026bfe15583b2b/click-8.3.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/88/39/799be3f2f0f38cc727ee3b4f1445fe6d5e4133064ec2e4115069418a5bb6/cloudpickle-3.1.2-py3-none-any.whl
-      - pypi: git+https://github.com/MoAly98/coffea.git?rev=feat%2Ffobj_in_procmeta#c0b4cf58d8b6cbddcddb9d6188b68ebad194966a
+      - pypi: https://files.pythonhosted.org/packages/d7/07/db205782116dd15151243b8cba264981434c317cfbbeef9b3100d4e3e14c/coffea-2025.12.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/60/97/891a0971e1e4a8c5d2b20bbe0e524dc04548d2307fee33cdeba148fd4fc7/comm-0.2.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/96/e4/7adcd9c8362745b2210728f209bfbcf7d91ba868a2c5f40d8b58f54c509b/contourpy-1.3.3-cp313-cp313-macosx_11_0_arm64.whl
       - pypi: https://files.pythonhosted.org/packages/f7/8d/a81aadde45d517c6ca7b6a890d3ba09fd08265483e5bea967e03a1820abb/correctionlib-2.7.0-cp313-cp313-macosx_11_0_arm64.whl
@@ -996,7 +996,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/2c/fc/1d7b80d0eb7b714984ce40efc78859c022cd930e402f599d8ca9e39c78a4/cachetools-6.2.4-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/98/78/01c019cdb5d6498122777c1a43056ebb3ebfeef2076d9d026bfe15583b2b/click-8.3.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/88/39/799be3f2f0f38cc727ee3b4f1445fe6d5e4133064ec2e4115069418a5bb6/cloudpickle-3.1.2-py3-none-any.whl
-      - pypi: git+https://github.com/MoAly98/coffea.git?rev=feat%2Ffobj_in_procmeta#c0b4cf58d8b6cbddcddb9d6188b68ebad194966a
+      - pypi: https://files.pythonhosted.org/packages/d7/07/db205782116dd15151243b8cba264981434c317cfbbeef9b3100d4e3e14c/coffea-2025.12.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/60/97/891a0971e1e4a8c5d2b20bbe0e524dc04548d2307fee33cdeba148fd4fc7/comm-0.2.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/4b/32/e0f13a1c5b0f8572d0ec6ae2f6c677b7991fafd95da523159c19eff0696a/contourpy-1.3.3-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/bb/bf/dea7efa4df17c44e9fe44d186d7d446f87e7971c5db5beefe05aed8f344d/correctionlib-2.7.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
@@ -1194,7 +1194,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/2c/fc/1d7b80d0eb7b714984ce40efc78859c022cd930e402f599d8ca9e39c78a4/cachetools-6.2.4-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/98/78/01c019cdb5d6498122777c1a43056ebb3ebfeef2076d9d026bfe15583b2b/click-8.3.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/88/39/799be3f2f0f38cc727ee3b4f1445fe6d5e4133064ec2e4115069418a5bb6/cloudpickle-3.1.2-py3-none-any.whl
-      - pypi: git+https://github.com/MoAly98/coffea.git?rev=feat%2Ffobj_in_procmeta#c0b4cf58d8b6cbddcddb9d6188b68ebad194966a
+      - pypi: https://files.pythonhosted.org/packages/d7/07/db205782116dd15151243b8cba264981434c317cfbbeef9b3100d4e3e14c/coffea-2025.12.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/60/97/891a0971e1e4a8c5d2b20bbe0e524dc04548d2307fee33cdeba148fd4fc7/comm-0.2.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/96/e4/7adcd9c8362745b2210728f209bfbcf7d91ba868a2c5f40d8b58f54c509b/contourpy-1.3.3-cp313-cp313-macosx_11_0_arm64.whl
       - pypi: https://files.pythonhosted.org/packages/f7/8d/a81aadde45d517c6ca7b6a890d3ba09fd08265483e5bea967e03a1820abb/correctionlib-2.7.0-cp313-cp313-macosx_11_0_arm64.whl
@@ -1410,7 +1410,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/98/df/0a1755e750013a2081e863e7cd37e0cdd02664372c754e5560099eb7aa44/cffi-2.0.0-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/98/78/01c019cdb5d6498122777c1a43056ebb3ebfeef2076d9d026bfe15583b2b/click-8.3.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/88/39/799be3f2f0f38cc727ee3b4f1445fe6d5e4133064ec2e4115069418a5bb6/cloudpickle-3.1.2-py3-none-any.whl
-      - pypi: git+https://github.com/MoAly98/coffea.git?rev=feat%2Ffobj_in_procmeta#c0b4cf58d8b6cbddcddb9d6188b68ebad194966a
+      - pypi: https://files.pythonhosted.org/packages/d7/07/db205782116dd15151243b8cba264981434c317cfbbeef9b3100d4e3e14c/coffea-2025.12.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/60/97/891a0971e1e4a8c5d2b20bbe0e524dc04548d2307fee33cdeba148fd4fc7/comm-0.2.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/4b/32/e0f13a1c5b0f8572d0ec6ae2f6c677b7991fafd95da523159c19eff0696a/contourpy-1.3.3-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/bb/bf/dea7efa4df17c44e9fe44d186d7d446f87e7971c5db5beefe05aed8f344d/correctionlib-2.7.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
@@ -1628,7 +1628,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/4a/d2/a6c0296814556c68ee32009d9c2ad4f85f2707cdecfd7727951ec228005d/cffi-2.0.0-cp313-cp313-macosx_11_0_arm64.whl
       - pypi: https://files.pythonhosted.org/packages/98/78/01c019cdb5d6498122777c1a43056ebb3ebfeef2076d9d026bfe15583b2b/click-8.3.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/88/39/799be3f2f0f38cc727ee3b4f1445fe6d5e4133064ec2e4115069418a5bb6/cloudpickle-3.1.2-py3-none-any.whl
-      - pypi: git+https://github.com/MoAly98/coffea.git?rev=feat%2Ffobj_in_procmeta#c0b4cf58d8b6cbddcddb9d6188b68ebad194966a
+      - pypi: https://files.pythonhosted.org/packages/d7/07/db205782116dd15151243b8cba264981434c317cfbbeef9b3100d4e3e14c/coffea-2025.12.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/60/97/891a0971e1e4a8c5d2b20bbe0e524dc04548d2307fee33cdeba148fd4fc7/comm-0.2.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/96/e4/7adcd9c8362745b2210728f209bfbcf7d91ba868a2c5f40d8b58f54c509b/contourpy-1.3.3-cp313-cp313-macosx_11_0_arm64.whl
       - pypi: https://files.pythonhosted.org/packages/f7/8d/a81aadde45d517c6ca7b6a890d3ba09fd08265483e5bea967e03a1820abb/correctionlib-2.7.0-cp313-cp313-macosx_11_0_arm64.whl
@@ -1851,7 +1851,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/2c/fc/1d7b80d0eb7b714984ce40efc78859c022cd930e402f599d8ca9e39c78a4/cachetools-6.2.4-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/98/78/01c019cdb5d6498122777c1a43056ebb3ebfeef2076d9d026bfe15583b2b/click-8.3.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/88/39/799be3f2f0f38cc727ee3b4f1445fe6d5e4133064ec2e4115069418a5bb6/cloudpickle-3.1.2-py3-none-any.whl
-      - pypi: git+https://github.com/MoAly98/coffea.git?rev=feat%2Ffobj_in_procmeta#c0b4cf58d8b6cbddcddb9d6188b68ebad194966a
+      - pypi: https://files.pythonhosted.org/packages/d7/07/db205782116dd15151243b8cba264981434c317cfbbeef9b3100d4e3e14c/coffea-2025.12.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/60/97/891a0971e1e4a8c5d2b20bbe0e524dc04548d2307fee33cdeba148fd4fc7/comm-0.2.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/4b/32/e0f13a1c5b0f8572d0ec6ae2f6c677b7991fafd95da523159c19eff0696a/contourpy-1.3.3-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/bb/bf/dea7efa4df17c44e9fe44d186d7d446f87e7971c5db5beefe05aed8f344d/correctionlib-2.7.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
@@ -2013,7 +2013,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/2c/fc/1d7b80d0eb7b714984ce40efc78859c022cd930e402f599d8ca9e39c78a4/cachetools-6.2.4-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/98/78/01c019cdb5d6498122777c1a43056ebb3ebfeef2076d9d026bfe15583b2b/click-8.3.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/88/39/799be3f2f0f38cc727ee3b4f1445fe6d5e4133064ec2e4115069418a5bb6/cloudpickle-3.1.2-py3-none-any.whl
-      - pypi: git+https://github.com/MoAly98/coffea.git?rev=feat%2Ffobj_in_procmeta#c0b4cf58d8b6cbddcddb9d6188b68ebad194966a
+      - pypi: https://files.pythonhosted.org/packages/d7/07/db205782116dd15151243b8cba264981434c317cfbbeef9b3100d4e3e14c/coffea-2025.12.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/60/97/891a0971e1e4a8c5d2b20bbe0e524dc04548d2307fee33cdeba148fd4fc7/comm-0.2.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/96/e4/7adcd9c8362745b2210728f209bfbcf7d91ba868a2c5f40d8b58f54c509b/contourpy-1.3.3-cp313-cp313-macosx_11_0_arm64.whl
       - pypi: https://files.pythonhosted.org/packages/f7/8d/a81aadde45d517c6ca7b6a890d3ba09fd08265483e5bea967e03a1820abb/correctionlib-2.7.0-cp313-cp313-macosx_11_0_arm64.whl
@@ -2602,9 +2602,10 @@ packages:
   version: 3.1.2
   sha256: 9acb47f6afd73f60dc1df93bb801b472f05ff42fa6c84167d25cb206be1fbf4a
   requires_python: '>=3.8'
-- pypi: git+https://github.com/MoAly98/coffea.git?rev=feat%2Ffobj_in_procmeta#c0b4cf58d8b6cbddcddb9d6188b68ebad194966a
+- pypi: https://files.pythonhosted.org/packages/d7/07/db205782116dd15151243b8cba264981434c317cfbbeef9b3100d4e3e14c/coffea-2025.12.0-py3-none-any.whl
   name: coffea
-  version: 0.1.dev4303+gc0b4cf58d
+  version: 2025.12.0
+  sha256: 848030d0f71772302b4272156123a5cc1eacca3cfc133a1c909236f2fde21d0f
   requires_dist:
   - aiohttp
   - awkward>=2.8.9
@@ -6231,11 +6232,11 @@ packages:
 - pypi: ./
   name: roastcoffea
   version: 0.1.0
-  sha256: b44a2489e1a006dccb2ceaa2d6e14cf80dd01a7cf7b6caed3f2c328fc8c05f60
+  sha256: 817555006c327de23c7ce83c45c2817e08dbceecc4d3ac7abe226263eaaab53d
   requires_dist:
   - awkward>=2.0.0
   - bokeh>=3.0.0
-  - coffea @ git+https://github.com/MoAly98/coffea.git@feat/fobj_in_procmeta
+  - coffea>=2025.12.0
   - dask[distributed]>=2024.0.0
   - distributed>=2024.0.0
   - matplotlib>=3.5.0
