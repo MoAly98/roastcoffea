@@ -31,9 +31,9 @@ roastcoffea provides comprehensive performance metrics collection for Coffea wor
 {doc}`concepts` - Understand what metrics mean and how they're calculated.
 :::
 
-:::{grid-item-card} 📊 Metrics Reference
+:::{grid-item-card} 📊 Visualization Guide
 :class-header: bg-danger text-white
-{doc}`metrics_reference` - Complete catalog of available metrics.
+{doc}`visualization_guide` - 19 plots and 6 tables explained with examples.
 :::
 
 ::::
@@ -47,7 +47,9 @@ introduction
 quickstart
 tutorials
 concepts
+visualization_guide
 metrics_reference
+metrics_api
 ```
 
 ```{toctree}
