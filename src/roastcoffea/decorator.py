@@ -234,7 +234,9 @@ def _extract_file_metadata(processor_self: Any, events: Any) -> dict[str, Any] |
     try:
         # Get filehandle from events factory and filename from metadata
         factory = events.attrs.get("@events_factory")
-        filehandle = factory.filehandle if factory and hasattr(factory, "filehandle") else None
+        filehandle = (
+            factory.filehandle if factory and hasattr(factory, "filehandle") else None
+        )
         metadata_obj = events.metadata
         filename = metadata_obj.get("filename")
 
