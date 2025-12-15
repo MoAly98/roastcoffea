@@ -83,14 +83,14 @@ def track_metrics(func: Callable) -> Callable:
         # Extract file-level metadata (only once per file per worker)
         file_metadata = _extract_file_metadata(self, events)
 
-        # Check if filehandle is available for byte tracking (once)
+        # Check if file_handle is available for byte tracking (once)
         source = None
         try:
             factory = events.attrs.get("@events_factory")
-            if factory and hasattr(factory, "filehandle"):
-                filehandle = factory.filehandle
-                if filehandle and hasattr(filehandle, "file"):
-                    source = filehandle.file.source
+            if factory and hasattr(factory, "file_handle"):
+                file_handle = factory.file_handle
+                if file_handle and hasattr(file_handle, "file"):
+                    source = file_handle.file.source
                     if not hasattr(source, "num_requested_bytes"):
                         source = None
         except Exception:
@@ -231,16 +231,16 @@ def _extract_file_metadata(processor_self: Any, events: Any) -> dict[str, Any] |
         processor_self._roastcoffea_processed_files = set()
 
     try:
-        # Get filehandle from events factory and filename from metadata
+        # Get file_handle from events factory and filename from metadata
         factory = events.attrs.get("@events_factory")
-        filehandle = (
-            factory.filehandle if factory and hasattr(factory, "filehandle") else None
+        file_handle = (
+            factory.file_handle if factory and hasattr(factory, "file_handle") else None
         )
         metadata_obj = events.metadata
         filename = metadata_obj.get("filename")
 
-        # Skip if no filehandle or filename
-        if not filehandle or not filename:
+        # Skip if no file_handle or filename
+        if not file_handle or not filename:
             return None
 
         # Skip if already extracted for this file on this worker
@@ -251,7 +251,7 @@ def _extract_file_metadata(processor_self: Any, events: Any) -> dict[str, Any] |
         tree_name = metadata_obj.get("treename", "Events")
 
         # Access the tree
-        tree = filehandle[tree_name]
+        tree = file_handle[tree_name]
 
         # Build per-branch byte mapping for data access analysis
         branch_bytes = {}
