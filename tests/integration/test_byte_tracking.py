@@ -51,18 +51,18 @@ class MockFileHandle:
 
 
 class MockEventsFactory:
-    """Mock events factory that holds the filehandle."""
+    """Mock events factory that holds the file_handle."""
 
-    def __init__(self, filehandle):
-        self.filehandle = filehandle
+    def __init__(self, file_handle):
+        self.file_handle = file_handle
 
 
 class MockEvents:
-    """Mock events object with filehandle in events factory."""
+    """Mock events object with file_handle in events factory."""
 
     def __init__(self, num_events=100, filename="data.root", start=0, stop=100):
         source = MockFileSource(start_bytes=5000)
-        filehandle = MockFileHandle(source)
+        file_handle = MockFileHandle(source)
         self.metadata = {
             "dataset": "test_dataset",
             "filename": filename,
@@ -71,7 +71,7 @@ class MockEvents:
             "uuid": "test-uuid",
         }
         self.attrs = {
-            "@events_factory": MockEventsFactory(filehandle),
+            "@events_factory": MockEventsFactory(file_handle),
         }
         self._num_events = num_events
 
@@ -92,14 +92,14 @@ class TestByteTrackingIntegration:
             def process(self, events):
                 # Simulate reading data during processing
                 factory = events.attrs["@events_factory"]
-                factory.filehandle.file.source.simulate_read(2500)
+                factory.file_handle.file.source.simulate_read(2500)
 
                 # Use track_bytes for fine-grained tracking
                 with track_bytes(self, events, "jet_loading"):
-                    factory.filehandle.file.source.simulate_read(1000)
+                    factory.file_handle.file.source.simulate_read(1000)
 
                 with track_bytes(self, events, "muon_loading"):
-                    factory.filehandle.file.source.simulate_read(500)
+                    factory.file_handle.file.source.simulate_read(500)
 
                 return {"sum": len(events)}
 
@@ -142,7 +142,7 @@ class TestByteTrackingIntegration:
             @track_metrics
             def process(self, events):
                 factory = events.attrs["@events_factory"]
-                factory.filehandle.file.source.simulate_read(3000)
+                factory.file_handle.file.source.simulate_read(3000)
                 return {"sum": len(events)}
 
         processor = TestProcessor()
@@ -424,9 +424,9 @@ class TestByteTrackingErrorHandling:
 
         processor = TestProcessor()
 
-        # Events with broken filesource (factory has broken filehandle)
+        # Events with broken filesource (factory has broken file_handle)
         class BrokenFactory:
-            filehandle = object()  # No .file attribute
+            file_handle = object()  # No .file attribute
 
         class EventsWithBrokenFileSource:
             def __init__(self):

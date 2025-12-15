@@ -6,10 +6,10 @@ from roastcoffea.instrumentation import track_bytes, track_memory, track_time
 
 
 class MockEventsFactory:
-    """Mock events factory that holds the filehandle."""
+    """Mock events factory that holds the file_handle."""
 
-    def __init__(self, filehandle):
-        self.filehandle = filehandle
+    def __init__(self, file_handle):
+        self.file_handle = file_handle
 
 
 class MockEvents:
@@ -61,8 +61,8 @@ class TestTrackBytesContextManager:
 
         processor = TestProcessor()
         filesource = MockFileSource(start_bytes=5000)
-        filehandle = MockFileHandle(filesource)
-        factory = MockEventsFactory(filehandle)
+        file_handle = MockFileHandle(filesource)
+        factory = MockEventsFactory(file_handle)
         events = MockEvents(attrs={"@events_factory": factory})
 
         with track_bytes(processor, events, "test_operation"):
@@ -157,8 +157,8 @@ class TestTrackBytesContextManager:
 
         processor = TestProcessor()
         filesource = MockFileSource(start_bytes=1000)
-        filehandle = MockFileHandle(filesource)
-        factory = MockEventsFactory(filehandle)
+        file_handle = MockFileHandle(filesource)
+        factory = MockEventsFactory(file_handle)
         events = MockEvents(attrs={"@events_factory": factory})
 
         with track_bytes(processor, events, "test_operation"):
@@ -177,8 +177,8 @@ class TestTrackBytesContextManager:
 
         processor = TestProcessor()
         filesource = MockFileSource(start_bytes=1000)
-        filehandle = MockFileHandle(filesource)
-        factory = MockEventsFactory(filehandle)
+        file_handle = MockFileHandle(filesource)
+        factory = MockEventsFactory(file_handle)
         events = MockEvents(attrs={"@events_factory": factory})
 
         with track_bytes(processor, events, "section_1"):

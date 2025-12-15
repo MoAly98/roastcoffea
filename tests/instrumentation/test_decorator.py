@@ -11,10 +11,10 @@ from roastcoffea.decorator import (
 
 
 class MockEventsFactory:
-    """Mock events factory that holds the filehandle."""
+    """Mock events factory that holds the file_handle."""
 
-    def __init__(self, filehandle):
-        self.filehandle = filehandle
+    def __init__(self, file_handle):
+        self.file_handle = file_handle
 
 
 class MockEvents:
@@ -324,13 +324,13 @@ class TestByteTracking:
             def process(self, events):
                 # Simulate reading 500 bytes during processing
                 factory = events.attrs["@events_factory"]
-                factory.filehandle.file.source.simulate_read(500)
+                factory.file_handle.file.source.simulate_read(500)
                 return {}
 
         processor = TestProcessor()
         filesource = MockFileSource()
-        filehandle = MockFileHandle(filesource)
-        factory = MockEventsFactory(filehandle)
+        file_handle = MockFileHandle(filesource)
+        factory = MockEventsFactory(file_handle)
         events = MockEvents(attrs={"@events_factory": factory})
 
         result = processor.process(events)
@@ -411,13 +411,13 @@ class TestByteTracking:
             def process(self, events):
                 # Start: 5000, read 2500 bytes during processing
                 factory = events.attrs["@events_factory"]
-                factory.filehandle.file.source.add_bytes(2500)
+                factory.file_handle.file.source.add_bytes(2500)
                 return {}
 
         processor = TestProcessor()
         filesource = MockFileSource(start_bytes=5000)
-        filehandle = MockFileHandle(filesource)
-        factory = MockEventsFactory(filehandle)
+        file_handle = MockFileHandle(filesource)
+        factory = MockEventsFactory(file_handle)
         events = MockEvents(attrs={"@events_factory": factory})
 
         result = processor.process(events)
