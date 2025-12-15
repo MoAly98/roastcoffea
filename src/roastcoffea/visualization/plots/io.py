@@ -11,6 +11,8 @@ from typing import Any
 import matplotlib.pyplot as plt
 import numpy as np
 
+from roastcoffea.utils import get_nested
+
 
 def plot_compression_ratio_distribution(
     metrics: dict[str, Any],
@@ -47,7 +49,8 @@ def plot_compression_ratio_distribution(
     ValueError
         If no compression ratio data is available
     """
-    compression_ratios = metrics.get("compression_ratios", [])
+    data_access = get_nested(metrics, "summary", "data_access", default={})
+    compression_ratios = data_access.get("compression_ratios", []) or []
 
     if not compression_ratios:
         msg = "No compression ratio data available"
@@ -131,7 +134,8 @@ def plot_data_access_percentage(
     ValueError
         If no bytes read percentage data is available
     """
-    bytes_read_percentages = metrics.get("bytes_read_percent_per_file", [])
+    data_access = get_nested(metrics, "summary", "data_access", default={})
+    bytes_read_percentages = data_access.get("bytes_read_percent_per_file", []) or []
 
     if not bytes_read_percentages:
         msg = "No bytes read percentage data available"

@@ -64,12 +64,19 @@ class MetricsCollector:
     >>> processor = MyProcessor()
     >>> with MetricsCollector(client, processor_instance=processor) as collector:
     ...     output, report = runner(fileset, processor_instance=processor)
+    ...     collector.extract_metrics_from_output(output)  # Extract chunk metrics
     ...     collector.set_coffea_report(report)
     >>>
-    >>> metrics = collector.metrics
-    >>> print(f"Throughput: {metrics['data_rate_gbps']:.2f} Gbps")
-    >>> print(f"Processor CPU: {metrics['processor_cpu_time_seconds']:.2f}s")
-    >>> print(f"Dask overhead: {metrics['overhead_cpu_time_seconds']:.2f}s")
+    >>> # Access metrics via get_metrics() - returns nested dict
+    >>> metrics = collector.get_metrics()
+    >>> print(f"Throughput: {metrics['summary']['throughput']['data_rate_gbps']:.2f} Gbps")
+    >>> print(f"Processor CPU: {metrics['summary']['fine']['processor_cpu_seconds']:.2f}s")
+    >>> print(f"Dask overhead: {metrics['summary']['fine']['overhead_cpu_seconds']:.2f}s")
+    >>>
+    >>> # Access raw data for visualization
+    >>> tracking_data = metrics['raw']['workers']  # Worker timeseries
+    >>> span_metrics = metrics['raw']['tasks']     # Per-task from Dask Spans
+    >>> chunk_metrics = metrics['raw']['chunks']   # Per-chunk from decorator
     """
 
     def __init__(
@@ -320,12 +327,31 @@ class MetricsCollector:
         Returns
         -------
         dict
-            Aggregated metrics dictionary
+            Aggregated metrics dictionary with nested structure:
+            - `raw`: Granular per-worker/per-task/per-chunk data
+              - `workers`: Worker timeseries data
+              - `tasks`: Per-task metrics from Dask Spans
+              - `chunks`: Per-chunk metrics from @track_metrics decorator
+              - `sections`: User-defined section metrics
+              - `chunk_info`: Chunk timing info for throughput plots
+            - `summary`: Aggregated statistics
+              - `throughput`: Data rates and bytes read
+              - `events`: Event counts and rates
+              - `resources`: Worker and core counts, memory
+              - `timing`: Wall time, CPU time, chunk timing
+              - `efficiency`: Core efficiency, speedup
+              - `fine`: Fine-grained CPU/IO breakdown from Dask Spans
+              - `data_access`: Branch coverage, compression ratios
+              - `chunks`: Chunk statistics (mean, min, max, etc.)
 
         Raises
         ------
         RuntimeError
             If metrics aggregation failed
+
+        See Also
+        --------
+        docs/metrics_api.md : Full documentation of the metrics structure
         """
         if self.metrics is None:
             self._aggregate_metrics()

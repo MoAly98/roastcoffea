@@ -11,15 +11,26 @@ from roastcoffea.visualization.plots.io import (
 )
 
 
+def _make_metrics(data_access: dict | None = None) -> dict:
+    """Helper to create metrics dict with nested structure."""
+    return {
+        "summary": {
+            "data_access": data_access or {},
+        }
+    }
+
+
 class TestPlotCompressionRatioDistribution:
     """Test compression ratio distribution histogram."""
 
     @pytest.fixture
     def sample_metrics(self):
         """Sample metrics with compression ratios."""
-        return {
-            "compression_ratios": [0.25, 0.30, 0.28, 0.32, 0.27, 0.29],
-        }
+        return _make_metrics(
+            data_access={
+                "compression_ratios": [0.25, 0.30, 0.28, 0.32, 0.27, 0.29],
+            }
+        )
 
     def test_returns_figure_and_axes(self, sample_metrics):
         """plot_compression_ratio_distribution returns matplotlib Figure and Axes."""
@@ -83,13 +94,15 @@ class TestPlotCompressionRatioDistribution:
 
     def test_raises_on_empty_data(self):
         """Raises ValueError if no compression ratio data."""
+        metrics = _make_metrics(data_access={"compression_ratios": []})
         with pytest.raises(ValueError, match="No compression ratio data available"):
-            plot_compression_ratio_distribution({"compression_ratios": []})
+            plot_compression_ratio_distribution(metrics)
 
     def test_raises_on_missing_key(self):
         """Raises ValueError if compression_ratios key missing."""
+        metrics = _make_metrics(data_access={})
         with pytest.raises(ValueError, match="No compression ratio data available"):
-            plot_compression_ratio_distribution({})
+            plot_compression_ratio_distribution(metrics)
 
     def test_plots_mean_and_median_lines(self, sample_metrics):
         """Plots mean and median vertical lines."""
@@ -108,9 +121,11 @@ class TestPlotDataAccessPercentage:
     @pytest.fixture
     def sample_metrics(self):
         """Sample metrics with bytes read percentages."""
-        return {
-            "bytes_read_percent_per_file": [15.5, 20.3, 18.7, 22.1, 17.9, 19.4],
-        }
+        return _make_metrics(
+            data_access={
+                "bytes_read_percent_per_file": [15.5, 20.3, 18.7, 22.1, 17.9, 19.4],
+            }
+        )
 
     def test_returns_figure_and_axes(self, sample_metrics):
         """plot_data_access_percentage returns matplotlib Figure and Axes."""
@@ -180,13 +195,15 @@ class TestPlotDataAccessPercentage:
 
     def test_raises_on_empty_data(self):
         """Raises ValueError if no bytes read percentage data."""
+        metrics = _make_metrics(data_access={"bytes_read_percent_per_file": []})
         with pytest.raises(ValueError, match="No bytes read percentage data available"):
-            plot_data_access_percentage({"bytes_read_percent_per_file": []})
+            plot_data_access_percentage(metrics)
 
     def test_raises_on_missing_key(self):
         """Raises ValueError if bytes_read_percent_per_file key missing."""
+        metrics = _make_metrics(data_access={})
         with pytest.raises(ValueError, match="No bytes read percentage data available"):
-            plot_data_access_percentage({})
+            plot_data_access_percentage(metrics)
 
     def test_plots_mean_and_median_lines(self, sample_metrics):
         """Plots mean and median vertical lines."""
@@ -200,7 +217,9 @@ class TestPlotDataAccessPercentage:
 
     def test_handles_edge_case_high_percentage(self):
         """Handles high bytes read percentages correctly."""
-        metrics = {"bytes_read_percent_per_file": [95.0, 98.5, 97.2, 99.1]}
+        metrics = _make_metrics(
+            data_access={"bytes_read_percent_per_file": [95.0, 98.5, 97.2, 99.1]}
+        )
 
         fig, _ax = plot_data_access_percentage(metrics)
 
@@ -211,7 +230,9 @@ class TestPlotDataAccessPercentage:
 
     def test_handles_edge_case_low_percentage(self):
         """Handles low bytes read percentages correctly."""
-        metrics = {"bytes_read_percent_per_file": [1.5, 2.3, 0.8, 3.1]}
+        metrics = _make_metrics(
+            data_access={"bytes_read_percent_per_file": [1.5, 2.3, 0.8, 3.1]}
+        )
 
         fig, _ax = plot_data_access_percentage(metrics)
 

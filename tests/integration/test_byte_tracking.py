@@ -215,9 +215,9 @@ class TestByteTrackingIntegration:
             chunk_metrics=chunk_metrics,
         )
 
-        # Verify chunk_info is in metrics
-        assert "chunk_info" in metrics
-        chunk_info = metrics["chunk_info"]
+        # Verify chunk_info is in metrics (nested structure)
+        assert "chunk_info" in metrics["raw"]
+        chunk_info = metrics["raw"]["chunk_info"]
 
         # Verify structure
         assert len(chunk_info) == 2

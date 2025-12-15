@@ -11,18 +11,37 @@ from roastcoffea.visualization.plots.scaling import (
 )
 
 
+def _make_metrics(
+    efficiency: dict | None = None,
+    resources: dict | None = None,
+    timing: dict | None = None,
+) -> dict:
+    """Helper to create metrics dict with nested structure."""
+    return {
+        "summary": {
+            "efficiency": efficiency or {},
+            "resources": resources or {},
+            "timing": timing or {},
+        }
+    }
+
+
 class TestPlotEfficiencySummary:
     """Test efficiency summary plotting."""
 
     @pytest.fixture
     def sample_metrics(self):
         """Sample metrics for plotting."""
-        return {
-            "core_efficiency": 0.75,
-            "speedup_factor": 3.5,
-            "elapsed_time_seconds": 100.0,
-            "total_cpu_time": 350.0,
-        }
+        return _make_metrics(
+            efficiency={
+                "core_efficiency": 0.75,
+                "speedup": 3.5,
+            },
+            timing={
+                "wall_seconds": 100.0,
+                "cpu_seconds": 350.0,
+            },
+        )
 
     def test_returns_figure_and_axes(self, sample_metrics):
         """plot_efficiency_summary returns matplotlib Figure and Axes."""
@@ -37,7 +56,7 @@ class TestPlotEfficiencySummary:
         """Efficiency summary plots bars for each metric."""
         fig, ax = plot_efficiency_summary(sample_metrics)
 
-        # Should have two bars (core_efficiency and speedup_factor)
+        # Should have two bars (core_efficiency and speedup)
         bars = ax.patches
         assert len(bars) == 2
 
@@ -64,7 +83,7 @@ class TestPlotEfficiencySummary:
 
     def test_handles_missing_speedup(self):
         """Works with only core_efficiency."""
-        metrics = {"core_efficiency": 0.75}
+        metrics = _make_metrics(efficiency={"core_efficiency": 0.75})
 
         fig, ax = plot_efficiency_summary(metrics)
 
@@ -75,8 +94,8 @@ class TestPlotEfficiencySummary:
         plt.close(fig)
 
     def test_handles_missing_core_efficiency(self):
-        """Works with only speedup_factor."""
-        metrics = {"speedup_factor": 3.5}
+        """Works with only speedup."""
+        metrics = _make_metrics(efficiency={"speedup": 3.5})
 
         fig, ax = plot_efficiency_summary(metrics)
 
@@ -93,11 +112,12 @@ class TestPlotEfficiencySummary:
 
     def test_raises_on_missing_all_metrics(self):
         """Raises ValueError if no efficiency metrics available."""
+        metrics = _make_metrics(timing={"wall_seconds": 100})
         with pytest.raises(
             ValueError,
             match="No efficiency metrics available",
         ):
-            plot_efficiency_summary({"elapsed_time_seconds": 100})
+            plot_efficiency_summary(metrics)
 
 
 class TestPlotResourceUtilization:
@@ -106,11 +126,13 @@ class TestPlotResourceUtilization:
     @pytest.fixture
     def sample_metrics(self):
         """Sample metrics for plotting."""
-        return {
-            "avg_workers": 4.0,
-            "total_cores": 16.0,
-            "peak_memory_bytes": 8_000_000_000,  # 8 GB
-        }
+        return _make_metrics(
+            resources={
+                "workers_avg": 4.0,
+                "cores_total": 16.0,
+                "memory_peak_bytes": 8_000_000_000,  # 8 GB
+            }
+        )
 
     def test_returns_figure_and_axes(self, sample_metrics):
         """plot_resource_utilization returns matplotlib Figure and Axes."""
@@ -152,10 +174,12 @@ class TestPlotResourceUtilization:
 
     def test_handles_partial_metrics(self):
         """Works with subset of metrics."""
-        metrics = {
-            "avg_workers": 4.0,
-            # Missing total_cores and peak_memory_bytes
-        }
+        metrics = _make_metrics(
+            resources={
+                "workers_avg": 4.0,
+                # Missing cores_total and memory_peak_bytes
+            }
+        )
 
         fig, ax = plot_resource_utilization(metrics)
 
@@ -172,8 +196,9 @@ class TestPlotResourceUtilization:
 
     def test_raises_on_missing_all_metrics(self):
         """Raises ValueError if no resource metrics available."""
+        metrics = _make_metrics(timing={"wall_seconds": 100})
         with pytest.raises(
             ValueError,
             match="No resource metrics available",
         ):
-            plot_resource_utilization({"elapsed_time_seconds": 100})
+            plot_resource_utilization(metrics)

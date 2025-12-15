@@ -10,6 +10,8 @@ from typing import Any
 
 import matplotlib.pyplot as plt
 
+from roastcoffea.utils import get_nested
+
 
 def plot_efficiency_summary(
     metrics: dict[str, Any] | None,
@@ -44,12 +46,13 @@ def plot_efficiency_summary(
         msg = "metrics cannot be None"
         raise ValueError(msg)
 
-    # Extract efficiency metrics
-    core_efficiency = metrics.get("core_efficiency")
-    speedup_factor = metrics.get("speedup_factor")
+    # Extract efficiency metrics from nested structure
+    efficiency = get_nested(metrics, "summary", "efficiency", default={})
+    core_efficiency = efficiency.get("core_efficiency")
+    speedup_factor = efficiency.get("speedup")
 
     if core_efficiency is None and speedup_factor is None:
-        msg = "No efficiency metrics available (core_efficiency or speedup_factor)"
+        msg = "No efficiency metrics available (core_efficiency or speedup)"
         raise ValueError(msg)
 
     # Prepare data for plotting
@@ -128,10 +131,11 @@ def plot_resource_utilization(
         msg = "metrics cannot be None"
         raise ValueError(msg)
 
-    # Extract resource metrics
-    avg_workers = metrics.get("avg_workers")
-    total_cores = metrics.get("total_cores")
-    peak_memory_bytes = metrics.get("peak_memory_bytes")
+    # Extract resource metrics from nested structure
+    resources = get_nested(metrics, "summary", "resources", default={})
+    avg_workers = resources.get("workers_avg")
+    total_cores = resources.get("cores_total")
+    peak_memory_bytes = resources.get("memory_peak_bytes")
     peak_memory_gb = peak_memory_bytes / 1e9 if peak_memory_bytes else None
 
     if avg_workers is None and total_cores is None and peak_memory_gb is None:

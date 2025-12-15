@@ -49,6 +49,36 @@ class TestMetricsAggregator:
             },
         }
 
+    def test_aggregate_returns_nested_structure(
+        self, sample_coffea_report, sample_tracking_data
+    ):
+        """MetricsAggregator.aggregate returns nested raw/summary structure."""
+        aggregator = MetricsAggregator(backend="dask")
+
+        metrics = aggregator.aggregate(
+            coffea_report=sample_coffea_report,
+            tracking_data=sample_tracking_data,
+            t_start=0.0,
+            t_end=25.0,
+        )
+
+        # Should have top-level raw and summary keys
+        assert "raw" in metrics
+        assert "summary" in metrics
+
+        # Raw section should have expected keys
+        assert "workers" in metrics["raw"]
+        assert "tasks" in metrics["raw"]
+        assert "chunks" in metrics["raw"]
+        assert "sections" in metrics["raw"]
+
+        # Summary section should have expected keys
+        assert "throughput" in metrics["summary"]
+        assert "events" in metrics["summary"]
+        assert "resources" in metrics["summary"]
+        assert "timing" in metrics["summary"]
+        assert "efficiency" in metrics["summary"]
+
     def test_aggregate_combines_all_metrics(
         self, sample_coffea_report, sample_tracking_data
     ):
@@ -62,22 +92,22 @@ class TestMetricsAggregator:
             t_end=25.0,
         )
 
-        # Should have workflow metrics
-        assert "elapsed_time_seconds" in metrics
-        assert "total_cpu_time" in metrics
-        assert "data_rate_gbps" in metrics
-        assert "event_rate_elapsed_khz" in metrics
+        # Should have workflow metrics in summary.timing
+        assert metrics["summary"]["timing"]["wall_seconds"] is not None
+        assert metrics["summary"]["timing"]["cpu_seconds"] is not None
+        assert metrics["summary"]["throughput"]["data_rate_gbps"] is not None
+        assert metrics["summary"]["events"]["rate_wall_khz"] is not None
 
-        # Should have worker metrics
-        assert "avg_workers" in metrics
-        assert "peak_workers" in metrics
-        assert "total_cores" in metrics
-        assert "peak_memory_bytes" in metrics
+        # Should have worker metrics in summary.resources
+        assert metrics["summary"]["resources"]["workers_avg"] is not None
+        assert metrics["summary"]["resources"]["workers_peak"] is not None
+        assert metrics["summary"]["resources"]["cores_total"] is not None
+        assert metrics["summary"]["resources"]["memory_peak_bytes"] is not None
 
-        # Should have efficiency metrics
-        assert "core_efficiency" in metrics
-        assert "speedup_factor" in metrics
-        assert "event_rate_core_khz" in metrics
+        # Should have efficiency metrics in summary.efficiency
+        assert metrics["summary"]["efficiency"]["core_efficiency"] is not None
+        assert metrics["summary"]["efficiency"]["speedup"] is not None
+        assert metrics["summary"]["events"]["rate_core_khz"] is not None
 
     def test_aggregate_with_dask_backend(
         self, sample_coffea_report, sample_tracking_data
@@ -93,12 +123,11 @@ class TestMetricsAggregator:
         )
 
         # Verify Dask-specific parsing worked
-        assert metrics["avg_workers"] == pytest.approx(2.0)
-        assert metrics["total_cores"] == pytest.approx(8.0)
+        assert metrics["summary"]["resources"]["workers_avg"] == pytest.approx(2.0)
+        assert metrics["summary"]["resources"]["cores_total"] == pytest.approx(8.0)
 
         # Verify raw tracking_data is preserved for visualization
-        assert "tracking_data" in metrics
-        assert metrics["tracking_data"] == sample_tracking_data
+        assert metrics["raw"]["workers"] == sample_tracking_data
 
     def test_aggregate_without_tracking_data(self, sample_coffea_report):
         """Aggregator works without tracking data (workflow metrics only)."""
@@ -112,18 +141,18 @@ class TestMetricsAggregator:
         )
 
         # Should have workflow metrics
-        assert "elapsed_time_seconds" in metrics
-        assert "data_rate_gbps" in metrics
+        assert metrics["summary"]["timing"]["wall_seconds"] is not None
+        assert metrics["summary"]["throughput"]["data_rate_gbps"] is not None
 
-        # tracking_data should be None
-        assert metrics["tracking_data"] is None
+        # raw.workers should be None
+        assert metrics["raw"]["workers"] is None
 
-        # Worker metrics should be None or absent
-        assert metrics.get("avg_workers") is None
-        assert metrics.get("total_cores") is None
+        # Worker metrics should be None
+        assert metrics["summary"]["resources"]["workers_avg"] is None
+        assert metrics["summary"]["resources"]["cores_total"] is None
 
         # Efficiency metrics that depend on workers should be None
-        assert metrics.get("core_efficiency") is None
+        assert metrics["summary"]["efficiency"]["core_efficiency"] is None
 
     def test_aggregate_with_custom_metrics(self, sample_tracking_data):
         """Aggregator handles custom per-dataset metrics."""
@@ -158,7 +187,7 @@ class TestMetricsAggregator:
         )
 
         # Should aggregate across all datasets
-        assert metrics["total_events"] == 500_000
+        assert metrics["summary"]["events"]["total"] == 500_000
 
     def test_instantiate_with_unsupported_backend_raises(self):
         """MetricsAggregator raises error for unsupported backend."""
@@ -210,8 +239,10 @@ class TestMetricsAggregator:
         )
 
         # Should have processed span_metrics (exact keys depend on parse_fine_metrics)
-        # Just verify that aggregation succeeded
-        assert "elapsed_time_seconds" in metrics
+        # Verify structure is correct
+        assert "raw" in metrics
+        assert "summary" in metrics
+        assert metrics["raw"]["tasks"] == span_metrics
 
     def test_aggregate_with_chunk_metrics(
         self, sample_coffea_report, sample_tracking_data
@@ -244,14 +275,11 @@ class TestMetricsAggregator:
             chunk_metrics=chunk_metrics,
         )
 
-        # Should have chunk aggregation metrics (exact keys depend on aggregate_chunk_metrics)
-        # Verify chunk_duration_max was calculated
-        assert "chunk_duration_max" in metrics
-        assert metrics["chunk_duration_max"] == 10.0
+        # Should have chunk aggregation metrics in summary.chunks
+        assert metrics["summary"]["chunks"]["duration_max"] == 10.0
 
         # Should preserve raw chunk metrics
-        assert "raw_chunk_metrics" in metrics
-        assert metrics["raw_chunk_metrics"] == chunk_metrics
+        assert metrics["raw"]["chunks"] == chunk_metrics
 
     def test_aggregate_with_section_metrics(
         self, sample_coffea_report, sample_tracking_data
@@ -278,5 +306,4 @@ class TestMetricsAggregator:
         )
 
         # Should preserve raw section metrics
-        assert "raw_section_metrics" in metrics
-        assert metrics["raw_section_metrics"] == section_metrics
+        assert metrics["raw"]["sections"] == section_metrics
