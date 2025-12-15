@@ -13,7 +13,6 @@ from typing import Any
 
 from roastcoffea.utils import get_process_memory
 
-import warnings
 
 def track_metrics(func: Callable) -> Callable:
     """Decorator to track metrics for processor.process() method.
@@ -87,11 +86,13 @@ def track_metrics(func: Callable) -> Callable:
         # Check if filehandle is available for byte tracking (once)
         source = None
         try:
-            filehandle = events.metadata.get("filehandle")
-            if filehandle and hasattr(filehandle, "file"):
-                source = filehandle.file.source
-                if not hasattr(source, "num_requested_bytes"):
-                    source = None
+            factory = events.attrs.get("@events_factory")
+            if factory and hasattr(factory, "filehandle"):
+                filehandle = factory.filehandle
+                if filehandle and hasattr(filehandle, "file"):
+                    source = filehandle.file.source
+                    if not hasattr(source, "num_requested_bytes"):
+                        source = None
         except Exception:
             source = None
 
@@ -230,11 +231,13 @@ def _extract_file_metadata(processor_self: Any, events: Any) -> dict[str, Any] |
         processor_self._roastcoffea_processed_files = set()
 
     try:
-        # Get filehandle and filename from metadata
+        # Get filehandle from events factory and filename from metadata
+        factory = events.attrs.get("@events_factory")
+        filehandle = (
+            factory.filehandle if factory and hasattr(factory, "filehandle") else None
+        )
         metadata_obj = events.metadata
-        filehandle = metadata_obj.get("filehandle")
         filename = metadata_obj.get("filename")
-
 
         # Skip if no filehandle or filename
         if not filehandle or not filename:
@@ -252,10 +255,10 @@ def _extract_file_metadata(processor_self: Any, events: Any) -> dict[str, Any] |
 
         # Build per-branch byte mapping for data access analysis
         branch_bytes = {}
-        for branch_name in tree.keys():
+        for branch_name in tree.keys():  # noqa: SIM118
             try:
                 branch_bytes[branch_name] = tree[branch_name].compressed_bytes
-            except Exception as e:
+            except Exception as _e:
                 # Skip branches that don't have compressed_bytes attribute
                 pass
 

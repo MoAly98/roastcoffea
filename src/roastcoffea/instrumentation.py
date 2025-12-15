@@ -187,7 +187,7 @@ def track_bytes(
                 return {"sum": len(events)}
 
     Note:
-        Requires the filehandle to be available in events.metadata["filehandle"]
+        Requires the filehandle to be available via events.attrs["@events_factory"].filehandle
         with access to filehandle.file.source.num_requested_bytes. This is
         available when using the modified coffea version with file handle exposure.
 
@@ -200,11 +200,13 @@ def track_bytes(
         # Check if filehandle is available for byte tracking (once)
         source = None
         try:
-            filehandle = events.metadata.get("filehandle")
-            if filehandle and hasattr(filehandle, "file"):
-                source = filehandle.file.source
-                if not hasattr(source, "num_requested_bytes"):
-                    source = None
+            factory = events.attrs.get("@events_factory")
+            if factory and hasattr(factory, "filehandle"):
+                filehandle = factory.filehandle
+                if filehandle and hasattr(filehandle, "file"):
+                    source = filehandle.file.source
+                    if not hasattr(source, "num_requested_bytes"):
+                        source = None
         except Exception:
             source = None
 
