@@ -39,23 +39,20 @@ def parse_accessed_branches(columns: list[str]) -> set[str]:
 
 def aggregate_branch_coverage(
     chunk_metrics: list[dict[str, Any]] | None,
-    coffea_report: dict[str, Any],
+    coffea_report: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Aggregate branch coverage and data access metrics.
 
     Extracts file-level metadata from chunk_metrics (compression ratio,
-    total branches, branch bytes) and combines with accessed branches
-    from coffea_report to calculate coverage metrics.
-
-    Note: Currently coffea provides a global set of accessed branches,
-    not per-file. The same branches are used for all files.
+    total branches) and aggregates per-chunk branch access metrics
+    (accessed_branches, accessed_bytes, percentages).
 
     Parameters
     ----------
     chunk_metrics : list of dict, optional
         Per-chunk metrics from @track_metrics decorator
-    coffea_report : dict
-        Coffea report with file-level metrics
+    coffea_report : dict, optional
+        Coffea report (kept for backward compatibility, no longer used)
 
     Returns
     -------
@@ -63,7 +60,7 @@ def aggregate_branch_coverage(
         Branch and byte read metrics including:
         - file_metadata: Dict mapping filename -> file-level metadata
         - compression_ratios: List of compression ratios across files
-        - branch_coverage_per_file: Dict mapping filename -> read metrics
+        - file_read_metrics: Dict mapping filename -> read metrics
         - avg_branches_read_percent: Average % of branches read
         - avg_bytes_read_percent: Average % of bytes read
         - bytes_read_percent_per_file: List of byte read percentages per file
@@ -71,56 +68,56 @@ def aggregate_branch_coverage(
     """
     metrics: dict[str, Any] = {}
 
+    if not chunk_metrics:
+        return metrics
+
     # Extract and deduplicate file-level metadata from chunk_metrics
     file_metadata = _extract_file_metadata(chunk_metrics)
 
-    if not file_metadata:
-        # No file metadata available
-        return metrics
+    # Extract per-file byte metrics from chunks (first chunk per file wins)
+    # accessed_bytes is file-level (same for all chunks of same file)
+    file_byte_metrics: dict[str, dict[str, Any]] = {}
+    for chunk in chunk_metrics:
+        filename = chunk.get("file")
+        if filename and filename not in file_byte_metrics:
+            file_byte_metrics[filename] = {
+                "accessed_bytes": chunk.get("accessed_bytes", 0),
+                "bytes_read_percent": chunk.get("bytes_read_percent", 0.0),
+                "num_branches_accessed": chunk.get("num_branches_accessed", 0),
+                "branches_read_percent": chunk.get("branches_read_percent", 0.0),
+            }
 
-    # Extract accessed branches from coffea report (global, not per-file)
-    accessed_branches = _extract_accessed_branches(coffea_report)
-    num_branches_read = len(accessed_branches)
+    # Global accessed branches (union across all chunks)
+    all_accessed_branches: set[str] = set()
+    for chunk in chunk_metrics:
+        all_accessed_branches.update(chunk.get("accessed_branches", []))
 
-    # Calculate read metrics per file
-    file_read_metrics = {}
-    compression_ratios = []
-    bytes_read_percentages = []
+    # Build file_read_metrics for plots (merge file_metadata + byte metrics)
+    file_read_metrics: dict[str, dict[str, Any]] = {}
+    compression_ratios: list[float] = []
+    bytes_read_percentages: list[float] = []
 
     for filename, file_info in file_metadata.items():
-        # Extract file-level data
+        byte_info = file_byte_metrics.get(filename, {})
+
         total_branches = file_info.get("total_branches", 0)
         total_tree_bytes = file_info.get("total_tree_bytes", 0)
-        branch_bytes = file_info.get("branch_bytes", {})
         compression_ratio = file_info.get("compression_ratio", 0.0)
 
         # Store compression ratio for distribution
         if compression_ratio > 0:
             compression_ratios.append(compression_ratio)
 
-        # Calculate read percentages
-        branches_read_percent = (
-            100 * num_branches_read / total_branches
-            if total_branches > 0 and num_branches_read > 0
-            else 0.0
-        )
-
-        bytes_read = (
-            sum(branch_bytes.get(branch, 0) for branch in accessed_branches)
-            if accessed_branches and branch_bytes
-            else 0
-        )
-
-        bytes_read_percent = (
-            100 * bytes_read / total_tree_bytes if total_tree_bytes > 0 else 0.0
-        )
+        branches_read_percent = byte_info.get("branches_read_percent", 0.0)
+        bytes_read_percent = byte_info.get("bytes_read_percent", 0.0)
+        accessed_bytes = byte_info.get("accessed_bytes", 0)
 
         # Store per-file metrics
         file_read_metrics[filename] = {
             "total_branches": total_branches,
             "branches_read_percent": branches_read_percent,
             "total_tree_bytes": total_tree_bytes,
-            "bytes_read": bytes_read,
+            "bytes_read": accessed_bytes,
             "bytes_read_percent": bytes_read_percent,
         }
 
@@ -147,7 +144,7 @@ def aggregate_branch_coverage(
     metrics["avg_branches_read_percent"] = avg_branches_read_percent
     metrics["avg_bytes_read_percent"] = avg_bytes_read_percent
     metrics["bytes_read_percent_per_file"] = bytes_read_percentages
-    metrics["total_branches_read"] = num_branches_read
+    metrics["total_branches_read"] = len(all_accessed_branches)
 
     return metrics
 
