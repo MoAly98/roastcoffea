@@ -22,7 +22,6 @@ class TestExtractFileMetadata:
                     "filename": "file1.root",
                     "compression_ratio": 0.25,
                     "total_branches": 50,
-                    "branch_bytes": {"Jet_pt": 1000, "Muon_pt": 500},
                     "total_tree_bytes": 10000,
                 },
             },
@@ -31,7 +30,6 @@ class TestExtractFileMetadata:
                     "filename": "file2.root",
                     "compression_ratio": 0.30,
                     "total_branches": 40,
-                    "branch_bytes": {"Electron_pt": 800},
                     "total_tree_bytes": 8000,
                 },
             },
@@ -53,7 +51,6 @@ class TestExtractFileMetadata:
                     "filename": "file1.root",
                     "compression_ratio": 0.25,
                     "total_branches": 50,
-                    "branch_bytes": {},
                     "total_tree_bytes": 10000,
                 },
             },
@@ -62,7 +59,6 @@ class TestExtractFileMetadata:
                     "filename": "file1.root",  # Duplicate
                     "compression_ratio": 0.25,
                     "total_branches": 50,
-                    "branch_bytes": {},
                     "total_tree_bytes": 10000,
                 },
             },
@@ -142,25 +138,23 @@ class TestAggregateBranchCoverage:
         """Calculates branch and byte read percentages correctly."""
         chunk_metrics = [
             {
+                "file": "file1.root",
                 "file_metadata": {
                     "filename": "file1.root",
                     "compression_ratio": 0.25,
                     "total_branches": 100,
-                    "branch_bytes": {
-                        "Jet_pt": 1000,
-                        "Muon_pt": 500,
-                        "Electron_pt": 300,
-                    },
                     "total_tree_bytes": 10000,
                 },
+                # Per-chunk metrics (from access_log)
+                "accessed_branches": ["Jet_pt", "Muon_pt"],
+                "num_branches_accessed": 2,
+                "accessed_bytes": 1500,  # Jet_pt (1000) + Muon_pt (500)
+                "branches_read_percent": 2.0,  # 2/100
+                "bytes_read_percent": 15.0,  # 1500/10000
             },
         ]
 
-        coffea_report = {
-            "columns": ["Jet_pt-data", "nJet-offsets", "Muon_pt-data", "nMuon-offsets"],
-        }
-
-        result = aggregate_branch_coverage(chunk_metrics, coffea_report)
+        result = aggregate_branch_coverage(chunk_metrics)
 
         assert "file_read_metrics" in result
         assert "file1.root" in result["file_read_metrics"]
@@ -177,28 +171,38 @@ class TestAggregateBranchCoverage:
         """Calculates average read percentages across files."""
         chunk_metrics = [
             {
+                "file": "file1.root",
                 "file_metadata": {
                     "filename": "file1.root",
                     "compression_ratio": 0.25,
                     "total_branches": 100,
-                    "branch_bytes": {"Jet_pt": 2000, "Muon_pt": 2000},
                     "total_tree_bytes": 10000,
                 },
+                # Per-chunk metrics (from access_log)
+                "accessed_branches": ["Jet_pt", "Muon_pt"],
+                "num_branches_accessed": 2,
+                "accessed_bytes": 4000,  # Jet_pt (2000) + Muon_pt (2000)
+                "branches_read_percent": 2.0,  # 2/100
+                "bytes_read_percent": 40.0,  # 4000/10000
             },
             {
+                "file": "file2.root",
                 "file_metadata": {
                     "filename": "file2.root",
                     "compression_ratio": 0.30,
                     "total_branches": 100,
-                    "branch_bytes": {"Jet_pt": 3000, "Muon_pt": 3000},
                     "total_tree_bytes": 10000,
                 },
+                # Per-chunk metrics (from access_log)
+                "accessed_branches": ["Jet_pt", "Muon_pt"],
+                "num_branches_accessed": 2,
+                "accessed_bytes": 6000,  # Jet_pt (3000) + Muon_pt (3000)
+                "branches_read_percent": 2.0,  # 2/100
+                "bytes_read_percent": 60.0,  # 6000/10000
             },
         ]
 
-        coffea_report = {"columns": ["Jet_pt-data", "Muon_pt-data"]}
-
-        result = aggregate_branch_coverage(chunk_metrics, coffea_report)
+        result = aggregate_branch_coverage(chunk_metrics)
 
         # Both files: 2 branches / 100 = 2%
         assert result["avg_branches_read_percent"] == pytest.approx(2.0)
@@ -221,21 +225,25 @@ class TestAggregateBranchCoverage:
         assert result["compression_ratios"] == [0.25, 0.30]
 
     def test_includes_global_branch_count(self):
-        """Includes total branches read (global)."""
+        """Includes total branches read (global, union across chunks)."""
         chunk_metrics = [
             {
+                "file": "file1.root",
                 "file_metadata": {
                     "filename": "file1.root",
                     "total_branches": 100,
-                    "branch_bytes": {},
                     "total_tree_bytes": 10000,
                 },
+                # Per-chunk metrics (from access_log)
+                "accessed_branches": ["Jet_pt", "Muon_pt", "Electron_pt"],
+                "num_branches_accessed": 3,
+                "accessed_bytes": 0,
+                "branches_read_percent": 3.0,
+                "bytes_read_percent": 0.0,
             },
         ]
 
-        coffea_report = {"columns": ["Jet_pt-data", "Muon_pt-data", "Electron_pt-data"]}
-
-        result = aggregate_branch_coverage(chunk_metrics, coffea_report)
+        result = aggregate_branch_coverage(chunk_metrics)
 
         assert result["total_branches_read"] == 3
 
@@ -259,41 +267,61 @@ class TestAggregateBranchCoverage:
         """Handles scenario with zero branches accessed."""
         chunk_metrics = [
             {
+                "file": "file1.root",
                 "file_metadata": {
                     "filename": "file1.root",
                     "total_branches": 100,
-                    "branch_bytes": {},
                     "total_tree_bytes": 10000,
                 },
+                # Per-chunk metrics with no branches accessed
+                "accessed_branches": [],
+                "num_branches_accessed": 0,
+                "accessed_bytes": 0,
+                "branches_read_percent": 0.0,
+                "bytes_read_percent": 0.0,
             },
         ]
 
-        coffea_report = {"columns": []}
-
-        result = aggregate_branch_coverage(chunk_metrics, coffea_report)
+        result = aggregate_branch_coverage(chunk_metrics)
 
         file_metrics = result["file_read_metrics"]["file1.root"]
         assert file_metrics["branches_read_percent"] == 0.0
         assert file_metrics["bytes_read_percent"] == 0.0
 
-    def test_missing_branch_in_branch_bytes(self):
-        """Handles accessed branch not in branch_bytes map."""
+    def test_aggregates_accessed_branches_across_chunks(self):
+        """Aggregates accessed branches across multiple chunks (union)."""
         chunk_metrics = [
             {
+                "file": "file1.root",
                 "file_metadata": {
                     "filename": "file1.root",
                     "total_branches": 100,
-                    "branch_bytes": {"Jet_pt": 1000},  # Missing Muon_pt
                     "total_tree_bytes": 10000,
                 },
+                # First chunk accesses Jet_pt
+                "accessed_branches": ["Jet_pt"],
+                "num_branches_accessed": 1,
+                "accessed_bytes": 1000,
+                "branches_read_percent": 1.0,
+                "bytes_read_percent": 10.0,
+            },
+            {
+                "file": "file1.root",
+                # Second chunk of same file (no file_metadata)
+                "accessed_branches": ["Jet_pt", "Muon_pt"],  # Adds Muon_pt
+                "num_branches_accessed": 2,
+                "accessed_bytes": 1500,
+                "branches_read_percent": 2.0,
+                "bytes_read_percent": 15.0,
             },
         ]
 
-        coffea_report = {"columns": ["Jet_pt-data", "Muon_pt-data"]}
+        result = aggregate_branch_coverage(chunk_metrics)
 
-        result = aggregate_branch_coverage(chunk_metrics, coffea_report)
+        # Global accessed branches = union of all chunks
+        assert result["total_branches_read"] == 2  # Jet_pt + Muon_pt
 
+        # Per-file metrics come from first chunk per file
         file_metrics = result["file_read_metrics"]["file1.root"]
-        # Only Jet_pt bytes counted (Muon_pt missing)
-        assert file_metrics["bytes_read"] == 1000
+        assert file_metrics["bytes_read"] == 1000  # First chunk's value
         assert file_metrics["bytes_read_percent"] == pytest.approx(10.0)

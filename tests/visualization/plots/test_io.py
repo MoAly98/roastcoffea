@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import pytest
 
 from roastcoffea.visualization.plots.io import (
+    plot_branch_access_per_chunk,
+    plot_bytes_accessed_per_chunk,
     plot_compression_ratio_distribution,
     plot_data_access_percentage,
 )
@@ -131,13 +133,16 @@ class TestPlotDataAccessPercentage:
 
         plt.close(fig)
 
-    def test_x_axis_limited_to_100_percent(self, sample_metrics):
-        """X-axis is limited to 0-100%."""
+    def test_x_axis_dynamic_range(self, sample_metrics):
+        """X-axis dynamically scales to data with padding, capped at 100%."""
         fig, ax = plot_data_access_percentage(sample_metrics)
 
         xlim = ax.get_xlim()
         assert xlim[0] == 0
-        assert xlim[1] == 100
+        # Dynamic range: max(data) * 1.1, capped at 100
+        max_val = max(sample_metrics["bytes_read_percent_per_file"])
+        expected_xlim = min(100, max_val * 1.1)
+        assert xlim[1] == pytest.approx(expected_xlim)
 
         plt.close(fig)
 
@@ -217,5 +222,178 @@ class TestPlotDataAccessPercentage:
 
         # Should not raise, plot should be created
         assert isinstance(fig, plt.Figure)
+
+        plt.close(fig)
+
+
+class TestPlotBranchAccessPerChunk:
+    """Test branches accessed per chunk bar chart."""
+
+    @pytest.fixture
+    def sample_chunk_metrics(self):
+        """Sample chunk metrics with branch access data."""
+        return [
+            {"num_branches_accessed": 10},
+            {"num_branches_accessed": 15},
+            {"num_branches_accessed": 12},
+            {"num_branches_accessed": 8},
+        ]
+
+    def test_returns_figure_and_axes(self, sample_chunk_metrics):
+        """plot_branch_access_per_chunk returns matplotlib Figure and Axes."""
+        fig, ax = plot_branch_access_per_chunk(sample_chunk_metrics)
+
+        assert isinstance(fig, plt.Figure)
+        assert isinstance(ax, plt.Axes)
+
+        plt.close(fig)
+
+    def test_has_correct_labels(self, sample_chunk_metrics):
+        """Branch access plot has correct axis labels and title."""
+        fig, ax = plot_branch_access_per_chunk(sample_chunk_metrics)
+
+        assert ax.get_xlabel() == "Chunk Index"
+        assert ax.get_ylabel() == "Branches Accessed"
+        assert ax.get_title() == "Branches Accessed Per Chunk"
+
+        plt.close(fig)
+
+    def test_custom_title(self, sample_chunk_metrics):
+        """Can set custom title."""
+        fig, ax = plot_branch_access_per_chunk(
+            sample_chunk_metrics, title="Custom Title"
+        )
+
+        assert ax.get_title() == "Custom Title"
+
+        plt.close(fig)
+
+    def test_custom_figsize(self, sample_chunk_metrics):
+        """Can set custom figure size."""
+        fig, _ax = plot_branch_access_per_chunk(sample_chunk_metrics, figsize=(8, 4))
+
+        assert fig.get_figwidth() == 8
+        assert fig.get_figheight() == 4
+
+        plt.close(fig)
+
+    def test_saves_to_file(self, sample_chunk_metrics, tmp_path):
+        """Can save plot to file."""
+        output_file = tmp_path / "branch_access.png"
+
+        fig, _ax = plot_branch_access_per_chunk(
+            sample_chunk_metrics, output_path=output_file
+        )
+
+        assert output_file.exists()
+
+        plt.close(fig)
+
+    def test_raises_on_empty_data(self):
+        """Raises ValueError if no chunk metrics data."""
+        with pytest.raises(ValueError, match="No chunk metrics data available"):
+            plot_branch_access_per_chunk([])
+
+    def test_raises_on_zero_branch_counts(self):
+        """Raises ValueError if all branch counts are zero."""
+        with pytest.raises(ValueError, match="No branch access data in chunk metrics"):
+            plot_branch_access_per_chunk([{"num_branches_accessed": 0}])
+
+    def test_plots_mean_line(self, sample_chunk_metrics):
+        """Plots mean horizontal line."""
+        fig, ax = plot_branch_access_per_chunk(sample_chunk_metrics)
+
+        # Check for horizontal line (mean)
+        horizontal_lines = [
+            line for line in ax.get_lines() if len(line.get_ydata()) == 2
+        ]
+        assert len(horizontal_lines) >= 1
+
+        plt.close(fig)
+
+
+class TestPlotBytesAccessedPerChunk:
+    """Test bytes accessed per chunk grouped bar chart."""
+
+    @pytest.fixture
+    def sample_chunk_metrics(self):
+        """Sample chunk metrics with compressed and uncompressed byte data."""
+        return [
+            {"accessed_bytes": 1_000_000, "accessed_uncompressed_bytes": 4_000_000},
+            {"accessed_bytes": 1_500_000, "accessed_uncompressed_bytes": 5_500_000},
+            {"accessed_bytes": 1_200_000, "accessed_uncompressed_bytes": 4_800_000},
+        ]
+
+    def test_returns_figure_and_axes(self, sample_chunk_metrics):
+        """plot_bytes_accessed_per_chunk returns matplotlib Figure and Axes."""
+        fig, ax = plot_bytes_accessed_per_chunk(sample_chunk_metrics)
+
+        assert isinstance(fig, plt.Figure)
+        assert isinstance(ax, plt.Axes)
+
+        plt.close(fig)
+
+    def test_has_correct_labels(self, sample_chunk_metrics):
+        """Bytes accessed plot has correct axis labels and title."""
+        fig, ax = plot_bytes_accessed_per_chunk(sample_chunk_metrics)
+
+        assert ax.get_xlabel() == "Chunk Index"
+        assert ax.get_ylabel() == "Bytes (MB)"
+        assert ax.get_title() == "Bytes Accessed Per Chunk (Compressed vs Uncompressed)"
+
+        plt.close(fig)
+
+    def test_custom_title(self, sample_chunk_metrics):
+        """Can set custom title."""
+        fig, ax = plot_bytes_accessed_per_chunk(
+            sample_chunk_metrics, title="Custom Title"
+        )
+
+        assert ax.get_title() == "Custom Title"
+
+        plt.close(fig)
+
+    def test_custom_figsize(self, sample_chunk_metrics):
+        """Can set custom figure size."""
+        fig, _ax = plot_bytes_accessed_per_chunk(sample_chunk_metrics, figsize=(8, 4))
+
+        assert fig.get_figwidth() == 8
+        assert fig.get_figheight() == 4
+
+        plt.close(fig)
+
+    def test_saves_to_file(self, sample_chunk_metrics, tmp_path):
+        """Can save plot to file."""
+        output_file = tmp_path / "bytes_accessed.png"
+
+        fig, _ax = plot_bytes_accessed_per_chunk(
+            sample_chunk_metrics, output_path=output_file
+        )
+
+        assert output_file.exists()
+
+        plt.close(fig)
+
+    def test_raises_on_empty_data(self):
+        """Raises ValueError if no chunk metrics data."""
+        with pytest.raises(ValueError, match="No chunk metrics data available"):
+            plot_bytes_accessed_per_chunk([])
+
+    def test_raises_on_zero_bytes(self):
+        """Raises ValueError if all byte counts are zero."""
+        with pytest.raises(ValueError, match="No bytes access data in chunk metrics"):
+            plot_bytes_accessed_per_chunk(
+                [{"accessed_bytes": 0, "accessed_uncompressed_bytes": 0}]
+            )
+
+    def test_has_legend(self, sample_chunk_metrics):
+        """Has legend with compressed and uncompressed labels."""
+        fig, ax = plot_bytes_accessed_per_chunk(sample_chunk_metrics)
+
+        legend = ax.get_legend()
+        assert legend is not None
+        legend_texts = [t.get_text() for t in legend.get_texts()]
+        assert "Compressed (on-disk)" in legend_texts
+        assert "Uncompressed (in-memory)" in legend_texts
 
         plt.close(fig)

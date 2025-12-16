@@ -16,6 +16,8 @@ from roastcoffea.visualization.plots.cpu import (
     plot_occupancy_timeline,
 )
 from roastcoffea.visualization.plots.io import (
+    plot_branch_access_per_chunk,
+    plot_bytes_accessed_per_chunk,
     plot_compression_ratio_distribution,
     plot_data_access_percentage,
 )
@@ -40,6 +42,8 @@ from roastcoffea.visualization.plots.throughput import (
 from roastcoffea.visualization.plots.workers import plot_worker_count_timeline
 
 __all__ = [
+    "plot_branch_access_per_chunk",
+    "plot_bytes_accessed_per_chunk",
     "plot_compression_ratio_distribution",
     "plot_cpu_utilization_mean_timeline",
     "plot_cpu_utilization_per_worker_timeline",

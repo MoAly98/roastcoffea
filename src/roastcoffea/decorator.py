@@ -22,6 +22,7 @@ def track_metrics(func: Callable) -> Callable:
     - Memory usage (before/after)
     - Bytes read from file source (if available)
     - Chunk metadata (dataset, file, entry range if available)
+    - Per-chunk branch access metrics (accessed_branches, accessed_bytes, percentages)
     - Fine-grained timing/memory/bytes sections from context managers
 
     The decorator works in distributed Dask mode by injecting metrics
@@ -123,6 +124,48 @@ def track_metrics(func: Callable) -> Callable:
 
             bytes_read = bytes_end - bytes_start
 
+            # Extract accessed branches from access_log (per-chunk metrics)
+            accessed_branches: set[str] = set()
+            accessed_bytes = 0
+            accessed_uncompressed_bytes = 0
+            total_branches = 0
+            total_tree_bytes = 0
+            try:
+                factory = events.attrs.get("@events_factory")
+                if factory and hasattr(factory, "access_log"):
+                    for entry in factory.access_log:
+                        accessed_branches.add(entry.branch)
+
+                    # Get tree for compressed/uncompressed bytes lookup
+                    if factory.file_handle:
+                        metadata_obj = events.metadata
+                        tree_name = metadata_obj.get("treename", "Events")
+                        tree = factory.file_handle[tree_name]
+                        total_branches = len(tree.keys())
+                        total_tree_bytes = tree.compressed_bytes
+
+                        # Sum bytes for accessed branches only
+                        for branch in accessed_branches:
+                            try:
+                                accessed_bytes += tree[branch].compressed_bytes
+                                accessed_uncompressed_bytes += tree[
+                                    branch
+                                ].uncompressed_bytes
+                            except Exception:
+                                pass
+            except Exception:
+                pass
+
+            # Calculate per-chunk percentages
+            branches_read_percent = (
+                100 * len(accessed_branches) / total_branches
+                if total_branches > 0
+                else 0.0
+            )
+            bytes_read_percent = (
+                100 * accessed_bytes / total_tree_bytes if total_tree_bytes > 0 else 0.0
+            )
+
             # Assemble complete chunk metrics
             chunk_metrics = {
                 "t_start": t_start,
@@ -134,6 +177,13 @@ def track_metrics(func: Callable) -> Callable:
                 "bytes_read": bytes_read,
                 "timestamp": time.time(),
                 **chunk_metadata,
+                # Per-chunk branch access metrics (from access_log)
+                "accessed_branches": list(accessed_branches),
+                "num_branches_accessed": len(accessed_branches),
+                "accessed_bytes": accessed_bytes,
+                "accessed_uncompressed_bytes": accessed_uncompressed_bytes,
+                "branches_read_percent": branches_read_percent,
+                "bytes_read_percent": bytes_read_percent,
                 # Include fine-grained sections
                 "timing": self._roastcoffea_current_chunk.get("timing", {}),
                 "memory": self._roastcoffea_current_chunk.get("memory", {}),
@@ -223,7 +273,6 @@ def _extract_file_metadata(processor_self: Any, events: Any) -> dict[str, Any] |
         - filename: Full path to the file
         - compression_ratio: compressed_bytes / uncompressed_bytes
         - total_branches: Number of branches in the tree
-        - branch_bytes: Dict mapping branch_name -> compressed_bytes
         - total_tree_bytes: Total compressed bytes in tree
     """
     # Initialize tracking set on processor instance (persists across chunks)
@@ -253,15 +302,6 @@ def _extract_file_metadata(processor_self: Any, events: Any) -> dict[str, Any] |
         # Access the tree
         tree = file_handle[tree_name]
 
-        # Build per-branch byte mapping for data access analysis
-        branch_bytes = {}
-        for branch_name in tree.keys():  # noqa: SIM118
-            try:
-                branch_bytes[branch_name] = tree[branch_name].compressed_bytes
-            except Exception as _e:
-                # Skip branches that don't have compressed_bytes attribute
-                pass
-
         # Calculate compression ratio
         compressed = tree.compressed_bytes
         uncompressed = tree.uncompressed_bytes
@@ -272,7 +312,6 @@ def _extract_file_metadata(processor_self: Any, events: Any) -> dict[str, Any] |
             "filename": filename,
             "compression_ratio": compression_ratio,
             "total_branches": len(tree.keys()),
-            "branch_bytes": branch_bytes,
             "total_tree_bytes": compressed,
         }
 

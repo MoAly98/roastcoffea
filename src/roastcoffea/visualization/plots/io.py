@@ -172,9 +172,167 @@ def plot_data_access_percentage(
     ax.set_xlabel("Bytes Read (%)")
     ax.set_ylabel("Number of Files")
     ax.set_title(title)
-    ax.set_xlim((0, 100))
+    # Dynamic x-axis range based on data
+    max_pct = max(bytes_read_percentages)
+    ax.set_xlim((0, min(100, max_pct * 1.1)))  # 10% padding, capped at 100
     ax.legend()
     ax.grid(True, alpha=0.3)
+
+    plt.tight_layout()
+
+    if output_path:
+        fig.savefig(output_path, dpi=150, bbox_inches="tight")
+
+    return fig, ax
+
+
+def plot_branch_access_per_chunk(
+    chunk_metrics: list[dict[str, Any]],
+    output_path: Path | None = None,
+    figsize: tuple[int, int] = (12, 6),
+    title: str = "Branches Accessed Per Chunk",
+) -> tuple[plt.Figure, plt.Axes]:
+    """Plot number of branches accessed per chunk.
+
+    Shows variation in branch access patterns across chunks, useful for
+    identifying chunks with different data access patterns.
+
+    Parameters
+    ----------
+    chunk_metrics : list of dict
+        Raw chunk metrics from @track_metrics decorator
+    output_path : Path, optional
+        Save path
+    figsize : tuple
+        Figure size
+    title : str
+        Plot title
+
+    Returns
+    -------
+    fig, ax : Figure and Axes
+        Matplotlib figure and axes
+
+    Raises
+    ------
+    ValueError
+        If no chunk metrics data is available
+    """
+    if not chunk_metrics:
+        msg = "No chunk metrics data available"
+        raise ValueError(msg)
+
+    # Extract per-chunk branch counts
+    branch_counts = [chunk.get("num_branches_accessed", 0) for chunk in chunk_metrics]
+
+    if not any(branch_counts):
+        msg = "No branch access data in chunk metrics"
+        raise ValueError(msg)
+
+    fig, ax = plt.subplots(figsize=figsize)
+
+    chunk_indices = range(len(branch_counts))
+    ax.bar(
+        chunk_indices, branch_counts, alpha=0.7, color="steelblue", edgecolor="black"
+    )
+
+    # Add mean line
+    mean_branches = np.mean(branch_counts)
+    ax.axhline(
+        mean_branches,
+        color="red",
+        linestyle="--",
+        linewidth=2,
+        label=f"Mean: {mean_branches:.1f}",
+    )
+
+    ax.set_xlabel("Chunk Index")
+    ax.set_ylabel("Branches Accessed")
+    ax.set_title(title)
+    ax.legend()
+    ax.grid(True, alpha=0.3, axis="y")
+
+    plt.tight_layout()
+
+    if output_path:
+        fig.savefig(output_path, dpi=150, bbox_inches="tight")
+
+    return fig, ax
+
+
+def plot_bytes_accessed_per_chunk(
+    chunk_metrics: list[dict[str, Any]],
+    output_path: Path | None = None,
+    figsize: tuple[int, int] = (12, 6),
+    title: str = "Bytes Accessed Per Chunk (Compressed vs Uncompressed)",
+) -> tuple[plt.Figure, plt.Axes]:
+    """Plot compressed and uncompressed bytes accessed per chunk.
+
+    Shows data volume patterns across chunks, comparing on-disk (compressed)
+    vs in-memory (uncompressed) sizes.
+
+    Parameters
+    ----------
+    chunk_metrics : list of dict
+        Raw chunk metrics from @track_metrics decorator
+    output_path : Path, optional
+        Save path
+    figsize : tuple
+        Figure size
+    title : str
+        Plot title
+
+    Returns
+    -------
+    fig, ax : Figure and Axes
+        Matplotlib figure and axes
+
+    Raises
+    ------
+    ValueError
+        If no chunk metrics data is available
+    """
+    if not chunk_metrics:
+        msg = "No chunk metrics data available"
+        raise ValueError(msg)
+
+    # Extract per-chunk byte counts (in MB)
+    compressed = [chunk.get("accessed_bytes", 0) / 1e6 for chunk in chunk_metrics]
+    uncompressed = [
+        chunk.get("accessed_uncompressed_bytes", 0) / 1e6 for chunk in chunk_metrics
+    ]
+
+    if not any(compressed) and not any(uncompressed):
+        msg = "No bytes access data in chunk metrics"
+        raise ValueError(msg)
+
+    fig, ax = plt.subplots(figsize=figsize)
+
+    chunk_indices = np.arange(len(compressed))
+    width = 0.35
+
+    ax.bar(
+        chunk_indices - width / 2,
+        compressed,
+        width,
+        label="Compressed (on-disk)",
+        alpha=0.7,
+        color="steelblue",
+    )
+    ax.bar(
+        chunk_indices + width / 2,
+        uncompressed,
+        width,
+        label="Uncompressed (in-memory)",
+        alpha=0.7,
+        color="coral",
+    )
+
+    ax.set_xlabel("Chunk Index")
+    ax.set_ylabel("Bytes (MB)")
+    ax.set_title(title)
+    ax.legend()
+    ax.grid(True, alpha=0.3, axis="y")
 
     plt.tight_layout()
 
